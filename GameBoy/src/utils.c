@@ -19,6 +19,17 @@ const char *comando_help = "help";
 const char *comando_exit = "exit";
 //
 
+//tipo de mensajes
+const char *BROKER_MENSAJES_NEW_POKEMON = "NEW_POKEMON";
+const char *BROKER_MENSAJES_APPEARED_POKEMON = "APPEARED_POKEMON";
+const char *BROKER_MENSAJES_CATCH_POKEMON = "CATCH_POKEMON";
+const char *BROKER_MENSAJES_CAUGHT_POKEMON = "CAUGHT_POKEMON";
+const char *BROKER_MENSAJES_GET_POKEMON = "GET_POKEMON";
+const char *TEAM_APPEARED_POKEMON = "APPEARED_POKEMON";
+const char *GAMECARD_NEW_POKEMON = "NEW_POKEMON";
+const char *GAMECARD_CATCH_POKEMON = "CATCH_POKEMON";
+const char *GAMECARD_GET_POKEMON = "GET_POKEMON";
+
 //Mensajes help
 const char *help_procesos = "Los procesos validos son BROKER || TEAM || GAMECARD";
 const char *help_formato_argumentos = "El unico formato valido para ingresar es: [PROCESO] [TIPO_MENSAJE] [ARGUMENTOS]*";

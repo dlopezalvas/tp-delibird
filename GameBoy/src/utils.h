@@ -17,6 +17,17 @@ extern const char *TEAM;
 extern const char *GAMECARD;
 extern const char *GAMEBOY;
 
+//Defino tipo mensajes
+extern const char *BROKER_MENSAJES_NEW_POKEMON;
+extern const char *BROKER_MENSAJES_APPEARED_POKEMON;
+extern const char *BROKER_MENSAJES_CATCH_POKEMON;
+extern const char *BROKER_MENSAJES_CAUGHT_POKEMON;
+extern const char *BROKER_MENSAJES_GET_POKEMON;
+extern const char *TEAM_APPEARED_POKEMON;
+extern const char *GAMECARD_NEW_POKEMON;
+extern const char *GAMECARD_CATCH_POKEMON;
+extern const char *GAMECARD_GET_POKEMON;
+
 //Defino mensajes de errores
 extern const char *argumentos_invalidos;
 extern const char *argumento_invalidos;
