@@ -32,6 +32,7 @@ extern const char *GAMECARD_GET_POKEMON;
 extern const char *argumentos_invalidos;
 extern const char *argumento_invalidos;
 extern const char *procesos_invalidos;
+extern const char *mensaje_invalido;
 
 //Defino comandos
 extern const char *comando_help;
@@ -41,6 +42,8 @@ extern const char *comando_exit;
 extern const char *help_procesos;
 extern const char *help_formato_argumentos;
 extern const char *help_argumentos;
+extern const char *help_mensajes;
+
 
 void iniciar_consola(t_log*);
 void iniciar_gameboy(void);
@@ -50,6 +53,7 @@ void ejecutar_gamecard(char*,...);
 t_log* iniciar_logger(t_config*);
 t_config* leer_config(void);
 void terminar_gameboy(int, t_log*, t_config*);
+bool validar_mensaje(char* proceso, char*mensaje);
 
 
 #endif /* UTILS_H_ */

@@ -2,6 +2,9 @@
 #include "utils.h"
 #define IP_BROKER "IP_BROKER"
 #define PUERTO_BROKER "PUERTO_BROKER"
+#define PROCESOS "PROCESOS"
+#define MENSAJES "MENSAJES"
+#define FORMATO "FORMATO"
 
 //Procesos
 const char *BROKER = "BROKER";
@@ -12,6 +15,7 @@ const char *GAMEBOY = "GAMEBOY";
 //mensajes errores
 const char *argumentos_invalidos = "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help";
 const char *procesos_invalidos = "Por favor ingrese un proceso valido. Para obtener ayuda ingrese el comando help";
+const char *mensaje_invalido = "Por favor ingrese un mensaje valido. Para obtener ayuda ingrese el comando help";
 const char *argumento_invalido= "Argumento invalido\n";
 
 //Comandos
@@ -34,6 +38,7 @@ const char *GAMECARD_GET_POKEMON = "GET_POKEMON";
 const char *help_procesos = "Los procesos validos son BROKER || TEAM || GAMECARD";
 const char *help_formato_argumentos = "El unico formato valido para ingresar es: [PROCESO] [TIPO_MENSAJE] [ARGUMENTOS]*";
 const char *help_argumentos = "Help admite los siguientes argumentos: \n 1- FORMATO\n 2- PROCESOS ";
+const char *help_mensajes = "Las combinaciones de mensajes validas son: ... ";
 
 void iniciar_gameboy(void){
 
@@ -93,6 +98,13 @@ void iniciar_consola(t_log* logger){
 		char * proceso = linea_split[0];
 		char * mensaje = linea_split[1];
 
+		if(!validar_mensaje(proceso,mensaje)){
+			printf("%s\n", mensaje_invalido);
+			free(linea_split);
+			free(proceso);
+			free(mensaje);
+			iniciar_consola(logger);
+		}
 		if(string_equals_ignore_case(BROKER,proceso))
 			ejecutar_broker(mensaje,linea_split);
 		else if(string_equals_ignore_case(TEAM,proceso))
@@ -138,10 +150,12 @@ void help(char* mensaje){
 		return;
 	}
 
-	if(string_equals_ignore_case(mensaje,"PROCESOS"))
+	if(string_equals_ignore_case(mensaje,PROCESOS))
 		puts(help_procesos);
-	else if(string_equals_ignore_case(mensaje,"FORMATO"))
+	else if(string_equals_ignore_case(mensaje,FORMATO))
 		puts(help_formato_argumentos);
+	else if(string_equals_ignore_case(mensaje,MENSAJES))
+			puts(help_mensajes);
 	else
 		{
 			puts(argumento_invalido);
@@ -162,6 +176,21 @@ void ejecutar_broker(char* mensaje,...){
 }
 
 bool validar_mensaje(char* proceso, char*mensaje){
+
+	if(string_equals_ignore_case(TEAM,proceso)){
+		const bool team_is_valid_mensaje = string_equals_ignore_case(TEAM_APPEARED_POKEMON,mensaje);
+
+		return team_is_valid_mensaje;
+	}
+
+	if(string_equals_ignore_case(GAMECARD,proceso)){
+		const bool gamecard_is_valid_mensaje =
+			string_equals_ignore_case(GAMECARD_NEW_POKEMON,mensaje) ||
+			string_equals_ignore_case(GAMECARD_CATCH_POKEMON,mensaje) ||
+			string_equals_ignore_case(GAMECARD_GET_POKEMON,mensaje);
+
+		return gamecard_is_valid_mensaje;
+	}
 
 	if(string_equals_ignore_case(BROKER,proceso)){
 		const bool broker_is_valid_mensaje =
