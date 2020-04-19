@@ -14,7 +14,4 @@
 
 #include "utils.h"
 
-
-
-
 #endif /* GAMEBOY_H_ */

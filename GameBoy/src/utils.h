@@ -7,14 +7,38 @@
 #include<unistd.h>
 #include<sys/socket.h>
 #include<netdb.h>
-#include<string.h>
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
 
-t_log* iniciar_logger(void);
+//Defino diferentes procesos
+extern const char *BROKER;
+extern const char *TEAM;
+extern const char *GAMECARD;
+extern const char *GAMEBOY;
+
+//Defino mensajes de errores
+extern const char *argumentos_invalidos;
+extern const char *argumento_invalidos;
+extern const char *procesos_invalidos;
+
+//Defino comandos
+extern const char *comando_help;
+extern const char *comando_exit;
+
+//Mensajes help
+extern const char *help_procesos;
+extern const char *help_formato_argumentos;
+extern const char *help_argumentos;
+
+void iniciar_consola(t_log*);
+void iniciar_gameboy(void);
+void ejecutar_broker(char*,...);
+void ejecutar_team(char*,...);
+void ejecutar_gamecard(char*,...);
+t_log* iniciar_logger(t_config*);
 t_config* leer_config(void);
-void terminar_programa(int, t_log*, t_config*);
+void terminar_gameboy(int, t_log*, t_config*);
 
 
 #endif /* UTILS_H_ */
