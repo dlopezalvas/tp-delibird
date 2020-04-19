@@ -11,38 +11,46 @@
 #include<commons/string.h>
 #include<commons/config.h>
 
+//Config
+#define IP_BROKER "IP_BROKER"
+#define PUERTO_BROKER "PUERTO_BROKER"
+#define PROCESOS "PROCESOS"
+#define MENSAJES "MENSAJES"
+#define FORMATO "FORMATO"
+
 //Defino diferentes procesos
-extern const char *BROKER;
-extern const char *TEAM;
-extern const char *GAMECARD;
-extern const char *GAMEBOY;
+#define BROKER "BROKER"
+#define TEAM "TEAM"
+#define GAMECARD "GAMECARD"
+#define GAMEBOY "GAMEBOY"
 
 //Defino tipo mensajes
-extern const char *BROKER_MENSAJES_NEW_POKEMON;
-extern const char *BROKER_MENSAJES_APPEARED_POKEMON;
-extern const char *BROKER_MENSAJES_CATCH_POKEMON;
-extern const char *BROKER_MENSAJES_CAUGHT_POKEMON;
-extern const char *BROKER_MENSAJES_GET_POKEMON;
-extern const char *TEAM_APPEARED_POKEMON;
-extern const char *GAMECARD_NEW_POKEMON;
-extern const char *GAMECARD_CATCH_POKEMON;
-extern const char *GAMECARD_GET_POKEMON;
+#define BROKER_MENSAJES_NEW_POKEMON "NEW_POKEMON"
+#define BROKER_MENSAJES_APPEARED_POKEMON "APPEARED_POKEMON"
+#define BROKER_MENSAJES_CATCH_POKEMON "CATCH_POKEMON"
+#define BROKER_MENSAJES_CAUGHT_POKEMON "CAUGHT_POKEMON"
+#define BROKER_MENSAJES_GET_POKEMON "GET_POKEMON"
+#define TEAM_APPEARED_POKEMON "APPEARED_POKEMON"
+#define GAMECARD_NEW_POKEMON "NEW_POKEMON"
+#define GAMECARD_CATCH_POKEMON "CATCH_POKEMON"
+#define GAMECARD_GET_POKEMON "GET_POKEMON"
 
-//Defino mensajes de errores
-extern const char *argumentos_invalidos;
-extern const char *argumento_invalidos;
-extern const char *procesos_invalidos;
-extern const char *mensaje_invalido;
+//mensajes de errores
+#define argumentos_invalidos "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help"
+#define procesos_invalidos "Por favor ingrese un proceso valido. Para obtener ayuda ingrese el comando help"
+#define mensaje_invalido "Por favor ingrese un mensaje valido. Para obtener ayuda ingrese el comando help"
+#define argumento_invalido "Argumento invalido\n"
 
 //Defino comandos
-extern const char *comando_help;
-extern const char *comando_exit;
+//Comandos
+#define comando_help "help"
+#define comando_exit "exit"
 
 //Mensajes help
-extern const char *help_procesos;
-extern const char *help_formato_argumentos;
-extern const char *help_argumentos;
-extern const char *help_mensajes;
+#define help_procesos "Los procesos validos son BROKER || TEAM || GAMECARD"
+#define help_formato_argumentos "El unico formato valido para ingresar es: [PROCESO] [TIPO_MENSAJE] [ARGUMENTOS]*"
+#define help_argumentos "Help admite los siguientes argumentos: \n 1- FORMATO\n 2- PROCESOS "
+#define help_mensajes "Las combinaciones de mensajes validas son: ... "
 
 
 void iniciar_consola(t_log*);

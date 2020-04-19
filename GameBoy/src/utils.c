@@ -1,44 +1,4 @@
-
 #include "utils.h"
-#define IP_BROKER "IP_BROKER"
-#define PUERTO_BROKER "PUERTO_BROKER"
-#define PROCESOS "PROCESOS"
-#define MENSAJES "MENSAJES"
-#define FORMATO "FORMATO"
-
-//Procesos
-const char *BROKER = "BROKER";
-const char *TEAM = "TEAM";
-const char *GAMECARD = "GAMECARD";
-const char *GAMEBOY = "GAMEBOY";
-//
-//mensajes errores
-const char *argumentos_invalidos = "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help";
-const char *procesos_invalidos = "Por favor ingrese un proceso valido. Para obtener ayuda ingrese el comando help";
-const char *mensaje_invalido = "Por favor ingrese un mensaje valido. Para obtener ayuda ingrese el comando help";
-const char *argumento_invalido= "Argumento invalido\n";
-
-//Comandos
-const char *comando_help = "help";
-const char *comando_exit = "exit";
-//
-
-//tipo de mensajes
-const char *BROKER_MENSAJES_NEW_POKEMON = "NEW_POKEMON";
-const char *BROKER_MENSAJES_APPEARED_POKEMON = "APPEARED_POKEMON";
-const char *BROKER_MENSAJES_CATCH_POKEMON = "CATCH_POKEMON";
-const char *BROKER_MENSAJES_CAUGHT_POKEMON = "CAUGHT_POKEMON";
-const char *BROKER_MENSAJES_GET_POKEMON = "GET_POKEMON";
-const char *TEAM_APPEARED_POKEMON = "APPEARED_POKEMON";
-const char *GAMECARD_NEW_POKEMON = "NEW_POKEMON";
-const char *GAMECARD_CATCH_POKEMON = "CATCH_POKEMON";
-const char *GAMECARD_GET_POKEMON = "GET_POKEMON";
-
-//Mensajes help
-const char *help_procesos = "Los procesos validos son BROKER || TEAM || GAMECARD";
-const char *help_formato_argumentos = "El unico formato valido para ingresar es: [PROCESO] [TIPO_MENSAJE] [ARGUMENTOS]*";
-const char *help_argumentos = "Help admite los siguientes argumentos: \n 1- FORMATO\n 2- PROCESOS ";
-const char *help_mensajes = "Las combinaciones de mensajes validas son: ... ";
 
 void iniciar_gameboy(void){
 
