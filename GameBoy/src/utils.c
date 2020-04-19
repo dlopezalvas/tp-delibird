@@ -157,7 +157,24 @@ void terminar_gameboy(int conexion, t_log* logger, t_config* config)
 }
 
 void ejecutar_broker(char* mensaje,...){
+
 	puts(mensaje);
+}
+
+bool validar_mensaje(char* proceso, char*mensaje){
+
+	if(string_equals_ignore_case(BROKER,proceso)){
+		const bool broker_is_valid_mensaje =
+				string_equals_ignore_case(BROKER_MENSAJES_NEW_POKEMON,mensaje) ||
+				string_equals_ignore_case(BROKER_MENSAJES_APPEARED_POKEMON,mensaje) ||
+				string_equals_ignore_case(BROKER_MENSAJES_CATCH_POKEMON,mensaje) ||
+				string_equals_ignore_case(BROKER_MENSAJES_CAUGHT_POKEMON,mensaje) ||
+				string_equals_ignore_case(BROKER_MENSAJES_GET_POKEMON,mensaje);
+
+		return broker_is_valid_mensaje;
+	}
+
+	return false;
 }
 
 void ejecutar_team(char* mensaje,...){
