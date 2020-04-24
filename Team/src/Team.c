@@ -14,6 +14,7 @@
 int main(void) {
 
 	iniciarTeam();
+	config_get_array_value()
 
 	return EXIT_SUCCESS;
 }

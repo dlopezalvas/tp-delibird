@@ -15,6 +15,31 @@
 #define IP_BROKER "IP_BROKER"
 #define PUERTO_BROKER "PUERTO_BROKER"
 
+typedef struct
+{
+	uint32_t ID;
+	int coordenadas [2]; // tipo coordenada
+	t_pokemon* pokemons; // lista string
+	t_pokemon* objetivo; // lista string
+	t_estado estado; //para saber si esta en ready o block
+} t_entrenador;
+
+typedef struct
+{
+	char* nombre;
+	t_pokemon* siguiente;
+} t_pokemon;
+
+typedef enum
+{
+	NEW = 1,
+	READY = 2,
+	EXECT = 3,
+	BLOCK = 4,
+	EXIT = 5,
+}t_estado;
+
+
 
 void iniciarTeam(void);
 t_log* iniciar_logger(t_config*);

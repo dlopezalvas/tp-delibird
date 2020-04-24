@@ -42,4 +42,9 @@ void terminarTeam(int conexion, t_log* logger, t_config* config)
 	log_destroy(logger);
 }
 
+void configurarTeam(t_config* config, ){
+
+
+}
+
 
