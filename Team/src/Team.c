@@ -14,7 +14,7 @@
 int main(void) {
 
 	iniciarTeam();
-	config_get_array_value()
+	puts("termina");
 
 	return EXIT_SUCCESS;
 }
