@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "./utils.h"
 
 
 void iniciarTeam(void){
@@ -30,7 +30,7 @@ t_log* iniciar_logger(t_config* config)
 
 t_config* leer_config(void)
 {
-	t_config* config = config_create("Team.config");
+	t_config* config = config_create("../Team.config");
 	return config;
 }
 
