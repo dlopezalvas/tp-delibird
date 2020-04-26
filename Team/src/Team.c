@@ -8,7 +8,9 @@
  ============================================================================
  */
 
-#include "Team.h"
+//#include "Team.h"
+
+#include<../CommonsMCLDG/utils.h>
 
 
 int main(void) {
@@ -16,5 +18,5 @@ int main(void) {
 	iniciarTeam();
 	puts("termina");
 
-	return EXIT_SUCCESS;
+	//return EXIT_SUCCESS;
 }
