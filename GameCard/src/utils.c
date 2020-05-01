@@ -13,7 +13,7 @@ t_log* iniciar_logger(void)
 
 t_config* leer_config(void)
 {
-	t_config* config = config_create("Gamecard.config");
+	t_config* config = config_create("../Gamecard.config");
 	return config;
 }
 

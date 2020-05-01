@@ -99,7 +99,7 @@ t_log* iniciar_logger(t_config* config)
 t_config* leer_config(void)
 {
 //	puts(HELLO2);
-	t_config* config = config_create("GameBoy.config");
+	t_config* config = config_create("../GameBoy.config");
 	return config;
 }
 
