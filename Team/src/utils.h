@@ -13,7 +13,7 @@
 #include<commons/collections/node.h>
 #include<commons/collections/list.h>
 #include<commons/string.h>
-
+#include<stdbool.h>
 //Config
 #define IP_BROKER "IP_BROKER"
 #define PUERTO_BROKER "PUERTO_BROKER"
@@ -25,7 +25,7 @@ typedef enum
 {
 	NEW = 1,
 	READY = 2,
-	EXECT = 3,
+	EXEC = 3,
 	BLOCK = 4,
 	EXIT = 5,
 }t_estado;
@@ -58,7 +58,8 @@ void configurarEntrenadores(t_config* config, t_lista* entrenadores);
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
 t_list* configurarPokemons(char** pokemons);
 void agregarEntrenador(t_lista* entrenadores,t_nodo *nodo);
-
+t_entrenador* cambiarEstado (t_entrenador* entrenador,t_estado nuevoEstado);
+bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado);
 
 
 #endif /* UTILS_H_ */

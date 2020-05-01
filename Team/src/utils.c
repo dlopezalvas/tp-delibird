@@ -95,3 +95,39 @@ void agregarEntrenador(t_lista* entrenadores,t_nodo* nodo){
 }
 
 
+t_entrenador* cambiarEstado (t_entrenador* entrenador,t_estado nuevoEstado){
+	if(cambioEstadoValido(entrenador->estado, nuevoEstado)){
+	entrenador->estado = nuevoEstado;
+	return entrenador;
+	}else {
+		printf("Estado invalido");
+		return entrenador;
+	}
+}
+
+bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){
+	switch (estadoViejo){
+	case NEW:
+		if(nuevoEstado == READY) return true;
+		else return false;
+		break;
+	case READY:
+		if(nuevoEstado == EXEC) return true;
+		else return false;
+		break;
+	case EXEC:
+		if(nuevoEstado == (READY || BLOCK || EXIT)) return true;
+		else return false;
+		break;
+	case BLOCK:
+		if(nuevoEstado == (READY || EXIT)) return true;
+		else return false;
+		break;
+	case EXIT:
+		return false;
+		break;
+	return true;
+	}
+	return false;
+}
+
