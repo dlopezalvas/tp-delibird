@@ -8,6 +8,7 @@ void iniciarTeam(void){
 	t_list* entrenadores = list_create();
 
 	configurarEntrenadores(config, entrenadores);
+	if(cumpleObjetivoParticular(entrenadores->head->data)) puts("son iguales");
 
 
 	char *ip = config_get_string_value(config,IP_BROKER);
@@ -74,10 +75,11 @@ void configurarEntrenadores(t_config* config, t_list* entrenadores){
 	return ;
 }
 
-static t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){
+t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){
 	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
 	entrenador->estado = NEW;
-	entrenador->objetivos = string_split(objetivos, "|");
+	char** objetivosEntrenador = string_split(objetivos,"|");
+	entrenador->objetivos = configurarPokemons(objetivosEntrenador);
 	char** coordenadas = string_split(posicion,"|");
 	entrenador->coordx = atoi(coordenadas[0]);
 	entrenador->coordy = atoi(coordenadas[1]);
@@ -149,14 +151,41 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){
 }
 
 bool cumpleObjetivoGlobal(t_list* entrenadores){
-	bool _cumpleObjetivoParticular(void* entrenador){
-		return cumpleObjetivoParticular(entrenadores->head->data);
+	bool _esEstadoExit(void* entrenador){
+		return esEstadoExit(entrenadores->head->data);
 	}
-	return list_all_satisfy(entrenadores,_cumpleObjetivoParticular);
+	return list_all_satisfy(entrenadores,_esEstadoExit);
 
 }
 
-bool cumpleObjetivoParticular(t_entrenador* entrenador){
+bool esEstadoExit(t_entrenador* entrenador){
 	return entrenador->estado == EXIT;
+}
+
+bool cumpleObjetivoParticular (t_entrenador* entrenador){
+	if (list_size(entrenador->objetivos) != list_size(entrenador->pokemons)) return false;
+	bool _criterioOrden(void* elem1 , void* elem2){
+		return criterioOrden(elem1, elem2);
+	}
+	list_sort(entrenador->objetivos, _criterioOrden);
+	list_sort(entrenador->pokemons, _criterioOrden);
+	return listasIguales( entrenador->objetivos, entrenador->pokemons);
+}
+
+bool listasIguales(t_list* lista1, t_list* lista2){
+	t_link_element* list1 = lista1->head;
+	t_link_element* list2 = lista2->head;
+	while(list1){
+		if(string_equals_ignore_case(list1->data, list2->data)) {
+		 list1 = list1->next;
+		 list2 = list2->next;
+		}
+		else return false;
+	}
+	return true;
+}
+
+bool criterioOrden(char* elem1, char* elem2){
+	return (0 < strcmp(elem1, elem2));
 }
 
