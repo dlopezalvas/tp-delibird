@@ -54,12 +54,13 @@ void iniciarTeam(void);
 t_log* iniciar_logger(t_config*);
 t_config* leer_config(void);
 void terminarTeam(int, t_log*, t_config*);
-void configurarEntrenadores(t_config* config, t_lista* entrenadores);
-t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
+void configurarEntrenadores(t_config* config, t_list* entrenadores);
+static t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
 t_list* configurarPokemons(char** pokemons);
 void agregarEntrenador(t_lista* entrenadores,t_nodo *nodo);
 t_entrenador* cambiarEstado (t_entrenador* entrenador,t_estado nuevoEstado);
 bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado);
-
+bool cumpleObjetivoGlobal(t_list* entrenadores);
+bool cumpleObjetivoParticular(t_entrenador* entrenador);
 
 #endif /* UTILS_H_ */

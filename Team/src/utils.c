@@ -4,9 +4,12 @@
 void iniciarTeam(void){
 	t_config* config = leer_config();
 	t_log* logger = iniciar_logger(config);
-	t_lista entrenadores = NULL;
 
-	configurarEntrenadores(config, &entrenadores);
+	t_list* entrenadores = list_create();
+
+	configurarEntrenadores(config, entrenadores);
+
+
 	char *ip = config_get_string_value(config,IP_BROKER);
 	char *puerto = config_get_string_value(config,PUERTO_BROKER);
 
@@ -21,7 +24,6 @@ void iniciarTeam(void){
 t_log* iniciar_logger(t_config* config)
 {
 	config = leer_config();
-
 	char* nombre_archivo = config_get_string_value(config,"LOG_FILE");
 	char* nombre_aplicacion = config_get_string_value(config,"NOMBRE_APLICACION");
 	t_log* logger = log_create(nombre_archivo,nombre_aplicacion,0,LOG_LEVEL_INFO);
@@ -30,7 +32,7 @@ t_log* iniciar_logger(t_config* config)
 
 t_config* leer_config(void)
 {
-	t_config* config = config_create("../Team.config");
+	t_config* config = config_create("Team.config");
 	return config;
 }
 
@@ -43,7 +45,23 @@ void terminarTeam(int conexion, t_log* logger, t_config* config)
 	log_destroy(logger);
 }
 
-void configurarEntrenadores(t_config* config, t_lista* entrenadores){
+//void configurarEntrenadores(t_config* config, t_lista* entrenadores){
+//
+//	char** posiciones = config_get_array_value(config, "POSICIONES_ENTRENADORES");
+//	char** pokemonEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
+//	char** objetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
+//
+//	for(int i=0; posiciones[i];i++){
+//		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i]);
+//		t_nodo* nodo = malloc(sizeof(t_nodo));
+//		nodo->data = entrenador;
+//		nodo->sig=NULL;
+//		agregarEntrenador(entrenadores, nodo);
+//	}
+//	return ;
+//}
+
+void configurarEntrenadores(t_config* config, t_list* entrenadores){
 
 	char** posiciones = config_get_array_value(config, "POSICIONES_ENTRENADORES");
 	char** pokemonEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -51,16 +69,13 @@ void configurarEntrenadores(t_config* config, t_lista* entrenadores){
 
 	for(int i=0; posiciones[i];i++){
 		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i]);
-		t_nodo* nodo = malloc(sizeof(t_nodo));
-		nodo->data = entrenador;
-		nodo->sig=NULL;
-		agregarEntrenador(entrenadores, nodo);
+		list_add(entrenadores, entrenador);
 	}
 	return ;
 }
 
-t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){
-	t_entrenador* entrenador= malloc(sizeof(t_entrenador));;
+static t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){
+	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
 	entrenador->estado = NEW;
 	entrenador->objetivos = string_split(objetivos, "|");
 	char** coordenadas = string_split(posicion,"|");
@@ -70,6 +85,8 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	entrenador->pokemons = configurarPokemons(pokemons);
 	return entrenador;
 }
+
+
 
 t_list* configurarPokemons(char** pokemons){
 	t_list* listaPokemons = list_create();
@@ -129,5 +146,17 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){
 	return true;
 	}
 	return false;
+}
+
+bool cumpleObjetivoGlobal(t_list* entrenadores){
+	bool _cumpleObjetivoParticular(void* entrenador){
+		return cumpleObjetivoParticular(entrenadores->head->data);
+	}
+	return list_all_satisfy(entrenadores,_cumpleObjetivoParticular);
+
+}
+
+bool cumpleObjetivoParticular(t_entrenador* entrenador){
+	return entrenador->estado == EXIT;
 }
 
