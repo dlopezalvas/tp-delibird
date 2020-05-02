@@ -216,8 +216,9 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){
 	return (entrenador->estado == (NEW || BLOCK) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
 }
 
-void capturoPokemon(t_entrenador* entrenador, char* pokemon){
+void capturoPokemon(t_entrenador* entrenador, char* pokemon, t_list* objetivoGlobal){
 	list_add(entrenador->pokemons, pokemon);
+	removerPokemon(pokemon,objetivoGlobal);
 	if(tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)){
 		cambiarEstado(entrenador, READY);
 	}else{
@@ -234,9 +235,6 @@ void configurarObjetivoGlobal(t_list* entrenadores, t_list* objetivoGlobal){
 	t_link_element *entrenador = entrenadores->head;
 	t_link_element *aux = NULL;
 	char* pokemon = NULL;
-	bool mismoPokemon(char* pokemon1 ){
-	return string_equals_ignore_case(pokemon, pokemon1);
-	}
 	t_list* pokemons = list_create();
 	while(entrenador!= NULL){
 		aux = entrenador->next;
@@ -249,17 +247,21 @@ void configurarObjetivoGlobal(t_list* entrenadores, t_list* objetivoGlobal){
 	while(!(list_is_empty(pokemons))){
 
 		pokemon = list_remove(pokemons, 0);
-
-		list_remove_by_condition(objetivoGlobal, (void*)mismoPokemon);
+		removerPokemon( pokemon,objetivoGlobal);
 		free(pokemon);
-		pokemon = NULL;
 	}
+	free(pokemons);
 
 }
 
 
 
-
+void removerPokemon(char* pokemon, t_list* lista){
+	bool mismoPokemon(char* pokemon1 ){
+			return string_equals_ignore_case(pokemon, pokemon1);
+			}
+		list_remove_by_condition(lista, (void*)mismoPokemon);
+}
 
 
 

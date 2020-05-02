@@ -69,7 +69,8 @@ bool cumpleObjetivoParticular (t_entrenador* entrenador);
 void entrenadorDestroy(t_entrenador * entrenador);
 bool tieneMenosElementos (t_list* listaChica, t_list* lista );
 bool puedeAtraparPokemon(t_entrenador* entrenador);
-void capturoPokemon(t_entrenador* entrenador, char* pokemon);
+void capturoPokemon(t_entrenador* entrenador, char* pokemon, t_list* objetivoGlobal);
 void configurarObjetivoGlobal(t_list* entrenadores, t_list* objetivoGlobal);
+void removerPokemon(char* pokemon, t_list* lista);
 
 #endif /* UTILS_H_ */
