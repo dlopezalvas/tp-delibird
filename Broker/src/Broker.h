@@ -15,7 +15,7 @@
 void iniciar_broker(t_config**, t_log**);
 t_log* iniciar_logger(t_config*);
 t_config* leer_config(void);
-void terminar_programa(int, t_log*, t_config*);
+void terminar_broker(t_log*, t_config*);
 
 
 #endif /* BROKER_H_ */

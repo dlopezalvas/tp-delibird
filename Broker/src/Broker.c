@@ -15,11 +15,14 @@
 #define LOG_FILE "LOG_FILE"
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
+
 int main(void) {
 
 	t_log* logger;
 	t_config* config;
-	iniciar_broker(&logger,&config);
+	iniciar_broker(&config,&logger);
+	terminar_broker(logger,config);
+	return EXIT_SUCCESS;
 }
 
 void iniciar_broker(t_config** config, t_log** logger){
@@ -42,11 +45,9 @@ t_config* leer_config(void)
 	return config;
 }
 
-void terminar_broker(int conexion, t_log* logger, t_config* config)
+void terminar_broker(t_log* logger, t_config* config)
 {
 	config_destroy(config);
-	log_info(logger,"-----------LOG END--------");
-	//liberar_conexion(conexion);
 	log_destroy(logger);
 }
 
