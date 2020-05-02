@@ -3,6 +3,7 @@
 	<name>GameBoy</name>
 	<comment></comment>
 	<projects>
+		<project>CommonsMCLDG</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

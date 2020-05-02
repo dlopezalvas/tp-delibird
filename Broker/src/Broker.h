@@ -10,7 +10,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-
+#include<../CommonsMCLDG/utils.h>
 #include "utils_broker.h"
 
 void iniciar_broker(t_config**, t_log**);

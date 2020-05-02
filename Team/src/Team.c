@@ -11,6 +11,7 @@
 #include "Team.h"
 
 
+
 int main(void) {
 	t_config* config;
 	t_log* logger;
@@ -18,7 +19,6 @@ int main(void) {
 	t_list* objetivoGlobal;
 
 	iniciarTeam(&config, &logger, &entrenadores, &objetivoGlobal);
-
 
 	terminarTeam(1,logger, config, entrenadores, objetivoGlobal);
 	puts("termina");

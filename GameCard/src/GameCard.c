@@ -8,8 +8,6 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "GameCard.h"
 
 int main(void) {
@@ -18,11 +16,12 @@ int main(void) {
 
 	t_log* logger;
 	t_config* config;
+	config = leer_config(GAMECARD);
 
-	logger = iniciar_logger();
+	logger = iniciar_logger(config);
 	log_info(logger,"-----------LOG START--------");
 
-	config = leer_config();
+
 
 	ip = config_get_string_value(config,"IP_BROKER");
 	puerto = config_get_string_value(config,"PUERTO_BROKER");
