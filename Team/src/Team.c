@@ -20,12 +20,7 @@ int main(void) {
 
 	iniciarTeam(&config, &logger, &entrenadores, &objetivoGlobal);
 
-
-<<<<<<< HEAD
 	terminarTeam(1,logger, config, entrenadores, objetivoGlobal);
 	puts("termina");
 	return EXIT_SUCCESS;
-=======
-	//return EXIT_SUCCESS;
->>>>>>> shared-library
 }
