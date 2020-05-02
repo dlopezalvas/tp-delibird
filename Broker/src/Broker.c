@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Broker.h"
-#define LOG_FILE "LOF_FILE"
+#define LOG_FILE "LOG_FILE"
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
 int main(void) {
