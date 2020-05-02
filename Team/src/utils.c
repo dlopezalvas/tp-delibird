@@ -1,13 +1,19 @@
 #include "utils.h"
 
 
-void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores){
+void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores,t_list** objetivoGlobal){
 	*config = leer_config();
 	*logger = iniciar_logger(*config);
 
 	*entrenadores = list_create();
+	*objetivoGlobal = list_create();
 
 	configurarEntrenadores(*config, *entrenadores);
+	configurarObjetivoGlobal(*entrenadores, *objetivoGlobal);
+//	printf("%d \n", list_size(*objetivoGlobal));
+//	printf("%s \n", (*objetivoGlobal)->head->data);
+//	printf("%s \n", (*objetivoGlobal)->head->next->data);
+//	printf("%s \n", (*objetivoGlobal)->head->next->next->data);
 //	if(cumpleObjetivoParticular((*entrenadores)->head->data)) puts("son iguales");
 //	else puts("no son iguales");
 //
@@ -39,7 +45,7 @@ t_config* leer_config(void)
 }
 
 
-void terminarTeam(int conexion, t_log* logger, t_config* config, t_list* entrenadores)
+void terminarTeam(int conexion, t_log* logger, t_config* config, t_list* entrenadores, t_list* objetivoGlobal)
 {
 
 	void _entrenadorDestroy(void* entrenador){
@@ -47,6 +53,7 @@ void terminarTeam(int conexion, t_log* logger, t_config* config, t_list* entrena
 		}
 
 	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
+	free(objetivoGlobal);
 	config_destroy(config);
 	//liberar_conexion(conexion);
 	log_info(logger,"-----------LOG END--------");
@@ -183,7 +190,7 @@ bool cumpleObjetivoParticular (t_entrenador* entrenador){
 	return listasIguales( entrenador->objetivos, entrenador->pokemons);
 }
 
-bool tieneMenosElementos (t_list* listaChica, t_list* lista ){
+bool tieneMenosElementos (t_list* listaChica, t_list* lista ){	//usar list_size o elements_count
 	if(list_size(listaChica) < list_size(lista)) return true;
 	return false;
 }
@@ -222,6 +229,34 @@ void capturoPokemon(t_entrenador* entrenador, char* pokemon){
 		}
 	}
 }
+
+void configurarObjetivoGlobal(t_list* entrenadores, t_list* objetivoGlobal){
+	t_link_element *entrenador = entrenadores->head;
+	t_link_element *aux = NULL;
+	char* pokemon = NULL;
+	bool mismoPokemon(char* pokemon1 ){
+	return string_equals_ignore_case(pokemon, pokemon1);
+	}
+	t_list* pokemons = list_create();
+	while(entrenador!= NULL){
+		aux = entrenador->next;
+		t_entrenador* entre = entrenador->data;
+		list_add_all(objetivoGlobal, entre->objetivos);
+		list_add_all(pokemons, entre->pokemons);
+		entrenador = aux;
+	}
+
+	while(!(list_is_empty(pokemons))){
+
+		pokemon = list_remove(pokemons, 0);
+
+		list_remove_by_condition(objetivoGlobal, (void*)mismoPokemon);
+		free(pokemon);
+		pokemon = NULL;
+	}
+
+}
+
 
 
 

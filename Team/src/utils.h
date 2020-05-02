@@ -51,10 +51,10 @@ typedef struct t_nodo
 typedef struct t_nodo* t_lista;
 
 
-void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores);
+void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores, t_list** objetivoGlobal);
 t_log* iniciar_logger(t_config*);
 t_config* leer_config(void);
-void terminarTeam(int, t_log*, t_config*, t_list* ); //falta conexion
+void terminarTeam(int conexion, t_log* logger, t_config* config, t_list* entrenadores, t_list* objetivoGlobal); //falta conexion
 void configurarEntrenadores(t_config* config, t_list* entrenadores);
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
 t_list* configurarPokemons(char** pokemons);
@@ -70,5 +70,6 @@ void entrenadorDestroy(t_entrenador * entrenador);
 bool tieneMenosElementos (t_list* listaChica, t_list* lista );
 bool puedeAtraparPokemon(t_entrenador* entrenador);
 void capturoPokemon(t_entrenador* entrenador, char* pokemon);
+void configurarObjetivoGlobal(t_list* entrenadores, t_list* objetivoGlobal);
 
 #endif /* UTILS_H_ */
