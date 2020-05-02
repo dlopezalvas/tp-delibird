@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILSCOMMONS_H_
+#define UTILSCOMMONS_H_
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -7,6 +7,7 @@
 #include<unistd.h>
 #include<sys/socket.h>
 #include<netdb.h>
+#include<string.h>
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
@@ -14,9 +15,7 @@
 //Config
 #define IP_BROKER "IP_BROKER"
 #define PUERTO_BROKER "PUERTO_BROKER"
-#define PROCESOS "PROCESOS"
-#define MENSAJES "MENSAJES"
-#define FORMATO "FORMATO"
+
 
 //Defino diferentes procesos
 #define BROKER "BROKER"
@@ -35,33 +34,13 @@
 #define GAMECARD_CATCH_POKEMON "CATCH_POKEMON"
 #define GAMECARD_GET_POKEMON "GET_POKEMON"
 
-//mensajes de errores
-#define argumentos_invalidos "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help"
-#define procesos_invalidos "Por favor ingrese un proceso valido. Para obtener ayuda ingrese el comando help"
-#define mensaje_invalido "Por favor ingrese un mensaje valido. Para obtener ayuda ingrese el comando help"
-#define argumento_invalido "Argumento invalido\n"
-
-//Defino comandos
-//Comandos
-#define comando_help "help"
-#define comando_exit "exit"
-
-//Mensajes help
-#define help_procesos "Los procesos validos son BROKER || TEAM || GAMECARD"
-#define help_formato_argumentos "El unico formato valido para ingresar es: [PROCESO] [TIPO_MENSAJE] [ARGUMENTOS]*"
-#define help_argumentos "Help admite los siguientes argumentos: \n 1- FORMATO\n 2- PROCESOS "
-#define help_mensajes "Las combinaciones de mensajes validas son: ... "
 
 
-void iniciar_consola(t_log*);
-void iniciar_gameboy(void);
-void ejecutar_broker(char*,...);
-void ejecutar_team(char*,...);
-void ejecutar_gamecard(char*,...);
+void iniciar_proceso(char* proceso, t_config* config);
 t_log* iniciar_logger(t_config*);
-t_config* leer_config(void);
-void terminar_gameboy(int, t_log*, t_config*);
-bool validar_mensaje(char* proceso, char*mensaje);
+t_config* leer_config(char* proceso);
+void terminar_proceso(int, t_log*, t_config*);
 
 
 #endif /* UTILS_H_ */
+

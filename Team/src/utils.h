@@ -13,13 +13,7 @@
 #include<commons/collections/node.h>
 #include<commons/collections/list.h>
 #include<commons/string.h>
-
-//Config
-#define IP_BROKER "IP_BROKER"
-#define PUERTO_BROKER "PUERTO_BROKER"
-
-
-
+#include<../CommonsMCLDG/utils.h>
 
 typedef enum
 {
@@ -51,9 +45,6 @@ typedef struct t_nodo* t_lista;
 
 
 void iniciarTeam(void);
-t_log* iniciar_logger(t_config*);
-t_config* leer_config(void);
-void terminarTeam(int, t_log*, t_config*);
 void configurarEntrenadores(t_config* config, t_lista* entrenadores);
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
 t_list* configurarPokemons(char** pokemons);

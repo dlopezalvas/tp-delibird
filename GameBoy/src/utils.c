@@ -2,7 +2,7 @@
 
 void iniciar_gameboy(void){
 
-	t_config* config = leer_config();
+	t_config* config = leer_config(GAMEBOY);
 	t_log* logger = iniciar_logger(config);
 
 	char *ip = config_get_string_value(config,IP_BROKER);
@@ -12,7 +12,7 @@ void iniciar_gameboy(void){
   	log_info(logger,ip);
 
   	iniciar_consola(logger);
-  	terminar_gameboy(1,logger,config);
+  	terminar_proceso(1,logger,config);
 }
 
 void iniciar_consola(t_log* logger){
@@ -85,23 +85,7 @@ void iniciar_consola(t_log* logger){
 
 }
 
-t_log* iniciar_logger(t_config* config)
-{
-	config = leer_config();
 
-	char* nombre_archivo = config_get_string_value(config,"ARCHIVO_LOG");
-	char* nombre_aplicacion = config_get_string_value(config,"NOMBRE_APLICACION");
-	int log_consola = config_get_int_value(config,"LOG_CONSOLA");
-	t_log* logger = log_create(nombre_archivo,nombre_aplicacion,log_consola,LOG_LEVEL_INFO);
-	return logger;
-}
-
-t_config* leer_config(void)
-{
-//	puts(HELLO2);
-	t_config* config = config_create("GameBoy.config");
-	return config;
-}
 
 void help(char* mensaje){
 
@@ -121,13 +105,6 @@ void help(char* mensaje){
 			puts(argumento_invalido);
 			puts(help_argumentos);
 		}
-}
-void terminar_gameboy(int conexion, t_log* logger, t_config* config)
-{
-	config_destroy(config);
-	//liberar_conexion(conexion);
-	log_info(logger,"-----------LOG END--------");
-	log_destroy(logger);
 }
 
 void ejecutar_broker(char* mensaje,...){

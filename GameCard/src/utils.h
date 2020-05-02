@@ -11,10 +11,6 @@
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
-
-t_log* iniciar_logger(void);
-t_config* leer_config(void);
-void terminar_programa(int, t_log*, t_config*);
-
+#include<../CommonsMCLDG/utils.h>
 
 #endif /* UTILS_H_ */

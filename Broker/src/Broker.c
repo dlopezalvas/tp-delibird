@@ -20,10 +20,12 @@ int main(void) {
 	t_log* logger;
 	t_config* config;
 
-	logger = iniciar_logger();
+	config = leer_config(BROKER);
+
+	logger = iniciar_logger(config);
 	log_info(logger,"-----------LOG START--------");
 
-	config = leer_config();
+
 
 	ip = config_get_string_value(config,"IP_BROKER");
 	puerto = config_get_string_value(config,"PUERTO_BROKER");
