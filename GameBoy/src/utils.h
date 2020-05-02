@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILSGAMEBOY_H_
+#define UTILSGAMEBOY_H_
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -10,6 +10,8 @@
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
+#include<readline/readline.h>
+#include<../CommonsMCLDG/utils.h>
 
 //Config
 #define IP_BROKER "IP_BROKER"
@@ -58,9 +60,7 @@ void iniciar_gameboy(void);
 void ejecutar_broker(char*,...);
 void ejecutar_team(char*,...);
 void ejecutar_gamecard(char*,...);
-t_log* iniciar_logger(t_config*);
-t_config* leer_config(void);
-void terminar_gameboy(int, t_log*, t_config*);
+void help(char* mensaje);
 bool validar_mensaje(char* proceso, char*mensaje);
 
 

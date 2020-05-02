@@ -3,6 +3,7 @@
 	<name>Broker</name>
 	<comment></comment>
 	<projects>
+		<project>CommonsMCLDG</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

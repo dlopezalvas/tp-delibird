@@ -1,9 +1,16 @@
 #include "utils.h"
 
 
+<<<<<<< HEAD
 void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores,t_list** objetivoGlobal){
 	*config = leer_config();
 	*logger = iniciar_logger(*config);
+=======
+void iniciarTeam(void){
+	t_config* config = leer_config(TEAM);
+	t_log* logger = iniciar_logger(config);
+	t_lista entrenadores = NULL;
+>>>>>>> shared-library
 
 	*entrenadores = list_create();
 	*objetivoGlobal = list_create();
@@ -19,6 +26,7 @@ void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores,t_list
 //
 //	if(puedeAtraparPokemon((*entrenadores)->head->data)) puts("puedeAtraparPokemon");
 
+<<<<<<< HEAD
 
 //	char *ip = config_get_string_value(*config,IP_BROKER);
 //	char *puerto = config_get_string_value(*config,PUERTO_BROKER);
@@ -81,6 +89,13 @@ void entrenadorDestroy(t_entrenador * entrenador) {
 //}
 
 void configurarEntrenadores(t_config* config, t_list* entrenadores){
+=======
+  	terminar_proceso(1,logger,config);
+}
+
+
+void configurarEntrenadores(t_config* config, t_lista* entrenadores){
+>>>>>>> shared-library
 
 	char** posiciones = config_get_array_value(config, "POSICIONES_ENTRENADORES");
 	char** pokemonEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
