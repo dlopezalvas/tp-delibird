@@ -1,23 +1,24 @@
 #include "utils.h"
 
 
-void iniciarTeam(void){
-	t_config* config = leer_config();
-	t_log* logger = iniciar_logger(config);
+void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores){
+	*config = leer_config();
+	*logger = iniciar_logger(*config);
 
-	t_list* entrenadores = list_create();
+	*entrenadores = list_create();
 
-	configurarEntrenadores(config, entrenadores);
-	if(cumpleObjetivoParticular(entrenadores->head->data)) puts("son iguales");
+	configurarEntrenadores(*config, *entrenadores);
+//	if(cumpleObjetivoParticular((*entrenadores)->head->data)) puts("son iguales");
+//	else puts("no son iguales");
+//
+//	if(puedeAtraparPokemon((*entrenadores)->head->data)) puts("puedeAtraparPokemon");
 
 
-	char *ip = config_get_string_value(config,IP_BROKER);
-	char *puerto = config_get_string_value(config,PUERTO_BROKER);
-
-  	log_info(logger,puerto);
-  	log_info(logger,ip);
-
-  	terminarTeam(1,logger,config);
+//	char *ip = config_get_string_value(*config,IP_BROKER);
+//	char *puerto = config_get_string_value(*config,PUERTO_BROKER);
+//
+//  	log_info(*logger,puerto);
+//  	log_info(*logger,ip);
 }
 
 
@@ -38,12 +39,22 @@ t_config* leer_config(void)
 }
 
 
-void terminarTeam(int conexion, t_log* logger, t_config* config)
+void terminarTeam(int conexion, t_log* logger, t_config* config, t_list* entrenadores)
 {
+
+	void _entrenadorDestroy(void* entrenador){
+			return entrenadorDestroy( entrenador);
+		}
+
+	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
 	config_destroy(config);
 	//liberar_conexion(conexion);
 	log_info(logger,"-----------LOG END--------");
 	log_destroy(logger);
+}
+
+void entrenadorDestroy(t_entrenador * entrenador) {
+    free(entrenador);
 }
 
 //void configurarEntrenadores(t_config* config, t_lista* entrenadores){
@@ -163,13 +174,18 @@ bool esEstadoExit(t_entrenador* entrenador){
 }
 
 bool cumpleObjetivoParticular (t_entrenador* entrenador){
-	if (list_size(entrenador->objetivos) != list_size(entrenador->pokemons)) return false;
+	if (tieneMenosElementos (entrenador->objetivos, entrenador->pokemons)) return false;
 	bool _criterioOrden(void* elem1 , void* elem2){
 		return criterioOrden(elem1, elem2);
 	}
 	list_sort(entrenador->objetivos, _criterioOrden);
 	list_sort(entrenador->pokemons, _criterioOrden);
 	return listasIguales( entrenador->objetivos, entrenador->pokemons);
+}
+
+bool tieneMenosElementos (t_list* listaChica, t_list* lista ){
+	if(list_size(listaChica) < list_size(lista)) return true;
+	return false;
 }
 
 bool listasIguales(t_list* lista1, t_list* lista2){
@@ -188,4 +204,27 @@ bool listasIguales(t_list* lista1, t_list* lista2){
 bool criterioOrden(char* elem1, char* elem2){
 	return (0 < strcmp(elem1, elem2));
 }
+
+bool puedeAtraparPokemon(t_entrenador* entrenador){
+	return (entrenador->estado == (NEW || BLOCK) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
+}
+
+void capturoPokemon(t_entrenador* entrenador, char* pokemon){
+	list_add(entrenador->pokemons, pokemon);
+	if(tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)){
+		cambiarEstado(entrenador, READY);
+	}else{
+		if(cumpleObjetivoParticular(entrenador)){
+			cambiarEstado(entrenador, EXIT);
+		}
+		else{
+			cambiarEstado(entrenador, BLOCK);
+		}
+	}
+}
+
+
+
+
+
 
