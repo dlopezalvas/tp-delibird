@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILS_BROKER_H_
+#define UTILS_BROKER_H_
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -12,9 +12,6 @@
 #include<commons/string.h>
 #include<commons/config.h>
 
-t_log* iniciar_logger(void);
-t_config* leer_config(void);
-void terminar_programa(int, t_log*, t_config*);
 
 
-#endif /* UTILS_H_ */
+#endif /* UTILS_BROKER_H_ */

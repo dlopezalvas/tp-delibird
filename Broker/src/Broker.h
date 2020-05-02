@@ -10,9 +10,13 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include "utils.h"
 
+#include "utils_broker.h"
 
+void iniciar_broker(t_config**, t_log**);
+t_log* iniciar_logger(t_config*);
+t_config* leer_config(void);
+void terminar_broker(t_log*, t_config*);
 
 
 #endif /* BROKER_H_ */
