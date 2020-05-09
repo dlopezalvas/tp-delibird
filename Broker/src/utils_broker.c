@@ -1,8 +1,8 @@
 
 #include "utils_broker.h"
 
-void recibir_mensaje_broker(t_log* logger,t_config* config){
-	log_info(logger,"probando log");
+void recibir_mensaje_broker(t_config* config){
+	log_info(logger,"probando log 1 2 3");
 
 	//recibe un mensaje, tiene que deserializarlo y llamar a recibir_mensaje_queue
 	//generar el id unico (Ver el tipo, quiza tenga que ser un uuid)
@@ -39,9 +39,18 @@ int queue_valida(char*queues_validas,char* queue){
 }
 
 void suscribir_mensaje_queue(t_mensaje* mensaje){
-	//loggear que el proceso <mensaje -> proceso> se suscribia a la cola <mensaje -> queue>
+	log_suscribir_mensaje_queue(mensaje -> proceso,mensaje -> queue);
 
 	//pushear mensaje a la cola correspondiente
+}
+
+void log_suscribir_mensaje_queue(char* proceso,char* queue){
+	char* mensaje_log = "Proceso: ";
+	string_append_with_format(&mensaje_log, "%s", proceso);
+	string_append_with_format(&mensaje_log, "%s", 'Se suscribio a la cola: ');
+	string_append_with_format(&mensaje_log, "%s", queue);
+	log_info(logger,mensaje_log);
+	free(mensaje_log);
 }
 
 void crear_queues(void){

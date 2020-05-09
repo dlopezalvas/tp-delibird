@@ -18,6 +18,8 @@
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
 #define QUEUES_VALIDAS "QUEUES_VALIDAS"
 
+t_log* logger;
+
 //Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
 t_list* NEW_POKEMON_QUEUE;
 t_list* APPEARED_POKEMON;
@@ -33,7 +35,7 @@ typedef struct{
 }  t_mensaje;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
-void recibir_mensaje_broker(t_log*,t_config*);
+void recibir_mensaje_broker(t_config*);
 
 //
 void recibir_mensaje_queue(t_mensaje*,t_config*);
@@ -52,6 +54,9 @@ void crear_queues();
 
 //Libera la memoria de las queues
 void terminar_queues();
+
+//Loguea que un proceso especifico se suscribe a determinada queueu
+void log_suscribir_mensaje_queue(char*,char*);
 
 
 #endif /* UTILS_BROKER_H_ */

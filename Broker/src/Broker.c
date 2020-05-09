@@ -18,12 +18,9 @@
 
 
 int main(void) {
-
-	t_log* logger;
 	t_config* config;
-
 	iniciar_broker(&config,&logger);
-	recibir_mensaje_broker(logger,config);
+	recibir_mensaje_broker(config);
 	terminar_broker(logger,config);
 	return EXIT_SUCCESS;
 }
