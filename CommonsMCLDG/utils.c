@@ -28,7 +28,7 @@ t_log* iniciar_logger(t_config* config)
 t_config* leer_config(char* proceso)
 {
 	char *config_file = string_new();
-	//string_append(&config_file, "../" );
+//	string_append(&config_file, "../" );
 	string_append(&config_file, proceso);
 	string_append(&config_file, ".config");
 	t_config* config = config_create(config_file);
