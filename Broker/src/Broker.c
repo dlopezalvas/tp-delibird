@@ -15,8 +15,6 @@
 #define LOG_FILE "LOG_FILE"
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
-#define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/BROKER.config"
-
 
 int main(void) {
 	t_config* config;
