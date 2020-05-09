@@ -17,15 +17,21 @@
 
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
 #define QUEUES_VALIDAS "QUEUES_VALIDAS"
+#define NEW_POKEMON_QUEUE_NAME "NEW_POKEMON"
+#define APPEARED_POKEMON_QUEUE_NAME "APPEARED_POKEMON"
+#define CATCH_POKEMON_QUEUE_NAME "CATCH_POKEMON"
+#define CAUGHT_POKEMON_QUEUE_NAME "CAUGHT_POKEMON"
+#define GET_POKEMON_QUEUE_NAME "GET_POKEMON"
 
 t_log* logger;
 
 //Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
 t_list* NEW_POKEMON_QUEUE;
-t_list* APPEARED_POKEMON;
-t_list* CATCH_POKEMON;
-t_list* CAUGHT_POKEMON;
-t_list* GET_POKEMON;
+t_list* APPEARED_POKEMON_QUEUE;
+t_list* CATCH_POKEMON_QUEUE;
+t_list* CAUGHT_POKEMON_QUEUE;
+t_list* GET_POKEMON_QUEUE;
+
 
 typedef struct{
   char *proceso;

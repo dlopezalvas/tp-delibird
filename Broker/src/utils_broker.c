@@ -39,15 +39,27 @@ int queue_valida(char*queues_validas,char* queue){
 }
 
 void suscribir_mensaje_queue(t_mensaje* mensaje){
-	log_suscribir_mensaje_queue(mensaje -> proceso,mensaje -> queue);
+	char* mensaje_queue = mensaje -> queue;
+	log_suscribir_mensaje_queue(mensaje -> proceso,mensaje_queue);
 
-	//pushear mensaje a la cola correspondiente
+	if(string_equals_ignore_case(mensaje_queue,NEW_POKEMON_QUEUE_NAME))
+		list_add(NEW_POKEMON_QUEUE,mensaje);
+	else if(string_equals_ignore_case(mensaje_queue,APPEARED_POKEMON_QUEUE_NAME))
+		list_add(APPEARED_POKEMON_QUEUE,mensaje);
+	else if(string_equals_ignore_case(mensaje_queue,CATCH_POKEMON_QUEUE_NAME))
+		list_add(CATCH_POKEMON_QUEUE,mensaje);
+	else if(string_equals_ignore_case(mensaje_queue,CAUGHT_POKEMON_QUEUE_NAME))
+		list_add(CAUGHT_POKEMON_QUEUE,mensaje);
+	else if(string_equals_ignore_case(mensaje_queue,GET_POKEMON_QUEUE_NAME))
+		list_add(GET_POKEMON_QUEUE,mensaje);
+
+	free(mensaje_queue);
 }
 
 void log_suscribir_mensaje_queue(char* proceso,char* queue){
 	char* mensaje_log = "Proceso: ";
 	string_append_with_format(&mensaje_log, "%s", proceso);
-	string_append_with_format(&mensaje_log, "%s", 'Se suscribio a la cola: ');
+	string_append_with_format(&mensaje_log, "%s", "Se suscribio a la cola: ");
 	string_append_with_format(&mensaje_log, "%s", queue);
 	log_info(logger,mensaje_log);
 	free(mensaje_log);
@@ -55,16 +67,16 @@ void log_suscribir_mensaje_queue(char* proceso,char* queue){
 
 void crear_queues(void){
 	NEW_POKEMON_QUEUE = list_create();
-	APPEARED_POKEMON = list_create();
-	CATCH_POKEMON = list_create();
-	CAUGHT_POKEMON = list_create();
-	GET_POKEMON = list_create();
+	APPEARED_POKEMON_QUEUE = list_create();
+	CATCH_POKEMON_QUEUE = list_create();
+	CAUGHT_POKEMON_QUEUE = list_create();
+	GET_POKEMON_QUEUE = list_create();
 }
 
 void terminar_queues(void){
 	list_destroy(NEW_POKEMON_QUEUE);
-	list_destroy(APPEARED_POKEMON);
-	list_destroy(CATCH_POKEMON);
-	list_destroy(CAUGHT_POKEMON);
-	list_destroy(GET_POKEMON);
+	list_destroy(APPEARED_POKEMON_QUEUE);
+	list_destroy(CATCH_POKEMON_QUEUE);
+	list_destroy(CAUGHT_POKEMON_QUEUE);
+	list_destroy(GET_POKEMON_QUEUE);
 }
