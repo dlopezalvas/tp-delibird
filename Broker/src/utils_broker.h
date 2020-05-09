@@ -13,8 +13,17 @@
 #include<commons/config.h>
 #include <stdlib.h>
 #include<../CommonsMCLDG/utils.h>
+#include<commons/collections/list.h>
+
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
 #define QUEUES_VALIDAS "QUEUES_VALIDAS"
+
+//Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
+t_list* NEW_POKEMON_QUEUE;
+t_list* APPEARED_POKEMON;
+t_list* CATCH_POKEMON;
+t_list* CAUGHT_POKEMON;
+t_list* GET_POKEMON;
 
 typedef struct{
   char *proceso;

@@ -15,9 +15,7 @@
 #include<commons/log.h>
 #include<commons/config.h>
 
-
 void iniciar_broker(t_config**, t_log**);
 void terminar_broker(t_log*, t_config*);
-
 
 #endif /* BROKER_H_ */

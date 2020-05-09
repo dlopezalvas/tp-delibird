@@ -45,9 +45,17 @@ void suscribir_mensaje_queue(t_mensaje* mensaje){
 }
 
 void crear_queues(void){
-	//Crea las colas de las queues traidas del config
+	NEW_POKEMON_QUEUE = list_create();
+	APPEARED_POKEMON = list_create();
+	CATCH_POKEMON = list_create();
+	CAUGHT_POKEMON = list_create();
+	GET_POKEMON = list_create();
 }
 
 void terminar_queues(void){
-	//libera de la memoria todas las queues
+	list_destroy(NEW_POKEMON_QUEUE);
+	list_destroy(APPEARED_POKEMON);
+	list_destroy(CATCH_POKEMON);
+	list_destroy(CAUGHT_POKEMON);
+	list_destroy(GET_POKEMON);
 }

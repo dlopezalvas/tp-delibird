@@ -16,10 +16,12 @@
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
 
+
 int main(void) {
 
 	t_log* logger;
 	t_config* config;
+
 	iniciar_broker(&config,&logger);
 	recibir_mensaje_broker(logger,config);
 	terminar_broker(logger,config);
@@ -29,6 +31,8 @@ int main(void) {
 void iniciar_broker(t_config** config, t_log** logger){
 	*config = leer_config(BROKER);
 	*logger = iniciar_logger(*config);
+	crear_queues();
+	terminar_queues();
 }
 
 
