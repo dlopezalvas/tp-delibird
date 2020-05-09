@@ -17,6 +17,8 @@
 #include<stdbool.h>
 #include<../CommonsMCLDG/utils.h>
 
+#define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Team/TEAM.config"
+
 typedef enum
 {
 	NEW = 1,

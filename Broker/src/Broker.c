@@ -17,17 +17,18 @@
 #define BROKER_CONFIG "Broker.config"
 
 int main(void) {
-
-	t_log* logger;
 	t_config* config;
 	iniciar_broker(&config,&logger);
+	recibir_mensaje_broker(config);
 	terminar_broker(logger,config);
 	return EXIT_SUCCESS;
 }
 
 void iniciar_broker(t_config** config, t_log** logger){
-	*config = leer_config(BROKER);
+	*config = leer_config(PATH);
 	*logger = iniciar_logger(*config);
+	crear_queues();
+	terminar_queues();
 }
 
 

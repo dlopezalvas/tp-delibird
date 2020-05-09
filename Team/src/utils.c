@@ -2,7 +2,7 @@
 
 
 void iniciarTeam(t_config** config, t_log** logger, t_list** entrenadores,t_list** objetivoGlobal){
-	*config = leer_config(TEAM);
+	*config = leer_config(PATH);
 	*logger = iniciar_logger(*config);
 
 	*entrenadores = list_create();

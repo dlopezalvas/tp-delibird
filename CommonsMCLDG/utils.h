@@ -34,9 +34,6 @@
 #define GAMECARD_CATCH_POKEMON "CATCH_POKEMON"
 #define GAMECARD_GET_POKEMON "GET_POKEMON"
 
-
-
-void iniciar_proceso(char* proceso, t_config* config);
 t_log* iniciar_logger(t_config*);
 t_config* leer_config(char* proceso);
 void terminar_proceso(int, t_log*, t_config*);
