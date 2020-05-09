@@ -64,5 +64,7 @@ void terminar_queues();
 //Loguea que un proceso especifico se suscribe a determinada queueu
 void log_suscribir_mensaje_queue(char*,char*);
 
+//t_config* leer_config(char* proceso);
+
 
 #endif /* UTILS_BROKER_H_ */

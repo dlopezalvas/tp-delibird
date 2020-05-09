@@ -80,3 +80,9 @@ void terminar_queues(void){
 	list_destroy(CAUGHT_POKEMON_QUEUE);
 	list_destroy(GET_POKEMON_QUEUE);
 }
+//
+//t_config* leer_config(char* proceso){
+//	char *config_file = "/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/BROKER.config";
+//	t_config* config = config_create(config_file);
+//	return config;
+//};

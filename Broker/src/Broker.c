@@ -15,6 +15,7 @@
 #define LOG_FILE "LOG_FILE"
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
+#define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/BROKER.config"
 
 
 int main(void) {
@@ -26,7 +27,7 @@ int main(void) {
 }
 
 void iniciar_broker(t_config** config, t_log** logger){
-	*config = leer_config(BROKER);
+	*config = leer_config(PATH);
 	*logger = iniciar_logger(*config);
 	crear_queues();
 	terminar_queues();
