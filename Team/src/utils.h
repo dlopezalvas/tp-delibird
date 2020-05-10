@@ -16,6 +16,7 @@
 #include<commons/string.h>
 #include<stdbool.h>
 #include<../CommonsMCLDG/utils.h>
+#include<pthread.h>
 
 #define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Team/TEAM.config"
 
