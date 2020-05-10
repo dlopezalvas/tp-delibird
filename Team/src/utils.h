@@ -72,6 +72,6 @@ void configurarObjetivoGlobal();
 void removerPokemon(char* pokemon, t_list* lista);
 void* entrenadorMaster();
 uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
-//void moverEntrenador(t_config* config, t_entrenador* entrenador, uint32_t x, uint32_t y);
+void moverEntrenador(t_config* config, t_entrenador* entrenador, uint32_t x, uint32_t y);
 
 #endif /* UTILS_H_ */

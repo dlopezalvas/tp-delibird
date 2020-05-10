@@ -26,14 +26,14 @@ int main(void) {
 
 	pthread_t hilo[entrenadores->elements_count];
 
-//	t_entrenador* tmp;
-//
-//	tmp->coordx = 2;
-//	tmp->coordy = 2;
-//
-//	moverEntrenador(config,tmp,4,4);
-//
-//	printf("%d",tmp->coordx);
+	t_entrenador* tmp = malloc (sizeof(t_entrenador));
+
+	tmp->coordx = 2;
+	tmp->coordy = 2;
+
+	moverEntrenador(config,tmp,4,4);
+
+	printf("%d %d",tmp->coordx,tmp->coordy);
 
 	//conectarse a las colas del broker
 	//armar un socket de escucha

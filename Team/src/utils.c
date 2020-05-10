@@ -254,15 +254,45 @@ uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2){
 
 }
 
-//void moverEntrenador(t_config* config, t_entrenador* entrenador, uint32_t x, uint32_t y){
-//
+void moverEntrenador(t_config* config, t_entrenador* entrenador, uint32_t x, uint32_t y){
+
+	int moverse = 1;
+
+	if(x < entrenador->coordx){
+
+		moverse = -1;
+
+	}
+
+	while(entrenador->coordx != x){
+
+		entrenador->coordx += moverse;
+		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+	}
+
+	if(y < entrenador->coordy){
+
+			moverse = -1;
+
+		} else {
+
+			moverse = 1;
+		}
+
+	while(entrenador->coordy != y){
+
+		entrenador->coordy += moverse;
+		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+
+	}
+
 //	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")* distancia(entrenador->coordx,entrenador->coordy,x,y));
 //	puts("sleep");
 //	entrenador->coordx = x;
 //	puts(entrenador->coordx);
 //	entrenador->coordy = y;
 //	puts(entrenador->coordy);
-//}
+}
 
 void atraparPokemon(t_entrenador* entrenador){
 	//enviar mensaje catch
