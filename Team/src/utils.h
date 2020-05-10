@@ -31,6 +31,13 @@ typedef enum
 	EXIT = 5,
 }t_estado;
 
+typedef struct t_pokemon
+{
+	char* especie;
+	uint32_t coordx; // coordenada x
+	uint32_t coordy; //coordenada y
+} t_pokemon;
+
 typedef struct
 {
 	uint32_t ID;
@@ -39,19 +46,14 @@ typedef struct
 	t_list* pokemons; // lista string
 	t_list* objetivos; // array string
 	t_estado estado; //para saber si esta en ready o block
+	t_pokemon pokemonACapturar;
 } t_entrenador;
 
 
-typedef struct t_pokemon
-{
-	char* especie;
-	uint32_t coordx; // coordenada x
-	uint32_t coordy; //coordenada y
-} t_pokemon;
 
 
 void iniciarTeam(t_config** config, t_log** logger);
-void terminarTeam(int conexion, t_log* logger, t_config* config); //falta conexion
+void terminarTeam(int conexion, t_log* logger, t_config* config, pthread_t* hilo); //falta conexion
 void configurarEntrenadores(t_config* config);
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
 t_list* configurarPokemons(char** pokemons);
@@ -65,7 +67,7 @@ bool cumpleObjetivoParticular (t_entrenador* entrenador);
 void entrenadorDestroy(t_entrenador * entrenador);
 bool tieneMenosElementos (t_list* listaChica, t_list* lista );
 bool puedeAtraparPokemon(t_entrenador* entrenador);
-void capturoPokemon(t_entrenador* entrenador, char* pokemon);
+void capturoPokemon(t_entrenador* entrenador, t_pokemon* pokemon);
 void configurarObjetivoGlobal();
 void removerPokemon(char* pokemon, t_list* lista);
 void* entrenadorMaster();

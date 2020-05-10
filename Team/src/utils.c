@@ -29,12 +29,15 @@ void iniciarTeam(t_config** config, t_log** logger){
 //  	log_info(*logger,ip);
 }
 
-void terminarTeam(int conexion, t_log* logger, t_config* config)
+void terminarTeam(int conexion, t_log* logger, t_config* config, pthread_t* hilo)
 {
 
 	void _entrenadorDestroy(void* entrenador){
 			return entrenadorDestroy( entrenador);
 		}
+	for(int i = 0; i<entrenadores->elements_count ; i++){
+			//destruir hilos
+	}
 
 	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
 	free(objetivoGlobal);
@@ -187,9 +190,10 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){
 	return (entrenador->estado == (NEW || BLOCK) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
 }
 
-void capturoPokemon(t_entrenador* entrenador, char* pokemon){
-	list_add(entrenador->pokemons, pokemon);
-	removerPokemon(pokemon,objetivoGlobal);
+void capturoPokemon(t_entrenador* entrenador, t_pokemon* pokemon){
+
+	list_add(entrenador->pokemons, pokemon->especie);
+	removerPokemon(pokemon->especie,objetivoGlobal);
 	if(tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)){
 		cambiarEstado(entrenador, READY);
 	}else{
@@ -235,11 +239,12 @@ void removerPokemon(char* pokemon, t_list* lista){
 }
 
 void* entrenadorMaster(t_entrenador* entrenador){
+	while(entrenador->estado != EXIT){
+	//moverEntrenador(entrenador);
+	//atraparPokemon(entrenador);
 
-
-		//moverse a la posicion
-
-		//
+	}
+	//pthread_exit?
 
 }
 
@@ -259,4 +264,10 @@ uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2){
 //	puts(entrenador->coordy);
 //}
 
+void atraparPokemon(t_entrenador* entrenador){
+	//enviar mensaje catch
+	//esperar respuesta
+	//si lo capturo usar capturoPokemon(entrenador, &entrenador->pokemonACapturar);
+	//borrar pokemon del mapa
+}
 

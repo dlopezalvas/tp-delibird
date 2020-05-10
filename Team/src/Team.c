@@ -22,9 +22,9 @@ int main(void) {
 	t_log* logger;
 	pthread_mutex_init (&semaforo,NULL);
 
-	pthread_t hilo;
-
 	iniciarTeam(&config, &logger);
+
+	pthread_t hilo[entrenadores->elements_count];
 
 //	t_entrenador* tmp;
 //
@@ -42,20 +42,19 @@ int main(void) {
 	// ordenarla por la mas cercana al pokemon que aparecio
 	// planificar el entrenador mas cercano y que pueda atrapar pokemons
 
-//	for(int i=0; i<list_size(entrenadores); i++){
-//
-//
-//		pthread_t hilo[i];
-//
-//		pthread_create(&hilo[i],NULL,entrenadorMaster(),NULL);
-//
-//
-//
-//	}
+	for(int i=0; i<entrenadores->elements_count; i++){
 
-	terminarTeam(1,logger, config);
+		//pthread_create(&hilo[i],NULL, saludar(),NULL);
+		//pthread_join(hilo[i], NULL);
+
+	}
+
+	terminarTeam(1,logger, config, &hilo);
 	puts("termina");
 	return EXIT_SUCCESS;
 }
 
-
+//void saludar(){
+//	puts("soy un hilo");
+//	//pthread_exit(NULL);
+//}
