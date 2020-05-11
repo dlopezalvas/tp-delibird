@@ -2,34 +2,22 @@
 extern t_list* entrenadores;
 extern t_list* objetivoGlobal;
 extern pthread_mutex_t semaforo;
-extern t_list* mapaPokemons;
+extern t_list* pokemonsRequeridos;
+extern t_config* config;
+extern t_log* logger;
 
-void iniciarTeam(t_config** config, t_log** logger){
-	*config = leer_config(PATH);
-	*logger = iniciar_logger(*config);
+void iniciarTeam(){
+	config = leer_config(PATH);
+	logger = iniciar_logger(config);
 
 	entrenadores = list_create();
 	objetivoGlobal = list_create();
 
-	configurarEntrenadores(*config);
+	configurarEntrenadores(config);
 	configurarObjetivoGlobal();
-//	printf("%d \n", list_size(objetivoGlobal));
-//	printf("%s \n", (objetivoGlobal)->head->data);
-//	printf("%s \n", (objetivoGlobal)->head->next->data);
-//	printf("%s \n", (objetivoGlobal)->head->next->next->data);
-//	if(cumpleObjetivoParticular((entrenadores)->head->data)) puts("son iguales");
-//	else puts("no son iguales");
-//
-//	if(puedeAtraparPokemon((entrenadores)->head->data)) puts("puedeAtraparPokemon");
-
-//	char *ip = config_get_string_value(*config,IP_BROKER);
-//	char *puerto = config_get_string_value(*config,PUERTO_BROKER);
-//
-//  	log_info(*logger,puerto);
-//  	log_info(*logger,ip);
 }
 
-void terminarTeam(int conexion, t_log* logger, t_config* config, pthread_t* hilo)
+void terminarTeam(int conexion, pthread_t* hilo)
 {
 
 	void _entrenadorDestroy(void* entrenador){
@@ -51,23 +39,7 @@ void entrenadorDestroy(t_entrenador * entrenador) {
     free(entrenador);
 }
 
-//void configurarEntrenadores(t_config* config, t_lista* entrenadores){
-//
-//	char** posiciones = config_get_array_value(config, "POSICIONES_ENTRENADORES");
-//	char** pokemonEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
-//	char** objetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
-//
-//	for(int i=0; posiciones[i];i++){
-//		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i]);
-//		t_nodo* nodo = malloc(sizeof(t_nodo));
-//		nodo->data = entrenador;
-//		nodo->sig=NULL;
-//		agregarEntrenador(entrenadores, nodo);
-//	}
-//	return ;
-//}
-
-void configurarEntrenadores(t_config* config){
+void configurarEntrenadores(){
 
 	char** posiciones = config_get_array_value(config, "POSICIONES_ENTRENADORES");
 	char** pokemonEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -90,6 +62,8 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	entrenador->coordy = atoi(coordenadas[1]);
 	char** pokemons = string_split(pokemonsEntrenador,"|");
 	entrenador->pokemons = configurarPokemons(pokemons);
+	entrenador->pokemonACapturar = NULL;
+	entrenador->intercambio = NULL;
 	return entrenador;
 }
 
@@ -190,10 +164,10 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){
 	return (entrenador->estado == (NEW || BLOCK) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
 }
 
-void capturoPokemon(t_entrenador* entrenador, t_pokemon* pokemon){
+void capturoPokemon(t_entrenador* entrenador){
 
-	list_add(entrenador->pokemons, pokemon->especie);
-	removerPokemon(pokemon->especie,objetivoGlobal);
+	list_add(entrenador->pokemons, entrenador->pokemonACapturar->especie);
+	removerPokemon(entrenador->pokemonACapturar->especie,objetivoGlobal);
 	if(tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)){
 		cambiarEstado(entrenador, READY);
 	}else{
@@ -204,7 +178,17 @@ void capturoPokemon(t_entrenador* entrenador, t_pokemon* pokemon){
 			cambiarEstado(entrenador, BLOCK);
 		}
 	}
+//Probar si funciona
+	bool mismaEspecie(t_pokemon* pokemon1 ){
+				return string_equals_ignore_case(entrenador->pokemonACapturar->especie, pokemon1->especie);
+				}
+	list_remove_by_condition(pokemonsRequeridos, (void*)mismaEspecie);
+	removerPokemon(entrenador->pokemonACapturar->especie,objetivoGlobal);
+	free(entrenador->pokemonACapturar);
+	entrenador->pokemonACapturar = NULL;
+
 }
+
 
 void configurarObjetivoGlobal(){
 	t_link_element *entrenador = entrenadores->head;
@@ -222,14 +206,12 @@ void configurarObjetivoGlobal(){
 	while(!(list_is_empty(pokemons))){
 
 		pokemon = list_remove(pokemons, 0);
-		removerPokemon( pokemon,objetivoGlobal);
+		removerPokemon(pokemon,objetivoGlobal);
 		free(pokemon);
 	}
 	free(pokemons);
 
 }
-
-
 
 void removerPokemon(char* pokemon, t_list* lista){
 	bool mismoPokemon(char* pokemon1 ){
@@ -238,15 +220,6 @@ void removerPokemon(char* pokemon, t_list* lista){
 		list_remove_by_condition(lista, (void*)mismoPokemon);
 }
 
-void* entrenadorMaster(t_entrenador* entrenador){
-	while(entrenador->estado != EXIT){
-	//moverEntrenador(entrenador);
-	//atraparPokemon(entrenador);
-
-	}
-	//pthread_exit?
-
-}
 
 uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2){
 
@@ -254,50 +227,120 @@ uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2){
 
 }
 
-void moverEntrenador(t_config* config, t_entrenador* entrenador, uint32_t x, uint32_t y){
-
+void moverEntrenador(t_entrenador* entrenador, uint32_t x, uint32_t y){
 	int moverse = 1;
 
-	if(x < entrenador->coordx){
-
-		moverse = -1;
-
-	}
+	if(x < entrenador->coordx)	moverse = -1;
 
 	while(entrenador->coordx != x){
-
 		entrenador->coordx += moverse;
 		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
 	}
 
-	if(y < entrenador->coordy){
-
-			moverse = -1;
-
-		} else {
-
-			moverse = 1;
-		}
+	if(y < entrenador->coordy)	moverse = -1;
+	else moverse = 1;
 
 	while(entrenador->coordy != y){
-
 		entrenador->coordy += moverse;
 		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
 
 	}
 
-//	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")* distancia(entrenador->coordx,entrenador->coordy,x,y));
-//	puts("sleep");
-//	entrenador->coordx = x;
-//	puts(entrenador->coordx);
-//	entrenador->coordy = y;
-//	puts(entrenador->coordy);
 }
 
 void atraparPokemon(t_entrenador* entrenador){
 	//enviar mensaje catch
-	//esperar respuesta
-	//si lo capturo usar capturoPokemon(entrenador, &entrenador->pokemonACapturar);
-	//borrar pokemon del mapa
+	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
+}
+
+void intercambiarPokemon(t_entrenador* entrenador){ // Probar si funciona
+	t_intercambio* intercambio = entrenador->intercambio;
+	removerPokemon(intercambio->pokemonAEntregar, entrenador->pokemons);
+	list_add(intercambio->entrenador->pokemons, intercambio->pokemonAEntregar);
+	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemons);
+	list_add(entrenador->pokemons, intercambio->pokemonARecibir);
+	free(intercambio);
+	entrenador->intercambio = NULL;
+	if(cumpleObjetivoParticular(entrenador)) cambiarEstado(entrenador, EXIT);
+	else cambiarEstado(entrenador, BLOCK);
+	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(intercambio->entrenador, EXIT);
+	else cambiarEstado(entrenador, BLOCK);
+	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
+}
+
+void planificar(){// Probar si funciona
+	char* algoritmo = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+	if(strcmp(algoritmo, "FIFO") == 0) planificarFIFO();
+//	if(strcmp(algoritmo, "RR") == 0) planificarRR();
+//	if(strcmp(algoritmo, "SJF-CD") == 0) planificarSJF_CD();
+//	if(strcmp(algoritmo, "SJF-SD") == 0) planificarSJF_SD();
+}
+void planificarFIFO(){// Probar si funciona y agregar hilo sockets
+	pthread_t escuchaSockets;
+	pthread_t llenaReady;
+	pthread_t ejecuta;
+	//hilo que escuche sockets
+
+
+	//hilo que llena la lista de ready
+
+	t_queue* ready = queue_create();
+	pthread_create(&llenaReady, NULL, (void*)llenarColaReady, (void*)ready);
+
+	//hilo que va decidiendo quien ejecuta
+	pthread_create(&ejecuta, NULL, (void*)ejecutaEntrenadores, (void*)ready);
+
+}
+
+void ejecutaEntrenadores(t_queue* ready){ //probar
+	while(!cumpleObjetivoGlobal()){
+			t_entrenador* entrenador = queue_pop(ready);
+			cambiarEstado(entrenador, EXEC);
+			//activa semaforo exec
+			//espera semoforo de entrenador termina exec
+		}
+}
+
+void llenarColaReady(t_queue* ready){ // probar
+	t_pokemon* pokemonRequerido;
+	ready = queue_create();
+	t_entrenador* entrenadorAPlanificar;
+
+	while(!cumpleObjetivoGlobal()){
+
+		pokemonRequerido= list_take_and_remove(pokemonsRequeridos, 1);
+		bool _menorDistancia(void* elem1 , void* elem2){
+				return menorDistancia(elem1, elem2, pokemonRequerido);
+			}
+		list_sort(entrenadores, _menorDistancia);
+		//obtenerdireccion del primero que cumple con estado new o block
+		//entrenadorAPlanificar= ??
+
+		entrenadorAPlanificar->pokemonACapturar = pokemonRequerido;
+		cambiarEstado(entrenadorAPlanificar, READY);
+		queue_push(ready, entrenadorAPlanificar);
+	}
+
+}
+
+bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon){ //probar
+	return (distancia(elem1->coordx, elem1->coordy, pokemon->coordx, pokemon->coordy)<distancia(elem2->coordx, elem2->coordy, pokemon->coordx, pokemon->coordy));
+}
+
+void* entrenadorMaster(void* entre){// Probar si funciona
+	t_entrenador* entrenador = entre;
+	t_intercambio* intercambio = entrenador->intercambio;
+	while(entrenador->estado == EXEC){
+		if(puedeAtraparPokemon(entrenador)){
+			moverEntrenador(entrenador, entrenador->pokemonACapturar->coordx, entrenador->pokemonACapturar->coordy);
+			atraparPokemon(entrenador);
+			cambiarEstado(entrenador, BLOCK);//avisar hilo planificacion que termino de ejecutar ¿¿id de mensaje??
+		}else {
+			moverEntrenador(entrenador, intercambio->entrenador->coordx , intercambio->entrenador->coordy);
+			intercambiarPokemon(entrenador);//avisar hilo planificacion que termino de ejecutar
+			}
+	if(cumpleObjetivoParticular(entrenador)) cambiarEstado(entrenador, EXIT);
+	}
+	//pthread_exit?
 }
 
