@@ -100,25 +100,25 @@ void esperar_cliente(int socket_servidor)
 
 }
 
-void devolver_mensaje(void* payload, int size, int socket_cliente)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-
-	paquete->codigo_operacion = MENSAJE;
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = size;
-	paquete->buffer->stream = malloc(paquete->buffer->size);
-	memcpy(paquete->buffer->stream, payload, paquete->buffer->size);
-
-	int bytes = paquete->buffer->size + 2*sizeof(int);
-
-	void* a_enviar = serializar_paquete(paquete, bytes);
-
-	send(socket_cliente, a_enviar, bytes, 0);
-
-	free(a_enviar);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-}
+//void devolver_mensaje(void* payload, int size, int socket_cliente)
+//{
+//	t_paquete* paquete = malloc(sizeof(t_paquete));
+//
+//	paquete->codigo_operacion = MENSAJE;
+//	paquete->buffer = malloc(sizeof(t_buffer));
+//	paquete->buffer->size = size;
+//	paquete->buffer->stream = malloc(paquete->buffer->size);
+//	memcpy(paquete->buffer->stream, payload, paquete->buffer->size);
+//
+//	int bytes = paquete->buffer->size + 2*sizeof(int);
+//
+//	void* a_enviar = serializar_paquete(paquete, bytes);
+//
+//	send(socket_cliente, a_enviar, bytes, 0);
+//
+//	free(a_enviar);
+//	free(paquete->buffer->stream);
+//	free(paquete->buffer);
+//	free(paquete);
+//}
 

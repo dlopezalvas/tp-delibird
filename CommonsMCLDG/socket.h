@@ -12,29 +12,6 @@
 #include <arpa/inet.h>//inet_addr
 #include <pthread.h>
 
-typedef enum
-{
-	MENSAJE=1,
-	NEW_POKEMON=2,
-	APPEARED_POKEMON=3,
-	CATCH_POKEMON=4,
-	CAUGHT_POKEMON=5,
-	GET_POKEMON=6,
-	LOCALIZED_POKEMON=7,
-
-}queue_code;
-
-typedef struct
-{
-	int size;
-	void* stream;
-} t_buffer;
-
-typedef struct
-{
-	queue_code codigo_operacion;
-	t_buffer* buffer;
-} t_paquete;
 
 pthread_t thread;
 
