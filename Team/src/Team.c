@@ -24,15 +24,22 @@ int main(void) {
 	iniciarTeam(&logger);
 	pthread_t hilo[entrenadores->elements_count];
 
-	//conectarse a las colas del broker
-	//armar un socket de escucha
-	//t_entrenador** entrenador = &(entrenadores->head->next->data);
-	//(*entrenador)->estado = NEW;
+	t_entrenador** entrenador = &(entrenadores->head->data);
+	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordx);
+	t_pokemon* pokemon= malloc (sizeof(t_pokemon));
+	pokemon->coordx = 1;
+	pokemon->coordy = 3;
+	pokemon->especie = "Pikachu";
+	(*entrenador)->pokemonACapturar = pokemon;
+	moverEntrenador(entrenador, 2,6);
+	entrenador = (&entrenadores->head->data);
+	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordy);
+
 
 
 	t_link_element * aux = entrenadores->head;
 	for(int j=0; j<entrenadores->elements_count; j++){
-		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(aux->data));
+		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(&aux->data));
 		aux = aux->next;
 		//join o detatch del hilo ??
 	}

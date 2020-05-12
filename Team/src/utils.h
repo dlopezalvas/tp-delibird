@@ -55,7 +55,7 @@ typedef struct t_entrenador
 } t_entrenador;
 
 typedef struct t_intercambio{
-	t_entrenador* entrenador;
+	t_entrenador** entrenador;
 	char* pokemonARecibir;
 	char* pokemonAEntregar;
 }t_intercambio;
@@ -68,7 +68,7 @@ void terminarTeam(int conexion, pthread_t* hilo); //falta conexion
 void configurarEntrenadores();
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
 t_list* configurarPokemons(char** pokemons);
-t_entrenador* cambiarEstado (t_entrenador* entrenador,t_estado nuevoEstado);
+void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado);
 bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado);
 bool cumpleObjetivoGlobal();
 bool esEstadoExit(t_entrenador* entrenador);
@@ -78,13 +78,13 @@ bool cumpleObjetivoParticular (t_entrenador* entrenador);
 void entrenadorDestroy(t_entrenador * entrenador);
 bool tieneMenosElementos (t_list* listaChica, t_list* lista );
 bool puedeAtraparPokemon(t_entrenador* entrenador);
-void capturoPokemon(t_entrenador* entrenador);
+void capturoPokemon(t_entrenador** entrenador);
 void configurarObjetivoGlobal();
 void removerPokemon(char* pokemon, t_list* lista);
 void* entrenadorMaster(void* entrenador);
 uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
-void moverEntrenador(t_entrenador* entrenador, uint32_t x, uint32_t y);
-void intercambiarPokemon(t_entrenador* entrenador);
+void moverEntrenador(t_entrenador** entrenador, uint32_t x, uint32_t y);
+void intercambiarPokemon(t_entrenador** entrenador);
 void atraparPokemon(t_entrenador* entrenador);
 void planificarFIFO();
 void* saludar();
