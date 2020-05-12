@@ -9,7 +9,9 @@
  */
 
 #include "GameBoy.h"
-
+#define LOG_FILE "LOG_FILE"
+#define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
+#define BROKER_CONFIG "GAMEBOY.config"
 
 int main(void) {
 
