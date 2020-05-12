@@ -1,8 +1,10 @@
-#include "utils.h"
+#include "utils_gameboy.h"
+
+
 
 void iniciar_gameboy(void){
 
-	t_config* config = leer_config(GAMEBOY);
+	t_config* config = leer_config(PATH);
 	t_log* logger = iniciar_logger(config);
 
 	char *ip = config_get_string_value(config,IP_BROKER);
@@ -56,27 +58,27 @@ void iniciar_consola(t_log* logger){
 		}
 
 		char * proceso = linea_split[0];
-		char * mensaje = linea_split[1];
+		char * tipo_mensaje = linea_split[1];
 
-		if(!validar_mensaje(proceso,mensaje)){
+		if(!validar_mensaje(proceso,tipo_mensaje)){
 			printf("%s\n", mensaje_invalido);
 			free(linea_split);
 			free(proceso);
-			free(mensaje);
+			free(tipo_mensaje);
 			iniciar_consola(logger);
 		}
 		if(string_equals_ignore_case(BROKER,proceso))
-			ejecutar_broker(mensaje,linea_split);
+			ejecutar_broker(tipo_mensaje,linea_split);
 		else if(string_equals_ignore_case(TEAM,proceso))
-			ejecutar_team(mensaje,linea_split);
+			ejecutar_team(tipo_mensaje,linea_split);
 		else if(string_equals_ignore_case(GAMECARD,proceso))
-			ejecutar_gamecard(mensaje,linea_split);
+			ejecutar_gamecard(tipo_mensaje,linea_split);
 		else
 			{
 				printf("%s\n", procesos_invalidos);
 				free(linea_split);
 				free(proceso);
-				free(mensaje);
+				free(tipo_mensaje);
 				iniciar_consola(logger);
 			}
 
@@ -107,35 +109,65 @@ void help(char* mensaje){
 		}
 }
 
-void ejecutar_broker(char* mensaje,...){
-
-	puts(mensaje);
+void ejecutar_broker(char* tipo_mensaje, char** linea_split){
+//	t_config* config = leer_config(PATH);
+//
+//	char *ip = config_get_string_value(config,IP_BROKER);
+//	char *puerto = config_get_string_value(config,PUERTO_BROKER);
+//
+//	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
+//
+//	int socket_broker = crear_conexion(ip, puerto);
+//	enviar_mensaje(mensaje, socket_broker);
 }
+
+
+op_code codigo_mensaje(char* tipo_mensaje){
+
+	if(string_equals_ignore_case(MENSAJE_NEW_POKEMON, tipo_mensaje)){
+		return NEW_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_APPEARED_POKEMON, tipo_mensaje)){
+		return APPEARED_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_CATCH_POKEMON, tipo_mensaje)){
+		return CATCH_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_CAUGHT_POKEMON, tipo_mensaje)){
+			return CAUGHT_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_GET_POKEMON, tipo_mensaje)){
+		return GET_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_LOCALIZED_POKEMON, tipo_mensaje)){
+		return LOCALIZED_POKEMON;
+	}else{
+		printf("%s\n", argumentos_invalidos);
+		return 0;
+	}
+}
+
+
 
 bool validar_mensaje(char* proceso, char*mensaje){
 
 	if(string_equals_ignore_case(TEAM,proceso)){
-		const bool team_is_valid_mensaje = string_equals_ignore_case(TEAM_APPEARED_POKEMON,mensaje);
+		const bool team_is_valid_mensaje = string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje);
 
 		return team_is_valid_mensaje;
 	}
 
 	if(string_equals_ignore_case(GAMECARD,proceso)){
 		const bool gamecard_is_valid_mensaje =
-			string_equals_ignore_case(GAMECARD_NEW_POKEMON,mensaje) ||
-			string_equals_ignore_case(GAMECARD_CATCH_POKEMON,mensaje) ||
-			string_equals_ignore_case(GAMECARD_GET_POKEMON,mensaje);
+			string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje);
 
 		return gamecard_is_valid_mensaje;
 	}
 
 	if(string_equals_ignore_case(BROKER,proceso)){
 		const bool broker_is_valid_mensaje =
-				string_equals_ignore_case(BROKER_MENSAJES_NEW_POKEMON,mensaje) ||
-				string_equals_ignore_case(BROKER_MENSAJES_APPEARED_POKEMON,mensaje) ||
-				string_equals_ignore_case(BROKER_MENSAJES_CATCH_POKEMON,mensaje) ||
-				string_equals_ignore_case(BROKER_MENSAJES_CAUGHT_POKEMON,mensaje) ||
-				string_equals_ignore_case(BROKER_MENSAJES_GET_POKEMON,mensaje);
+				string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_CAUGHT_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje);
 
 		return broker_is_valid_mensaje;
 	}
@@ -150,5 +182,4 @@ void ejecutar_team(char* mensaje,...){
 void ejecutar_gamecard(char* mensaje,...){
 	puts(mensaje);
 }
-
 

@@ -12,10 +12,10 @@
 #include<commons/config.h>
 #include<readline/readline.h>
 #include<../CommonsMCLDG/utils.h>
+#include<../CommonsMCLDG/serializacion.h>
 
 //Config
-#define IP_BROKER "IP_BROKER"
-#define PUERTO_BROKER "PUERTO_BROKER"
+#define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/GameBoy/GAMEBOY.config"
 #define PROCESOS "PROCESOS"
 #define MENSAJES "MENSAJES"
 #define FORMATO "FORMATO"
@@ -27,15 +27,13 @@
 #define GAMEBOY "GAMEBOY"
 
 //Defino tipo mensajes
-#define BROKER_MENSAJES_NEW_POKEMON "NEW_POKEMON"
-#define BROKER_MENSAJES_APPEARED_POKEMON "APPEARED_POKEMON"
-#define BROKER_MENSAJES_CATCH_POKEMON "CATCH_POKEMON"
-#define BROKER_MENSAJES_CAUGHT_POKEMON "CAUGHT_POKEMON"
-#define BROKER_MENSAJES_GET_POKEMON "GET_POKEMON"
-#define TEAM_APPEARED_POKEMON "APPEARED_POKEMON"
-#define GAMECARD_NEW_POKEMON "NEW_POKEMON"
-#define GAMECARD_CATCH_POKEMON "CATCH_POKEMON"
-#define GAMECARD_GET_POKEMON "GET_POKEMON"
+#define MENSAJE_NEW_POKEMON "NEW_POKEMON"
+#define MENSAJE_APPEARED_POKEMON "APPEARED_POKEMON"
+#define MENSAJE_CATCH_POKEMON "CATCH_POKEMON"
+#define MENSAJE_CAUGHT_POKEMON "CAUGHT_POKEMON"
+#define MENSAJE_GET_POKEMON "GET_POKEMON"
+#define MENSAJE_LOCALIZED_POKEMON "LOCALIZED_POKEMON"
+
 
 //mensajes de errores
 #define argumentos_invalidos "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help"
@@ -55,13 +53,15 @@
 #define help_mensajes "Las combinaciones de mensajes validas son: ... "
 
 
+
 void iniciar_consola(t_log*);
 void iniciar_gameboy(void);
-void ejecutar_broker(char*,...);
+void ejecutar_broker(char* mensaje, char** linea_split);
 void ejecutar_team(char*,...);
 void ejecutar_gamecard(char*,...);
 void help(char* mensaje);
 bool validar_mensaje(char* proceso, char*mensaje);
+
 
 
 #endif /* UTILS_H_ */
