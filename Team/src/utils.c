@@ -54,7 +54,7 @@ void configurarEntrenadores(){
 
 t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){
 	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
-	entrenador->estado = NEW;
+	entrenador->estado = EXIT;
 	char** objetivosEntrenador = string_split(objetivos,"|");
 	entrenador->objetivos = configurarPokemons(objetivosEntrenador);
 	char** coordenadas = string_split(posicion,"|");
@@ -116,9 +116,9 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){
 	return false;
 }
 
-bool cumpleObjetivoGlobal(){
+bool cumpleObjetivoGlobal(){ //revisar funcion, entrenadores->head->data??
 	bool _esEstadoExit(void* entrenador){
-		return esEstadoExit(entrenadores->head->data);
+		return esEstadoExit(entrenador);
 	}
 	return list_all_satisfy(entrenadores,_esEstadoExit);
 

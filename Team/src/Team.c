@@ -26,6 +26,9 @@ int main(void) {
 
 	//conectarse a las colas del broker
 	//armar un socket de escucha
+	//t_entrenador** entrenador = &(entrenadores->head->next->data);
+	//(*entrenador)->estado = NEW;
+
 
 	t_link_element * aux = entrenadores->head;
 	for(int j=0; j<entrenadores->elements_count; j++){
