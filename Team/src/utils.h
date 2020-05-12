@@ -16,6 +16,8 @@
 #include<commons/string.h>
 #include<stdbool.h>
 #include<../CommonsMCLDG/utils.h>
+#include<../CommonsMCLDG/socket.h>
+#include<../CommonsMCLDG/serializacion.h>
 #include <commons/collections/queue.h>
 #include<pthread.h>
 #include<math.h>

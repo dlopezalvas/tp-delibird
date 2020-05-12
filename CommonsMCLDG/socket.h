@@ -13,6 +13,7 @@
 #include <pthread.h>
 
 
+
 pthread_t thread;
 
 void* recibir_buffer(int*, int);
@@ -24,7 +25,7 @@ int recibir_operacion(int);
 void process_request(int cod_queue, int cliente_fd);
 void serve_client(int *socket);
 //void* serializar_paquete(t_paquete* paquete, int *bytes);
-void devolver_mensaje(void* payload, int size, int socket_cliente);
+//void devolver_mensaje(void* payload, int size, int socket_cliente);
 
 
 #endif /* socket_h */

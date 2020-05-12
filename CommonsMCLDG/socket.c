@@ -36,7 +36,7 @@ void process_request(int cod_queue, int cliente_fd) {
 		switch (cod_queue) {
 		case MENSAJE:
 			msg = recibir_mensaje(cliente_fd, &size);
-			devolver_mensaje(msg, size, cliente_fd);
+			//devolver_mensaje(msg, size, cliente_fd);
 			free(msg);
 			break;
 		case 0:
