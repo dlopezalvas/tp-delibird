@@ -34,6 +34,23 @@ void iniciar_consola(t_log* logger){
 
 		char** linea_split = string_split(linea," ");
 
+		free(linea);
+
+		if(linea_split[2] == NULL){
+				printf("%s\n", mensaje_invalido);
+				free(linea_split);
+	//			TODO: Definir
+	//			1- Podemos poner un break aca y se finaliza el programa
+	//				Consecuencia: Tienen que reiniciar el programa
+	//				A favor: No hace falta mas validacion
+	//			2- Hacemos un gran if con length >= 3 y encerramos toda la demas funciones así
+	//				Consecuencia: "Desprolijo"
+	//			3- Usamos recursividad
+	//				Consecuencia: ??
+
+				iniciar_consola(logger);
+			}
+
 		if(string_equals_ignore_case(linea_split[0],comando_help))
 		{
 			free(linea);
@@ -45,19 +62,15 @@ void iniciar_consola(t_log* logger){
 		char * tipo_mensaje = linea_split[1];
 
 		if(!validar_mensaje(proceso,tipo_mensaje)){
-			printf("%s\n", mensaje_invalido);
-			free(linea_split);
-			free(proceso);
-			free(tipo_mensaje);
+			printf("%s\n", procesos_invalidos);
+			liberar_consola(proceso, tipo_mensaje, linea_split);
 			iniciar_consola(logger);
 		}
 
-		if(!validar_argumentos(proceso,linea_split)){
-			printf("%s\n", argumentos_invalidos);
-			free(linea_split);
-			free(proceso);
-			free(tipo_mensaje);
+		if(!validar_argumentos(tipo_mensaje,linea_split)){
 
+			printf("%s\n", argumento_invalido);
+			liberar_consola(proceso, tipo_mensaje, linea_split);
 			iniciar_consola(logger);
 		}
 
@@ -71,23 +84,24 @@ void iniciar_consola(t_log* logger){
 		else
 			{
 				printf("%s\n", procesos_invalidos);
-				free(linea_split);
-				free(proceso);
-				free(tipo_mensaje);
+				liberar_consola(proceso, tipo_mensaje, linea_split);
 				iniciar_consola(logger);
 			}
 
-		//liberar memoria
-//		int i = 0;
-//		while(linea_split[i]){
-//			free(linea_split[i]);
-//			i++;
-//		}
-//
-//		free(linea_split);
-		free(linea);
 	}
 
+}
+
+void liberar_consola(char* proceso, char* mensaje, char** linea_split){
+	free(proceso);
+	free(mensaje);
+
+	int i = 0;
+	while(linea_split[i]!=NULL){
+		free(linea_split[i]);
+		i++;
+	}
+	free(linea_split);
 }
 
 void help(char* mensaje){
@@ -118,7 +132,6 @@ void ejecutar_broker(char* tipo_mensaje, char** linea_split){
 
 	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
 
-
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
 	mensaje -> tipo_mensaje = codigo_operacion;
@@ -133,30 +146,28 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split){
 
 	int cantidad_total = cantidad_argumentos(linea_split);
 
-	if(APPEARED_POKEMON == codigo_mensaje(tipo_mensaje)){
+	if(codigo_mensaje(tipo_mensaje) == APPEARED_POKEMON){
 
-		return (cantidad_total == ARGUMENTOS_APPEARED_POKEMON);
+		return cantidad_total == ARGUMENTOS_APPEARED_POKEMON;
 
-	}else if(NEW_POKEMON == codigo_mensaje(tipo_mensaje)){
+	}else if(codigo_mensaje(tipo_mensaje) == NEW_POKEMON){
 
 		return cantidad_total == ARGUMENTOS_NEW_POKEMON;
 
-	}else if(CATCH_POKEMON == codigo_mensaje(tipo_mensaje)){
+	}else if(codigo_mensaje(tipo_mensaje) == CATCH_POKEMON){
 
 		return cantidad_total == ARGUMENTOS_CATCH_POKEMON;
 
-	}else if(CAUGHT_POKEMON == codigo_mensaje(tipo_mensaje)){
+	}else if(codigo_mensaje(tipo_mensaje) == CAUGHT_POKEMON){
 
 		return cantidad_total == ARGUMENTOS_CAUGHT_POKEMON;
 
-	}else if(GET_POKEMON == codigo_mensaje(tipo_mensaje)){
+	}else if(codigo_mensaje(tipo_mensaje) == GET_POKEMON){
 
 		return cantidad_total == ARGUMENTOS_GET_POKEMON;
 	}else{
-
 		return false;
 	}
-
 }
 
 int cantidad_argumentos (char** linea_split){
@@ -204,7 +215,6 @@ op_code codigo_mensaje(char* tipo_mensaje){
 	}else if(string_equals_ignore_case(MENSAJE_LOCALIZED_POKEMON, tipo_mensaje)){
 		return LOCALIZED_POKEMON;
 	}else{
-		printf("%s\n", argumentos_invalidos);
 		return 0;
 	}
 }

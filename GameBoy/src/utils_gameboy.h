@@ -63,6 +63,7 @@
 
 void iniciar_consola(t_log*);
 void iniciar_gameboy(void);
+void liberar_consola(char* proceso, char* mensaje, char** linea_split);
 void ejecutar_broker(char* mensaje, char** linea_split);
 void ejecutar_team(char*,...);
 void ejecutar_gamecard(char*,...);
