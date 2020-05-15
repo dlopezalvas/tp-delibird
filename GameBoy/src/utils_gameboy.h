@@ -34,6 +34,13 @@
 #define MENSAJE_GET_POKEMON "GET_POKEMON"
 #define MENSAJE_LOCALIZED_POKEMON "LOCALIZED_POKEMON"
 
+//cantidad de argumentos de mensajes
+#define ARGUMENTOS_APPEARED_POKEMON 3
+#define ARGUMENTOS_NEW_POKEMON 4
+#define ARGUMENTOS_CATCH_POKEMON 3
+#define ARGUMENTOS_CAUGHT_POKEMON 1
+#define ARGUMENTOS_GET_POKEMON 1
+
 
 //mensajes de errores
 #define argumentos_invalidos "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help"
@@ -61,6 +68,11 @@ void ejecutar_team(char*,...);
 void ejecutar_gamecard(char*,...);
 void help(char* mensaje);
 bool validar_mensaje(char* proceso, char*mensaje);
+op_code codigo_mensaje(char* tipo_mensaje);
+
+int cantidad_argumentos (char** linea_split);
+bool validar_argumentos(char* tipo_mensaje, char** linea_split);
+char** argumentos(char** linea_split);
 
 
 

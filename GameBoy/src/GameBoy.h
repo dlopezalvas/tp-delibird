@@ -13,6 +13,6 @@
 #include<readline/readline.h>
 #include<../CommonsMCLDG/utils.h>
 
-#include "utils.h"
+#include "utils_gameboy.h"
 
 #endif /* GAMEBOY_H_ */

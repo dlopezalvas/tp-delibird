@@ -1,7 +1,6 @@
 #include "utils_gameboy.h"
 
 
-
 void iniciar_gameboy(void){
 
 	t_config* config = leer_config(PATH);
@@ -42,21 +41,6 @@ void iniciar_consola(t_log* logger){
 			iniciar_consola(logger);
 		}
 
-		if(linea_split[2] == NULL){
-			printf("%s\n", argumentos_invalidos);
-			free(linea_split);
-//			TODO: Definir
-//			1- Podemos poner un break aca y se finaliza el programa
-//				Consecuencia: Tienen que reiniciar el programa
-//				A favor: No hace falta mas validacion
-//			2- Hacemos un gran if con length >= 3 y encerramos toda la demas funciones así
-//				Consecuencia: "Desprolijo"
-//			3- Usamos recursividad
-//				Consecuencia: ??
-
-			iniciar_consola(logger);
-		}
-
 		char * proceso = linea_split[0];
 		char * tipo_mensaje = linea_split[1];
 
@@ -67,6 +51,17 @@ void iniciar_consola(t_log* logger){
 			free(tipo_mensaje);
 			iniciar_consola(logger);
 		}
+
+		if(!validar_argumentos(proceso,linea_split)){
+			printf("%s\n", argumentos_invalidos);
+			free(linea_split);
+			free(proceso);
+			free(tipo_mensaje);
+
+			iniciar_consola(logger);
+		}
+
+
 		if(string_equals_ignore_case(BROKER,proceso))
 			ejecutar_broker(tipo_mensaje,linea_split);
 		else if(string_equals_ignore_case(TEAM,proceso))
@@ -82,12 +77,18 @@ void iniciar_consola(t_log* logger){
 				iniciar_consola(logger);
 			}
 
+		//liberar memoria
+//		int i = 0;
+//		while(linea_split[i]){
+//			free(linea_split[i]);
+//			i++;
+//		}
+//
+//		free(linea_split);
 		free(linea);
 	}
 
 }
-
-
 
 void help(char* mensaje){
 
@@ -110,15 +111,81 @@ void help(char* mensaje){
 }
 
 void ejecutar_broker(char* tipo_mensaje, char** linea_split){
-//	t_config* config = leer_config(PATH);
-//
-//	char *ip = config_get_string_value(config,IP_BROKER);
-//	char *puerto = config_get_string_value(config,PUERTO_BROKER);
-//
-//	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
-//
-//	int socket_broker = crear_conexion(ip, puerto);
-//	enviar_mensaje(mensaje, socket_broker);
+	t_config* config = leer_config(PATH);
+
+	char* ip = config_get_string_value(config,IP_BROKER);
+	char* puerto = config_get_string_value(config,PUERTO_BROKER);
+
+	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
+
+
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = argumentos(linea_split);
+
+	int socket_broker = crear_conexion(ip, puerto);
+
+	enviar_mensaje(mensaje, socket_broker);
+}
+
+bool validar_argumentos(char* tipo_mensaje, char** linea_split){
+
+	int cantidad_total = cantidad_argumentos(linea_split);
+
+	if(APPEARED_POKEMON == codigo_mensaje(tipo_mensaje)){
+
+		return (cantidad_total == ARGUMENTOS_APPEARED_POKEMON);
+
+	}else if(NEW_POKEMON == codigo_mensaje(tipo_mensaje)){
+
+		return cantidad_total == ARGUMENTOS_NEW_POKEMON;
+
+	}else if(CATCH_POKEMON == codigo_mensaje(tipo_mensaje)){
+
+		return cantidad_total == ARGUMENTOS_CATCH_POKEMON;
+
+	}else if(CAUGHT_POKEMON == codigo_mensaje(tipo_mensaje)){
+
+		return cantidad_total == ARGUMENTOS_CAUGHT_POKEMON;
+
+	}else if(GET_POKEMON == codigo_mensaje(tipo_mensaje)){
+
+		return cantidad_total == ARGUMENTOS_GET_POKEMON;
+	}else{
+
+		return false;
+	}
+
+}
+
+int cantidad_argumentos (char** linea_split){
+	int cantidad = 0;
+
+	while(linea_split[cantidad]!=NULL){
+		cantidad++;
+	}
+	return cantidad - 2; //resto el proceso y el tipo de mensaje, quedan solo los argumentos
+}
+
+char** argumentos(char** linea_split){
+
+	int cantidad = cantidad_argumentos(linea_split);
+
+	int i_linea_split = 2; //comienza a cargar la lista a partir del primer argumento, sin contar el proceso y tipo de mensaje
+
+	int j_lista_argumentos = 0; //para iterar en la lista
+
+	char** lista_argumentos = malloc(sizeof(char**));
+
+	while(cantidad!= 0){
+		lista_argumentos[j_lista_argumentos] = linea_split[i_linea_split];
+		i_linea_split++;
+		j_lista_argumentos++;
+		cantidad --;
+	}
+
+	return lista_argumentos;
 }
 
 
@@ -141,8 +208,6 @@ op_code codigo_mensaje(char* tipo_mensaje){
 		return 0;
 	}
 }
-
-
 
 bool validar_mensaje(char* proceso, char*mensaje){
 
