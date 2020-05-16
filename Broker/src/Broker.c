@@ -17,11 +17,21 @@
 #define BROKER_CONFIG "Broker.config"
 
 int main(void) {
-	t_config* config;
-	iniciar_broker(&config,&logger);
-	recibir_mensaje_broker(config);
-	terminar_broker(logger,config);
-	return EXIT_SUCCESS;
+	//inicio logger y config
+		t_config* config = leer_config(PATH);;
+		//t_log* logger = iniciar_logger(config);
+		//iniciar_broker(&config,&logger);
+
+		char* ip = config_get_string_value(config,IP_BROKER);
+		char* puerto = config_get_string_value(config,PUERTO_BROKER);
+
+		iniciar_servidor(ip,puerto);
+		printf("Se creo el socket servidor en el puerto ( %s )", puerto);
+//	t_config* config;
+//	iniciar_broker(&config,&logger);
+//	recibir_mensaje_broker(config);
+//	terminar_broker(logger,config);
+//	return EXIT_SUCCESS;
 }
 
 void iniciar_broker(t_config** config, t_log** logger){

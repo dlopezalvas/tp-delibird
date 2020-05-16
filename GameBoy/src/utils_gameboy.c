@@ -130,6 +130,9 @@ void ejecutar_broker(char* tipo_mensaje, char** linea_split){
 	char* ip = config_get_string_value(config,IP_BROKER);
 	char* puerto = config_get_string_value(config,PUERTO_BROKER);
 
+	puts(ip);
+	puts(puerto);
+
 	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
 
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
