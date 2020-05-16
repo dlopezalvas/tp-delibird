@@ -149,7 +149,7 @@ t_buffer* buffer_get_pokemon(char** parametros){
 
 	buffer -> stream = stream;
 
-	free(stream);
+//	free(stream);
 
 	return buffer;
 }
