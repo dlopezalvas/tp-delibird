@@ -16,7 +16,9 @@ void enviar_mensaje(t_mensaje* mensaje, int socket)
 
 	void* a_enviar = serializar_paquete(paquete, &bytes);
 
-	send(socket,a_enviar,bytes,0);
+	if(send(socket,a_enviar,bytes,0)==-1){
+		perror("send");
+	}
 
 	free(a_enviar);
 	free(buffer_cargado -> stream);
@@ -199,13 +201,31 @@ t_buffer* buffer_new_pokemon(char** parametros){
 
 void* recibir_mensaje(int socket_cliente, int* size)
 {
-	void * buffer;
 
-	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
-	buffer = malloc(*size);
-	recv(socket_cliente, buffer, *size, MSG_WAITALL);
 
-	return buffer;
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+
+	// Primero recibimos el codigo de operacion
+	recv(socket_cliente, &(paquete->codigo_operacion), sizeof(uint8_t), 0);
+
+	// Después ya podemos recibir el buffer. Primero su tamaño seguido del contenido
+	recv(socket_cliente, &(paquete->buffer->size), sizeof(uint32_t), 0);
+	recv(socket_cliente, paquete->buffer->stream, paquete->buffer->size, 0);
+
+	// Ahora en función del código recibido procedemos a deserializar el resto
+	switch(paquete->codigo_operacion){
+			case(NEW_POKEMON):puts("se suscribe a NEW_POKEMON");
+			case(GET_POKEMON): puts("se suscribe a GET_POKEMON");
+			case(APPEARED_POKEMON): puts("se suscribe a APPEARED_POKEMON");
+			case(CATCH_POKEMON): puts("se suscribe a CATCH_POKEMON");
+			case(CAUGHT_POKEMON): puts("se suscribe a CAUGHT_POKEMON");
+			case(LOCALIZED_POKEMON): puts("se suscribe a sdas");
+		}
+
+	// Liberamos memoria
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
 }
 
 

@@ -9,13 +9,14 @@ int crear_conexion(char *ip, char* puerto)
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-
+	printf("%s",ip);
+	printf("%s",puerto);
 	getaddrinfo(ip, puerto, &hints, &server_info);
 
 	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		printf("error");
+		perror("connect");
 
 	freeaddrinfo(server_info);
 
@@ -28,13 +29,14 @@ void serve_client(int* socket)
 	if(recv(*socket, &cod_queue, sizeof(int), MSG_WAITALL) == -1)
 		cod_queue = -1;
 	process_request(cod_queue, *socket);
+
 }
 
 void process_request(int cod_queue, int cliente_fd) {
 	int size;
 	void* msg;
 		switch (cod_queue) {
-		case MENSAJE:
+		case GET_POKEMON:
 			msg = recibir_mensaje(cliente_fd, &size);
 			//devolver_mensaje(msg, size, cliente_fd);
 			free(msg);
@@ -62,41 +64,63 @@ void iniciar_servidor(char* ip, char* puerto)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
+
     getaddrinfo(ip, puerto, &hints, &servinfo);
 
     for (p=servinfo; p != NULL; p = p->ai_next)
     {
         if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-            continue;
+            perror("socket");
+        	continue;
+
 
         if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
             close(socket_servidor);
-            perror("No se pudo asignar la direccion al socket");
+            perror("bind");
             continue;
         }
+
         break;
     }
 
 
-    listen(socket_servidor, SOMAXCONN);
+    if(listen(socket_servidor, SOMAXCONN)== 0){
+    	puts("Servidor escuchando");
+    	printf("%d",socket_servidor);
+
+    }else{
+    	perror("listen");
+    }
 
 
     freeaddrinfo(servinfo);
 
-    while(1)
+    while(1){
     	esperar_cliente(socket_servidor);
+    	puts("Escuchando");
+
+    }
 }
 
 void esperar_cliente(int socket_servidor)
 {
-	struct sockaddr_in dir_cliente;
+	struct sockaddr dir_cliente;
 
-	int tam_direccion = sizeof(struct sockaddr_in);
+	socklen_t tam_direccion = sizeof(dir_cliente);
 
 	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
 	pthread_create(&thread,NULL,(void*)serve_client,&socket_cliente);
 	pthread_detach(thread);
+
+//	if(socket_cliente != -1)
+//			{
+//				printf("Se conecto socket ( %d )", socket_cliente);
+//
+//				pthread_create(&thread,NULL,(void*)serve_client,&socket_cliente);
+//				pthread_detach(thread);
+//			}
+
 
 }
 

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include<../CommonsMCLDG/utils.h>
 #include<commons/collections/list.h>
+#include <../CommonsMCLDG/serializacion.h>
 
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
 #define QUEUES_VALIDAS "QUEUES_VALIDAS"
@@ -31,14 +32,6 @@ t_list* APPEARED_POKEMON_QUEUE;
 t_list* CATCH_POKEMON_QUEUE;
 t_list* CAUGHT_POKEMON_QUEUE;
 t_list* GET_POKEMON_QUEUE;
-
-
-typedef struct{
-  char *proceso;
-  char **parametros; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
-  char *queue;
-  uint32_t *id;
-}  t_mensaje;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);

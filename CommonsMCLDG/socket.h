@@ -11,6 +11,7 @@
 #include "utils.h"
 #include <arpa/inet.h>//inet_addr
 #include <pthread.h>
+#include <errno.h>
 
 
 
