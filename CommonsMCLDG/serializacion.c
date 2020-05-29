@@ -75,7 +75,7 @@ t_buffer* buffer_caught_pokemon(char** parametros){
 
 	buffer -> stream = stream;
 
-	free(stream);
+	//free(stream);
 
 	return buffer;
 }
@@ -116,7 +116,7 @@ t_buffer* buffer_position_and_name(char** parametros){ //para mensajes APPEARED_
 
 	buffer -> stream = stream;
 
-	free(stream);
+	//free(stream);
 
 	return buffer;
 
@@ -192,7 +192,7 @@ t_buffer* buffer_new_pokemon(char** parametros){
 
 	buffer -> stream = stream;
 
-	free(stream);
+	//free(stream);
 
 	return buffer;
 }

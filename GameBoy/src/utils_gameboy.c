@@ -6,29 +6,20 @@ void iniciar_gameboy(void){
 	t_config* config = leer_config(PATH);
 	t_log* logger = iniciar_logger(config);
 
-	char *ip = config_get_string_value(config,IP_BROKER);
-	char *puerto = config_get_string_value(config,PUERTO_BROKER);
+  	iniciar_consola(logger, config);
 
-  	log_info(logger,puerto);
-  	log_info(logger,ip);
-
-  	iniciar_consola(logger);
-  	terminar_proceso(1,logger,config);
 }
 
-void iniciar_consola(t_log* logger){
+void iniciar_consola(t_log* logger, t_config* config){
 
 	char * linea;
 
 	while(1) {
 		linea = readline(">");
 
-		log_info(logger,linea);
-		if(linea)
-		  add_history(linea);
-
 		if(string_equals_ignore_case(linea,comando_exit)) {
 		   free(linea);
+		   terminar_proceso(1,logger,config);
 		   break;
 		}
 
@@ -37,25 +28,16 @@ void iniciar_consola(t_log* logger){
 		free(linea);
 
 		if(linea_split[2] == NULL){
-				printf("%s\n", mensaje_invalido);
-				free(linea_split);
-	//			TODO: Definir
-	//			1- Podemos poner un break aca y se finaliza el programa
-	//				Consecuencia: Tienen que reiniciar el programa
-	//				A favor: No hace falta mas validacion
-	//			2- Hacemos un gran if con length >= 3 y encerramos toda la demas funciones así
-	//				Consecuencia: "Desprolijo"
-	//			3- Usamos recursividad
-	//				Consecuencia: ??
-
-				iniciar_consola(logger);
+				liberar_vector(linea_split);
+				iniciar_consola(logger, config);
 			}
 
 		if(string_equals_ignore_case(linea_split[0],comando_help))
 		{
 			free(linea);
+			liberar_vector(linea_split);
 			help(linea_split[1]);
-			iniciar_consola(logger);
+			iniciar_consola(logger, config);
 		}
 
 		char * proceso = linea_split[0];
@@ -64,19 +46,19 @@ void iniciar_consola(t_log* logger){
 		if(!validar_mensaje(proceso,tipo_mensaje)){
 			printf("%s\n", procesos_invalidos);
 			liberar_consola(proceso, tipo_mensaje, linea_split);
-			iniciar_consola(logger);
+			iniciar_consola(logger, config);
 		}
 
 		if(!validar_argumentos(tipo_mensaje,linea_split)){
 
 			printf("%s\n", argumento_invalido);
 			liberar_consola(proceso, tipo_mensaje, linea_split);
-			iniciar_consola(logger);
+			iniciar_consola(logger, config);
 		}
 
 
 		if(string_equals_ignore_case(BROKER,proceso))
-			ejecutar_broker(tipo_mensaje,linea_split);
+			ejecutar_broker(tipo_mensaje,linea_split, config, logger);
 		else if(string_equals_ignore_case(TEAM,proceso))
 			ejecutar_team(tipo_mensaje,linea_split);
 		else if(string_equals_ignore_case(GAMECARD,proceso))
@@ -85,23 +67,30 @@ void iniciar_consola(t_log* logger){
 			{
 				printf("%s\n", procesos_invalidos);
 				liberar_consola(proceso, tipo_mensaje, linea_split);
-				iniciar_consola(logger);
+				iniciar_consola(logger, config);
 			}
-
+		liberar_vector(linea_split);
 	}
 
+}
+
+void liberar_vector (char** vector){
+
+	int i = 0;
+		while(vector[i]!=NULL){
+			free(vector[i]);
+			i++;
+		}
+
+	free(vector);
 }
 
 void liberar_consola(char* proceso, char* mensaje, char** linea_split){
 	free(proceso);
 	free(mensaje);
 
-	int i = 0;
-	while(linea_split[i]!=NULL){
-		free(linea_split[i]);
-		i++;
-	}
-	free(linea_split);
+	liberar_vector(linea_split);
+
 }
 
 void help(char* mensaje){
@@ -124,14 +113,10 @@ void help(char* mensaje){
 		}
 }
 
-void ejecutar_broker(char* tipo_mensaje, char** linea_split){
-	t_config* config = leer_config(PATH);
+void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_config* config, t_log* logger){
 
 	char* ip = config_get_string_value(config,IP_BROKER);
 	char* puerto = config_get_string_value(config,PUERTO_BROKER);
-
-	puts(ip);
-	puts(puerto);
 
 	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
 
@@ -143,6 +128,12 @@ void ejecutar_broker(char* tipo_mensaje, char** linea_split){
 	int socket_broker = crear_conexion(ip, puerto);
 
 	enviar_mensaje(mensaje, socket_broker);
+
+	liberar_vector(mensaje -> parametros);
+
+	log_info(logger, "Se ha establecido una conexion con el proceso BROKER");
+
+	free(mensaje);
 }
 
 bool validar_argumentos(char* tipo_mensaje, char** linea_split){

@@ -61,10 +61,10 @@
 
 
 
-void iniciar_consola(t_log*);
+void iniciar_consola(t_log* logger, t_config* config);
 void iniciar_gameboy(void);
 void liberar_consola(char* proceso, char* mensaje, char** linea_split);
-void ejecutar_broker(char* mensaje, char** linea_split);
+void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_config* config, t_log* logger);
 void ejecutar_team(char*,...);
 void ejecutar_gamecard(char*,...);
 void help(char* mensaje);
@@ -74,6 +74,7 @@ op_code codigo_mensaje(char* tipo_mensaje);
 int cantidad_argumentos (char** linea_split);
 bool validar_argumentos(char* tipo_mensaje, char** linea_split);
 char** argumentos(char** linea_split);
+void liberar_vector (char** vector);
 
 
 
