@@ -125,7 +125,7 @@ void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_config* config, t
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = argumentos(linea_split);
 
-	int socket_broker = crear_conexion(ip, puerto);
+	int socket_broker = iniciar_cliente(ip, puerto);
 
 	enviar_mensaje(mensaje, socket_broker);
 
