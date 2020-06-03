@@ -49,6 +49,11 @@ void configurarEntrenadores(){ //funciona
 		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i]);
 		list_add(entrenadores, entrenador);
 	}
+
+//	liberar_vector(posiciones);
+//	liberar_vector(pokemonEntrenadores);
+//	liberar_vector(objetivos);
+
 	return ;
 }
 
@@ -64,6 +69,11 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	entrenador->pokemons = configurarPokemons(pokemons);
 	entrenador->pokemonACapturar = NULL;
 	entrenador->intercambio = NULL;
+
+	//	liberar_vector(objetivosEntrenador);
+	//	liberar_vector(coordenadas);
+	//	liberar_vector(pokemons);
+
 	return entrenador;
 }
 

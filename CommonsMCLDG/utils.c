@@ -27,4 +27,15 @@ void terminar_proceso(int conexion, t_log* logger, t_config* config)
 	log_destroy(logger);
 }
 
+void liberar_vector (char** vector){
+
+	int i = 0;
+		while(vector[i]!=NULL){
+			free(vector[i]);
+			i++;
+		}
+
+	free(vector);
+}
+
 
