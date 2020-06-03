@@ -59,10 +59,10 @@
 #define help_argumentos "Help admite los siguientes argumentos: \n 1- FORMATO\n 2- PROCESOS "
 #define help_mensajes "Las combinaciones de mensajes validas son: ... "
 
-void iniciar_consola(t_log*);
+void iniciar_consola(t_log*, t_config*);
 void iniciar_gameboy(void);
 void liberar_consola(char* proceso, char* mensaje, char** linea_split);
-void ejecutar_broker(char* mensaje, char** linea_split);
+void ejecutar_broker(char* mensaje, char** linea_split, t_log* logger, t_config* config);
 void ejecutar_team(char*,...);
 void ejecutar_gamecard(char*,...);
 void help(char* mensaje);
