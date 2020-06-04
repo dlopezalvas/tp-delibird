@@ -10,7 +10,7 @@ typedef struct{
   op_code tipo_mensaje;
   char **parametros; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
   char *queue;
-  uint32_t *id;
+  uint32_t id;
 }t_mensaje;
 
 
@@ -54,7 +54,7 @@ typedef struct{
 }t_caught_pokemon;
 
 void enviar_mensaje(t_mensaje* mensaje, int socket);
-void* serializar_paquete(t_paquete* paquete, int *bytes);
+void* serializar_paquete(t_paquete* paquete, int *bytes, uint32_t id);
 
 t_buffer* cargar_buffer(t_mensaje* mensaje);
 t_buffer* buffer_caught_pokemon(char** parametros);

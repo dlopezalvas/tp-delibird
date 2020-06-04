@@ -15,7 +15,11 @@
 
 //Config
 #define IP_BROKER "IP_BROKER"
+#define IP_TEAM "IP_TEAM"
+#define IP_GAMECARD "IP_GAMECARD"
 #define PUERTO_BROKER "PUERTO_BROKER"
+#define PUERTO_TEAM "PUERTO_TEAM"
+#define PUERTO_GAMECARD "PUERTO_GAMECARD"
 
 
 //Defino diferentes procesos

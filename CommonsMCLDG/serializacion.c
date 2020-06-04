@@ -3,8 +3,8 @@
 
 
 
-void enviar_mensaje(t_mensaje* mensaje, int socket)
-{
+void enviar_mensaje(t_mensaje* mensaje, int socket){
+
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	t_buffer* buffer_cargado = cargar_buffer(mensaje);
@@ -14,7 +14,7 @@ void enviar_mensaje(t_mensaje* mensaje, int socket)
 
 	int bytes = 0;
 
-	void* a_enviar = serializar_paquete(paquete, &bytes);
+	void* a_enviar = serializar_paquete(paquete, &bytes, mensaje -> id);
 
 	send(socket,a_enviar,bytes,0);
 
@@ -27,10 +27,13 @@ void enviar_mensaje(t_mensaje* mensaje, int socket)
 
 }
 
-void* serializar_paquete(t_paquete* paquete, int *bytes)
-{
+void* serializar_paquete(t_paquete* paquete, int *bytes, uint32_t id){ //id == 0 NO TIENE ID
 
-	void* a_enviar = malloc (sizeof(uint32_t) + paquete->buffer->size + sizeof(paquete->codigo_operacion));
+	int size = sizeof(uint32_t) + paquete->buffer->size + sizeof(paquete->codigo_operacion);
+	if(id != 0){
+		size +=sizeof(uint32_t);
+	}
+	void* a_enviar = malloc (size);
 
 	memcpy(a_enviar + *bytes, &paquete-> codigo_operacion, sizeof(paquete->codigo_operacion));
 	*bytes += sizeof(paquete->codigo_operacion);
@@ -38,6 +41,11 @@ void* serializar_paquete(t_paquete* paquete, int *bytes)
 	*bytes += sizeof(int);
 	memcpy(a_enviar  + *bytes, paquete -> buffer -> stream, paquete -> buffer -> size);
 	*bytes += paquete->buffer->size;
+	if(id != 0){
+		memcpy(a_enviar + *bytes, &id, sizeof(uint32_t));
+		*bytes +=sizeof(uint32_t);
+	}
+
 
 	return a_enviar;
 }
@@ -54,7 +62,7 @@ t_buffer* cargar_buffer(t_mensaje* mensaje){
 		case(APPEARED_POKEMON): return buffer_position_and_name(parametros);
 		case(CATCH_POKEMON): return buffer_position_and_name(parametros);
 		case(CAUGHT_POKEMON): return buffer_caught_pokemon(parametros);
-		//case(LOCALIZED_POKEMON: return buffer_localized_pokemon(linea_split);
+		//case(LOCALIZED_POKEMON): return buffer_localized_pokemon(linea_split);
 	}
 	return 0;
 }
