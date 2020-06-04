@@ -112,12 +112,11 @@ void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_log* logger, t_co
 	mensaje -> parametros = argumentos(linea_split, flag_id);
 	mensaje -> id = calcular_id(flag_id, linea_split);
 
-//	int socket_broker = iniciar_cliente(ip, puerto);
-//
-//	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
-//
-//	enviar_mensaje(mensaje, socket_broker);
-	printf("%d", mensaje -> id);
+	int socket_broker = iniciar_cliente(ip, puerto);
+
+	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+
+	enviar_mensaje(mensaje, socket_broker);
 
 	free(mensaje -> parametros);
 	free(mensaje);
@@ -142,7 +141,7 @@ uint32_t calcular_id(tipo_id flag_id, char** linea_split){
 			break;
 	}
 
-	//liberar_vector(aux);
+	free(aux);
 
 	return id;
 }
@@ -151,54 +150,45 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, t
 
 	int cantidad_total = cantidad_argumentos(linea_split);
 
-	if(codigo_mensaje(tipo_mensaje) == APPEARED_POKEMON){
-
-		if(string_equals_ignore_case(proceso,BROKER)){
-			*flag_id = ID_AL_FINAL;
-			return cantidad_total == ARGUMENTOS_APPEARED_POKEMON + 1; //MAS EL ID
-		}else{
-			return cantidad_total == ARGUMENTOS_APPEARED_POKEMON;
-		}
-
-	}else if(codigo_mensaje(tipo_mensaje) == NEW_POKEMON){
-
-		if(string_equals_ignore_case(proceso,GAMECARD)){
-			*flag_id = ID_AL_FINAL;
-			return cantidad_total == ARGUMENTOS_NEW_POKEMON + 1; //MAS EL ID
-		}else{
-			return cantidad_total == ARGUMENTOS_NEW_POKEMON;
-		}
-
-	}else if(codigo_mensaje(tipo_mensaje) == CATCH_POKEMON){
-
-		if(string_equals_ignore_case(proceso,GAMECARD)){
-			*flag_id = ID_AL_FINAL;
-			return cantidad_total == ARGUMENTOS_CATCH_POKEMON + 1; //MAS EL ID
-		}else{
-			return cantidad_total == ARGUMENTOS_CATCH_POKEMON;
-		}
-
-	}else if(codigo_mensaje(tipo_mensaje) == CAUGHT_POKEMON){
-
-		if(string_equals_ignore_case(proceso,BROKER)){
-			*flag_id = ID_AL_PRINCIPIO;
-			return cantidad_total == ARGUMENTOS_CAUGHT_POKEMON + 1; //MAS EL ID
-		}else{
-			return cantidad_total == ARGUMENTOS_CAUGHT_POKEMON;
-		}
-
-	}else if(codigo_mensaje(tipo_mensaje) == GET_POKEMON){
-
-		if(string_equals_ignore_case(proceso,GAMECARD)){
-			*flag_id = ID_AL_FINAL;
-			return cantidad_total == ARGUMENTOS_GET_POKEMON + 1; //MAS EL ID
-		}else{
-			return cantidad_total == ARGUMENTOS_GET_POKEMON;
-		}
-
-	}else{
-		return false;
+	switch(codigo_mensaje(tipo_mensaje)){
+		case APPEARED_POKEMON:
+			if(string_equals_ignore_case(proceso,BROKER)){
+				*flag_id = ID_AL_FINAL;
+				return cantidad_total == ARGUMENTOS_APPEARED_POKEMON + 1; //MAS EL ID
+			}else{
+				return cantidad_total == ARGUMENTOS_APPEARED_POKEMON;
+			}
+		case NEW_POKEMON:
+			if(string_equals_ignore_case(proceso,GAMECARD)){
+				*flag_id = ID_AL_FINAL;
+				return cantidad_total == ARGUMENTOS_NEW_POKEMON + 1; //MAS EL ID
+			}else{
+				return cantidad_total == ARGUMENTOS_NEW_POKEMON;
+			}
+		case CATCH_POKEMON:
+			if(string_equals_ignore_case(proceso,GAMECARD)){
+				*flag_id = ID_AL_FINAL;
+				return cantidad_total == ARGUMENTOS_CATCH_POKEMON + 1; //MAS EL ID
+			}else{
+				return cantidad_total == ARGUMENTOS_CATCH_POKEMON;
+			}
+		case CAUGHT_POKEMON:
+			if(string_equals_ignore_case(proceso,BROKER)){
+				*flag_id = ID_AL_PRINCIPIO;
+				return cantidad_total == ARGUMENTOS_CAUGHT_POKEMON + 1; //MAS EL ID
+			}else{
+				return cantidad_total == ARGUMENTOS_CAUGHT_POKEMON;
+			}
+		case GET_POKEMON:
+			if(string_equals_ignore_case(proceso,GAMECARD)){
+				*flag_id = ID_AL_FINAL;
+				return cantidad_total == ARGUMENTOS_GET_POKEMON + 1; //MAS EL ID
+			}else{
+				return cantidad_total == ARGUMENTOS_GET_POKEMON;
+			}
 	}
+
+	return false;
 }
 
 int cantidad_argumentos (char** linea_split){
@@ -295,6 +285,7 @@ void ejecutar_team(char* tipo_mensaje, char** linea_split, t_log* logger, t_conf
 
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = argumentos(linea_split, 0); //no necesita id en ningun mensaje
+	mensaje -> id = 0;
 
 	int socket_team = iniciar_cliente(ip, puerto);
 
