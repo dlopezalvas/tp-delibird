@@ -15,7 +15,11 @@
 
 //Config
 #define IP_BROKER "IP_BROKER"
+#define IP_TEAM "IP_TEAM"
+#define IP_GAMECARD "IP_GAMECARD"
 #define PUERTO_BROKER "PUERTO_BROKER"
+#define PUERTO_TEAM "PUERTO_TEAM"
+#define PUERTO_GAMECARD "PUERTO_GAMECARD"
 
 
 //Defino diferentes procesos
@@ -38,6 +42,7 @@ typedef enum{
 t_log* iniciar_logger(t_config*);
 t_config* leer_config(char* proceso);
 void terminar_proceso(int, t_log*, t_config*);
+void liberar_vector (char** vector);
 
 
 #endif /* UTILS_H_ */

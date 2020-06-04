@@ -1,50 +1,43 @@
 #include "socket.h"
 
-void iniciar_servidor(char* ip, char* puerto)
-{
-	int socket_servidor;
+//Falta cambiar de void a int
+void iniciar_servidor (char* ip, char* puerto){
+	struct sockaddr_in direccion_servidor;
 
-    struct addrinfo hints, *servinfo, *p;
+	direccion_servidor.sin_family = AF_INET;
+	direccion_servidor.sin_addr.s_addr = INADDR_ANY;
+	direccion_servidor.sin_port = htons(atoi(puerto));
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+	int servidor = socket(AF_INET, SOCK_STREAM,0);
 
-    getaddrinfo(ip, puerto, &hints, &servinfo);
+	//para poder probar que ande sin tener que esperar 2min
+	int activado = 1;
+	setsockopt(servidor, SOL_SOCKET, SO_REUSEADDR, &activado, sizeof(activado));
 
-    for (p=servinfo; p != NULL; p = p->ai_next)
-    {
-        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-            continue;
+	if(bind(servidor, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		perror("Fallo el bind");
+	}
 
-        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-            close(socket_servidor);
-            continue;
-        }
-        break;
-    }
 
-	listen(socket_servidor, SOMAXCONN);
+	listen(servidor,SOMAXCONN); //flag para que tome el maximo posible de espacio
 
-    freeaddrinfo(servinfo);
+	while(1){
+		esperar_cliente(servidor);
+	}
 
-    while(1)
-    	esperar_cliente(socket_servidor);
+	//return servidor;
+
 }
 
-void esperar_cliente(int socket_servidor)
-{
-	struct sockaddr_in dir_cliente;
+void esperar_cliente(int servidor){
+	struct sockaddr_in direccion_cliente;
 
-	int tam_direccion = sizeof(struct sockaddr_in);
+	unsigned int tam_direccion = sizeof(struct sockaddr_in);
 
-	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
 
-
-	pthread_create(&thread,NULL,(void*)serve_client,&socket_cliente);
+	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
 	pthread_detach(thread);
-
 }
 
 void serve_client(int* socket)
@@ -55,6 +48,23 @@ void serve_client(int* socket)
 	process_request(cod_op, *socket);
 }
 
+int iniciar_cliente(char* ip, char* puerto){
+	struct sockaddr_in direccion_servidor;
+
+	direccion_servidor.sin_family = AF_INET;
+	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
+	direccion_servidor.sin_port = htons(atoi(puerto));
+
+	int cliente = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		perror("No se pudo conectar");
+		return 1;
+	}
+
+	return cliente;
+}
+//sacar de commons y poner en cada proceso especifico?
 void process_request(int cod_op, int cliente_fd) {
 		switch (cod_op) {
 		case GET_POKEMON:
@@ -67,125 +77,11 @@ void process_request(int cod_op, int cliente_fd) {
 			pthread_exit(NULL);
 		}
 }
-int crear_conexion(char *ip, char* puerto)
-{
-	struct addrinfo hints;
-	struct addrinfo *server_info;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo(ip, puerto, &hints, &server_info);
+void liberar_conexion(int socket_cliente){
 
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
-
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		printf("error");
-
-	freeaddrinfo(server_info);
-
-	return socket_cliente;
+	close(socket_cliente);
 }
-//
-//void serve_client(int* socket)
-//{
-//	int cod_queue;
-//	if(recv(*socket, &cod_queue, sizeof(int), MSG_WAITALL) == -1)
-//		cod_queue = -1;
-//	process_request(cod_queue, *socket);
-//}
-//
-//void process_request(int cod_queue, int cliente_fd) {
-//	int size;
-//	void* msg;
-//		switch (cod_queue) {
-//		case MENSAJE:
-//			msg = recibir_mensaje(cliente_fd, &size);
-//			//devolver_mensaje(msg, size, cliente_fd);
-//			free(msg);
-//			break;
-//		case 0:
-//			pthread_exit(NULL);
-//		case -1:
-//			pthread_exit(NULL);
-//		}
-//}
-//
-//void liberar_conexion(int socket_cliente){
-//
-//	close(socket_cliente);
-//}
-//
-//void iniciar_servidor(char* ip, char* puerto)
-//{
-//	int socket_servidor;
-//
-//    struct addrinfo hints, *servinfo, *p;
-//
-//    memset(&hints, 0, sizeof(hints));
-//    hints.ai_family = AF_UNSPEC;
-//    hints.ai_socktype = SOCK_STREAM;
-//    hints.ai_flags = AI_PASSIVE;
-//
-//    getaddrinfo(ip, puerto, &hints, &servinfo);
-//
-//    for (p=servinfo; p != NULL; p = p->ai_next)
-//    {
-//        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-//            continue;
-//
-//        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-//            close(socket_servidor);
-//            perror("No se pudo asignar la direccion al socket");
-//            continue;
-//        }
-//        break;
-//    }
-//
-//
-//    listen(socket_servidor, SOMAXCONN);
-//
-//
-//    freeaddrinfo(servinfo);
-//
-//    while(1)
-//    	esperar_cliente(socket_servidor);
-//}
-//
-//void esperar_cliente(int socket_servidor)
-//{
-//	struct sockaddr_in dir_cliente;
-//
-//	int tam_direccion = sizeof(struct sockaddr_in);
-//
-//	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
-//
-//	pthread_create(&thread,NULL,(void*)serve_client,&socket_cliente);
-//	pthread_detach(thread);
-//
-//}
 
-//void devolver_mensaje(void* payload, int size, int socket_cliente)
-//{
-//	t_paquete* paquete = malloc(sizeof(t_paquete));
-//
-//	paquete->codigo_operacion = MENSAJE;
-//	paquete->buffer = malloc(sizeof(t_buffer));
-//	paquete->buffer->size = size;
-//	paquete->buffer->stream = malloc(paquete->buffer->size);
-//	memcpy(paquete->buffer->stream, payload, paquete->buffer->size);
-//
-//	int bytes = paquete->buffer->size + 2*sizeof(int);
-//
-//	void* a_enviar = serializar_paquete(paquete, bytes);
-//
-//	send(socket_cliente, a_enviar, bytes, 0);
-//
-//	free(a_enviar);
-//	free(paquete->buffer->stream);
-//	free(paquete->buffer);
-//	free(paquete);
-//}
 

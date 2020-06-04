@@ -17,7 +17,7 @@
 pthread_t thread;
 
 void* recibir_buffer(int*, int);
-int crear_conexion(char *ip, char* puerto);
+int iniciar_cliente(char *ip, char* puerto);
 void iniciar_servidor(char* ip, char* puerto);
 void esperar_cliente(int);
 void* recibir_mensaje(int socket_cliente, int* size);

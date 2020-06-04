@@ -11,6 +11,7 @@
 #include<commons/string.h>
 #include<commons/config.h>
 #include<readline/readline.h>
+#include<readline/history.h>
 #include<../CommonsMCLDG/utils.h>
 #include<../CommonsMCLDG/serializacion.h>
 
@@ -46,7 +47,7 @@
 #define argumentos_invalidos "Por favor ingrese un formato valido. Para obtener ayuda ingrese el comando help"
 #define procesos_invalidos "Por favor ingrese un proceso valido. Para obtener ayuda ingrese el comando help"
 #define mensaje_invalido "Por favor ingrese un mensaje valido. Para obtener ayuda ingrese el comando help"
-#define argumento_invalido "Argumento invalido\n"
+#define argumento_invalido "Argumento invalido"
 
 //Defino comandos
 //Comandos
@@ -59,22 +60,26 @@
 #define help_argumentos "Help admite los siguientes argumentos: \n 1- FORMATO\n 2- PROCESOS "
 #define help_mensajes "Las combinaciones de mensajes validas son: ... "
 
+typedef enum{
+	NO_TIENE_ID = 0,
+	ID_AL_FINAL = 1,
+	ID_AL_PRINCIPIO = 2,
+}tipo_id;
 
-
-void iniciar_consola(t_log*);
+void iniciar_consola(t_log*, t_config*);
 void iniciar_gameboy(void);
 void liberar_consola(char* proceso, char* mensaje, char** linea_split);
-void ejecutar_broker(char* mensaje, char** linea_split);
-void ejecutar_team(char*,...);
+void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id);
+void ejecutar_team(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config);
 void ejecutar_gamecard(char*,...);
 void help(char* mensaje);
 bool validar_mensaje(char* proceso, char*mensaje);
 op_code codigo_mensaje(char* tipo_mensaje);
 
 int cantidad_argumentos (char** linea_split);
-bool validar_argumentos(char* tipo_mensaje, char** linea_split);
-char** argumentos(char** linea_split);
-
+bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, tipo_id *flag_id);
+char** argumentos(char** linea_split, tipo_id flag_id);
+uint32_t calcular_id(tipo_id flag_id, char** linea_split);
 
 
 #endif /* UTILS_H_ */
