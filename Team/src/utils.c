@@ -6,6 +6,7 @@ extern t_list* pokemonsRequeridos;
 extern t_config* config;
 extern t_log* logger;
 
+
 void iniciarTeam(){ //funciona
 	config = leer_config(PATH);
 	logger = iniciar_logger(config);
@@ -308,27 +309,55 @@ void ejecutaEntrenadores(t_queue* ready){ //agregar semaforos y probar
 		}
 }
 
-void llenarColaReady(t_queue* ready){ // Terminar y probar
-	t_list* pokemonRequerido;
-	ready = queue_create();
-	t_entrenador** entrenadorAPlanificar;
+void llenarColaReady(t_queue* ready){ // Funciona
 
-	while(!cumpleObjetivoGlobal()){
+	t_entrenador* entrenadorAPlanificar;
+	int i = 0;
+	while(i == 0){ //cambiar condicion de while por !cumpleObjetivoGlobal()
 
-		pokemonRequerido = list_take_and_remove(pokemonsRequeridos, 1);
+		t_pokemon* pokemon = list_remove(pokemonsRequeridos, 0);
 		bool _menorDistancia(void* elem1 , void* elem2){
-				return menorDistancia(elem1, elem2, pokemonRequerido->head->data);
+				return menorDistancia(elem1, elem2, pokemon);
 			}
 		list_sort(entrenadores, _menorDistancia);
-		//obtenerdireccion del primero que cumple con estado new o block
-		//t_entrenador** entrenadorAPlanificar= ??
+		bool _estadoNewoBlock(void* entrenador){
+						return estadoNewOBlock(entrenador);
+					}
 
-		(*entrenadorAPlanificar)->pokemonACapturar = pokemonRequerido->head->data;
-		cambiarEstado(entrenadorAPlanificar, READY);
-		queue_push(ready, *entrenadorAPlanificar);
+
+		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
+		entrenadorAPlanificar->pokemonACapturar = pokemon;
+//		printf("EntrenadorAPlanificar \n");
+//		printf("%s ", entrenadorAPlanificar->pokemonACapturar->especie);
+//		printf("%d ", entrenadorAPlanificar->pokemonACapturar->coordx);
+//		printf("%d \n\n", entrenadorAPlanificar->pokemonACapturar->coordy);
+
+
+		//t_entrenador* entrenadorCambiado = entrenadores->head->data;
+//		printf("Entrenador en la lista de entrenadores \n");
+//		printf("%s ", entrenadorCambiado->pokemonACapturar->especie);
+//		printf("%d ", entrenadorCambiado->pokemonACapturar->coordx);
+//		printf("%d \n\n", entrenadorCambiado->pokemonACapturar->coordy);
+		cambiarEstado(&(entrenadorAPlanificar), READY);
+//		printf("Estado entrenador \n");
+//		printf("%d \n\n", entrenadorCambiado->estado);
+		queue_push(ready, entrenadorAPlanificar);
+
+
+		t_entrenador* entrenadorPrueba = queue_pop(ready);
+		printf("Entrenador sacado de ready \n");
+		printf("%s ", entrenadorPrueba->pokemonACapturar->especie);
+		printf("%d ", entrenadorPrueba->pokemonACapturar->coordx);
+		printf("%d \n\n", entrenadorPrueba->pokemonACapturar->coordy);
+		i++;
 	}
 
 }
+
+bool estadoNewOBlock(t_entrenador* entrenador){
+	return entrenador->estado == NEW || entrenador->estado == BLOCK;
+}
+
 
 bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon){ //probar
 	return (distancia(elem1->coordx, elem1->coordy, pokemon->coordx, pokemon->coordy)<distancia(elem2->coordx, elem2->coordy, pokemon->coordx, pokemon->coordy));
@@ -350,5 +379,18 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 	}
 	//pthread_exit?
 	return 0;
+}
+
+void appeared_pokemon(t_pokemon* pokemonNuevo){
+	//Verifica que lo necesite
+	list_add(pokemonsRequeridos, pokemonNuevo);
+
+//	t_pokemon* pokemonPrueba = (pokemonsRequeridos->head->data);
+//	printf("Pokemon de lista de Requeridos \n");
+//	printf("%s ", (pokemonPrueba)->especie);
+//	printf("%d ", pokemonPrueba->coordx);
+//	printf("%d \n\n", pokemonPrueba->coordy);
+
+	//signal sem contador llenarColaReady
 }
 

@@ -93,6 +93,8 @@ void* saludar();
 bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon);
 void llenarColaReady(t_queue* ready);
 void ejecutaEntrenadores(t_queue* ready);
+bool estadoNewOBlock(t_entrenador* entrenador);
+void appeared_pokemon(t_pokemon* pokemonNuevo);
 
 
 #endif /* UTILS_H_ */

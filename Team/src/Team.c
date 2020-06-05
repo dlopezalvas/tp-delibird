@@ -21,28 +21,49 @@ t_log* logger;
 int main(void) {
 
 	pthread_mutex_init (&semaforo,NULL);
+	pokemonsRequeridos = list_create();
 	iniciarTeam(&logger);
 	pthread_t hilo[entrenadores->elements_count];
 
-	t_entrenador** entrenador = &(entrenadores->head->data);
-	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordx);
-	t_pokemon* pokemon= malloc (sizeof(t_pokemon));
-	pokemon->coordx = 1;
-	pokemon->coordy = 3;
+	//Prueba
+	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
 	pokemon->especie = "Pikachu";
-	(*entrenador)->pokemonACapturar = pokemon;
-	moverEntrenador(entrenador, 2,6);
-	entrenador = (&entrenadores->head->data);
-	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordy);
+	pokemon->coordx = 1;
+	pokemon->coordy = 1;
+
+	appeared_pokemon(pokemon);
+	t_queue* ready = queue_create();
+	llenarColaReady(ready);
+//
+//	list_add(pokemonsRequeridos, pokemon);
+//	t_pokemon* pokemonPrueba = (pokemonsRequeridos->head->data);
+//	printf("%s", (pokemonPrueba)->especie);
+//	printf("%d", pokemonPrueba->coordx);
 
 
+	//t_entrenador** entrenador = &(entrenadores->head->data);
+	//printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordx);
+//	t_pokemon** pokemon = malloc (sizeof(t_pokemon));
 
-	t_link_element * aux = entrenadores->head;
-	for(int j=0; j<entrenadores->elements_count; j++){
-		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(&aux->data));
-		aux = aux->next;
-		//join o detatch del hilo ??
-	}
+
+//	list_add(pokemonsRequeridos, *pokemon);
+//	t_queue* ready = queue_create();
+//	llenarColaReady(ready);
+//	(*entrenador)->pokemonACapturar = pokemon;
+//	moverEntrenador(entrenador, 2,6);
+//	entrenador = (&entrenadores->head->data);
+//	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordy);
+
+
+	//Prueba
+
+
+//	t_link_element * aux = entrenadores->head;
+//	for(int j=0; j<entrenadores->elements_count; j++){
+//		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(&aux->data));
+//		aux = aux->next;
+//		//join o detatch del hilo ??
+//	}
 
 	//planificar();
 	sleep(1);
