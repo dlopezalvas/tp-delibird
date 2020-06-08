@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include "utils.h"
+#include "serializacion.h"
+
 #include <arpa/inet.h>//inet_addr
 #include <pthread.h>
 
@@ -16,7 +18,7 @@
 
 pthread_t thread;
 
-void* recibir_buffer(int*, int);
+void* recibir_mensaje(int socket_cliente, int* size);
 int iniciar_cliente(char *ip, char* puerto);
 void iniciar_servidor(char* ip, char* puerto);
 void esperar_cliente(int);
@@ -24,8 +26,7 @@ void* recibir_mensaje(int socket_cliente, int* size);
 int recibir_operacion(int);
 void process_request(int cod_queue, int cliente_fd);
 void serve_client(int *socket);
-//void* serializar_paquete(t_paquete* paquete, int *bytes);
-//void devolver_mensaje(void* payload, int size, int socket_cliente);
+
 
 
 #endif /* socket_h */

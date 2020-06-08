@@ -1,7 +1,4 @@
 #include "serializacion.h"
-#include "socket.h"
-
-
 
 void enviar_mensaje(t_mensaje* mensaje, int socket){
 
@@ -67,6 +64,7 @@ t_buffer* cargar_buffer(t_mensaje* mensaje){
 	return 0;
 }
 
+///////////////////////////SERIALIZAR/////////////////////////////////
 t_buffer* buffer_caught_pokemon(char** parametros){
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
@@ -206,16 +204,66 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	return buffer;
 }
 
-void* recibir_mensaje(int socket_cliente, int* size)
-{
-	void * buffer;
+///////////////////////////DESERIALIZAR/////////////////////////////////
 
-	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
-	buffer = malloc(*size);
-	recv(socket_cliente, buffer, *size, MSG_WAITALL);
+t_get_pokemon* deserializar_get_pokemon(void* buffer){
 
-	return buffer;
+	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon*));
+
+	memcpy(&get_pokemon->nombre.largo_nombre, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	get_pokemon->nombre.nombre = malloc(get_pokemon->nombre.largo_nombre);
+	memcpy(get_pokemon->nombre.nombre, buffer, get_pokemon->nombre.largo_nombre);
+
+	return get_pokemon;
 }
+
+t_new_pokemon* deserializar_new_pokemon(void* buffer){
+
+	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon*));
+
+	memcpy( &new_pokemon->coordenadas.pos_y, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	memcpy(&new_pokemon->coordenadas.pos_x, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	memcpy(&new_pokemon->cantidad, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	memcpy(&new_pokemon->nombre.largo_nombre, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	new_pokemon->nombre.nombre = malloc(new_pokemon->nombre.largo_nombre);
+	memcpy(new_pokemon->nombre.nombre, buffer, new_pokemon->nombre.largo_nombre);
+
+	return new_pokemon;
+}
+
+t_position_and_name* deserializar_position_and_name(void* buffer){
+
+	t_position_and_name* position_and_name = malloc(sizeof(t_position_and_name*));
+
+	memcpy( &position_and_name->coordenadas.pos_y, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	memcpy(&position_and_name->coordenadas.pos_x, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	memcpy(&position_and_name->nombre.largo_nombre, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	position_and_name->nombre.nombre = malloc(position_and_name->nombre.largo_nombre);
+	memcpy(position_and_name->nombre.nombre, buffer, position_and_name->nombre.largo_nombre);
+
+	return position_and_name;
+}
+
+t_caught_pokemon* deserializar_caught_pokemon(void* buffer){
+
+	t_caught_pokemon* caught_pokemon = malloc(sizeof(t_caught_pokemon*));
+
+	memcpy(&caught_pokemon->caught, buffer, sizeof(uint32_t));
+
+	return caught_pokemon;
+}
+
+
+
+
 
 
 

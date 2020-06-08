@@ -13,7 +13,7 @@
 #include<readline/readline.h>
 #include<readline/history.h>
 #include<../CommonsMCLDG/utils.h>
-#include<../CommonsMCLDG/serializacion.h>
+#include<../CommonsMCLDG/socket.h>
 
 //Config
 #define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/GameBoy/GAMEBOY.config"
@@ -71,7 +71,7 @@ void iniciar_gameboy(void);
 void liberar_consola(char* proceso, char* mensaje, char** linea_split);
 void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id);
 void ejecutar_team(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config);
-void ejecutar_gamecard(char*,...);
+void ejecutar_gamecard(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id);
 void help(char* mensaje);
 bool validar_mensaje(char* proceso, char*mensaje);
 op_code codigo_mensaje(char* tipo_mensaje);

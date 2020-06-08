@@ -63,7 +63,7 @@ void iniciar_consola(t_log* logger, t_config* config){
 		else if(string_equals_ignore_case(TEAM,proceso))
 			ejecutar_team(tipo_mensaje,linea_split, logger, config);
 		else if(string_equals_ignore_case(GAMECARD,proceso))
-			ejecutar_gamecard(tipo_mensaje,linea_split);
+			ejecutar_gamecard(tipo_mensaje,linea_split, logger, config, flag_id);
 		else
 			{
 				printf("%s\n", procesos_invalidos);
@@ -204,13 +204,20 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 
 	int cantidad = cantidad_argumentos(linea_split);
 
-	if(flag_id != NO_TIENE_ID){
-		cantidad --;
-	}
-
 	int i_linea_split = 2; //comienza a cargar la lista a partir del primer argumento, sin contar el proceso y tipo de mensaje
 
 	int j_lista_argumentos = 0; //para iterar en la lista
+
+	switch(flag_id){
+		case NO_TIENE_ID:
+			break;
+		case ID_AL_FINAL:	//no cargo el ultimo argumento
+			cantidad--;
+			break;
+		case ID_AL_PRINCIPIO:	//empiezo desde el primer argumento, sin tener en cuenta el id (posicion 3)
+			i_linea_split ++;
+			break;
+	}
 
 	char** lista_argumentos = malloc(sizeof(char**));
 
@@ -297,8 +304,28 @@ void ejecutar_team(char* tipo_mensaje, char** linea_split, t_log* logger, t_conf
 	free(mensaje);
 }
 
-void ejecutar_gamecard(char* mensaje,...){
-	puts(mensaje);
+void ejecutar_gamecard(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id){
+	char* ip = config_get_string_value(config,IP_GAMECARD);
+	char* puerto = config_get_string_value(config,PUERTO_GAMECARD);
 
-	//TODOS LLEVAN ID AL FINAL
+	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
+
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = argumentos(linea_split, flag_id);
+	mensaje -> id = calcular_id(flag_id, linea_split);
+
+	int socket_gamecard = iniciar_cliente(ip, puerto);
+
+	if(socket_gamecard != 1){
+		log_info(logger,"Se ha establecido una conexion con el proceso GameCard");
+
+	}
+
+
+	enviar_mensaje(mensaje, socket_gamecard);
+
+	free(mensaje -> parametros);
+	free(mensaje);
 }

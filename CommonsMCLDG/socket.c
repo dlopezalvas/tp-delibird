@@ -66,9 +66,14 @@ int iniciar_cliente(char* ip, char* puerto){
 }
 //sacar de commons y poner en cada proceso especifico?
 void process_request(int cod_op, int cliente_fd) {
+	int size = 0;
+	void* buffer = recibir_mensaje(cliente_fd, &size);
+	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
+
 		switch (cod_op) {
 		case GET_POKEMON:
-			puts("anda");
+			get_pokemon = deserializar_get_pokemon(buffer);
+			puts(get_pokemon->nombre.nombre);
 
 			break;
 		case 0:
@@ -78,6 +83,16 @@ void process_request(int cod_op, int cliente_fd) {
 		}
 }
 
+void* recibir_mensaje(int socket_cliente, int* size)
+{
+	void * buffer;
+
+	recv(socket_cliente, size, sizeof(int), 0);
+	buffer = malloc(*size);
+	recv(socket_cliente, buffer, *size, 0);
+
+	return buffer;
+}
 
 void liberar_conexion(int socket_cliente){
 
