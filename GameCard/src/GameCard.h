@@ -11,6 +11,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<../CommonsMCLDG/utils.h>
+#include<../CommonsMCLDG/socket.h>
 
 #include "utils.h"
 

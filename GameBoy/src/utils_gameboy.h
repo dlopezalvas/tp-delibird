@@ -48,6 +48,7 @@
 #define procesos_invalidos "Por favor ingrese un proceso valido. Para obtener ayuda ingrese el comando help"
 #define mensaje_invalido "Por favor ingrese un mensaje valido. Para obtener ayuda ingrese el comando help"
 #define argumento_invalido "Argumento invalido"
+#define terminar_consola "El proceso GAMEBOY se ha finalizado"
 
 //Defino comandos
 //Comandos
@@ -66,6 +67,7 @@ typedef enum{
 	ID_AL_PRINCIPIO = 2,
 }tipo_id;
 
+
 void iniciar_consola(t_log*, t_config*);
 void iniciar_gameboy(void);
 void liberar_consola(char* proceso, char* mensaje, char** linea_split);
@@ -75,6 +77,11 @@ void ejecutar_gamecard(char* tipo_mensaje, char** linea_split, t_log* logger, t_
 void help(char* mensaje);
 bool validar_mensaje(char* proceso, char*mensaje);
 op_code codigo_mensaje(char* tipo_mensaje);
+
+bool verificar_mensaje(char** linea_split, t_log* logger, t_config* config, tipo_id* flag_id );
+void ejecutar_proceso(char* tipo_mensaje, char** linea_split, char* proceso, t_log* logger, t_config* config, tipo_id flag_id);
+
+//void ejecutar_broker(void *thread_data);
 
 int cantidad_argumentos (char** linea_split);
 bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, tipo_id *flag_id);

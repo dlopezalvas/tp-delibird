@@ -68,6 +68,8 @@ int iniciar_cliente(char* ip, char* puerto){
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
+	uint32_t id = recv(cliente_fd, &id,sizeof(uint32_t),0);
+
 	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
 
 		switch (cod_op) {

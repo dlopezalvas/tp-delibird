@@ -13,63 +13,57 @@ void iniciar_gameboy(void){
 void iniciar_consola(t_log* logger, t_config* config){
 
 	char * linea;
+	tipo_id flag_id = NO_TIENE_ID;
 
-	while(1){
 		linea = readline(">");
 
-		if(string_equals_ignore_case(linea,comando_exit)) {
-		   free(linea);
-		   break;
+		if(linea){
+			add_history(linea);
 		}
 
 		char** linea_split = string_split(linea," ");
 
 		free(linea);
 
-		if(linea_split[1] == NULL || linea_split[2] == NULL){
-
-			printf("%s\n", mensaje_invalido);
-			liberar_vector(linea_split);
-			iniciar_consola(logger, config);
-		}
-
-		if(string_equals_ignore_case(linea_split[0],comando_help))
-		{
-			help(linea_split[1]);
-			liberar_vector(linea_split);
-			iniciar_consola(logger,config);
-		}
-
 		char * proceso = linea_split[0];
 		char * tipo_mensaje = linea_split[1];
 
-		if(!validar_mensaje(proceso,tipo_mensaje)){
-			printf("%s\n", procesos_invalidos);
-			liberar_consola(proceso, tipo_mensaje, linea_split);
+		if(string_equals_ignore_case(linea_split[0],comando_help)){
+
+			help(linea_split[1]);
+			//liberar_consola(proceso, tipo_mensaje, linea_split);
+			iniciar_consola(logger,config);
+
+		}else if(verificar_mensaje(linea_split, logger, config, &flag_id)){
+
+
+			ejecutar_proceso(tipo_mensaje, linea_split, proceso, logger, config, flag_id);
+
+			//liberar_consola(proceso, tipo_mensaje, linea_split);
+			iniciar_consola(logger,config);
+		}else if(string_equals_ignore_case(linea_split[0],comando_exit)){
+
+			printf("%s\n", terminar_consola);
+			//liberar_consola(proceso, tipo_mensaje, linea_split);
+
+		}else{
+
+			printf("%s\n", mensaje_invalido);
+			//liberar_consola(proceso, tipo_mensaje, linea_split);
 			iniciar_consola(logger,config);
 		}
 
-		tipo_id flag_id = NO_TIENE_ID;
+}
 
-		if(!validar_argumentos(tipo_mensaje,linea_split,proceso, &flag_id)){
-			printf("%s\n", argumento_invalido);
-			liberar_consola(proceso, tipo_mensaje, linea_split);
-			iniciar_consola(logger,config);
-		}
-
-
-		if(string_equals_ignore_case(BROKER,proceso))
-			ejecutar_broker(tipo_mensaje,linea_split, logger, config, flag_id);
-		else if(string_equals_ignore_case(TEAM,proceso))
-			ejecutar_team(tipo_mensaje,linea_split, logger, config);
-		else if(string_equals_ignore_case(GAMECARD,proceso))
-			ejecutar_gamecard(tipo_mensaje,linea_split, logger, config, flag_id);
-		else
-			{
-				printf("%s\n", procesos_invalidos);
-				liberar_consola(proceso, tipo_mensaje, linea_split);
-				iniciar_consola(logger,config);
-			}
+void ejecutar_proceso(char* tipo_mensaje, char** linea_split, char* proceso, t_log* logger, t_config* config, tipo_id flag_id){
+	if(string_equals_ignore_case(BROKER,proceso)){
+		ejecutar_broker(tipo_mensaje,linea_split, logger, config, flag_id);
+	}else if(string_equals_ignore_case(TEAM,proceso)){
+		ejecutar_team(tipo_mensaje,linea_split, logger, config);
+	}else if(string_equals_ignore_case(GAMECARD,proceso)){
+		ejecutar_gamecard(tipo_mensaje,linea_split, logger, config, flag_id);
+	}else{
+		perror("No se ha podido ejecutar el proceso");
 	}
 }
 
@@ -99,6 +93,17 @@ void help(char* mensaje){
 		}
 }
 
+bool verificar_mensaje(char** linea_split, t_log* logger, t_config* config, tipo_id* flag_id ){
+
+		char * proceso = linea_split[0];
+		char * tipo_mensaje = linea_split[1];
+
+		const bool tiene_argumentos_suficientes = !(linea_split[1] == NULL || linea_split[2] == NULL); //tiene que tener minimo 3 "palabras"
+		const bool mensaje_valido = validar_mensaje(proceso,tipo_mensaje) && validar_argumentos(tipo_mensaje,linea_split,proceso, flag_id);
+
+		return tiene_argumentos_suficientes && mensaje_valido;
+}
+
 void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id){
 
 	char* ip = config_get_string_value(config,IP_BROKER);
@@ -111,6 +116,8 @@ void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_log* logger, t_co
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = argumentos(linea_split, flag_id);
 	mensaje -> id = calcular_id(flag_id, linea_split);
+
+//	printf("%s", tipo_mensaje);
 
 	int socket_broker = iniciar_cliente(ip, puerto);
 
