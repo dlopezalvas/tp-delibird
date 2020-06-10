@@ -13,6 +13,10 @@
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "GAMEBOY.config"
 
+
+t_config* config;
+t_log* logger;
+
 int main(void) {
 
 

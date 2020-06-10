@@ -26,6 +26,7 @@ void* recibir_mensaje(int socket_cliente, int* size);
 int recibir_operacion(int);
 void process_request(int cod_queue, int cliente_fd);
 void serve_client(int *socket);
+void liberar_conexion(int socket_cliente);
 
 
 

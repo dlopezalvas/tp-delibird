@@ -16,9 +16,9 @@ void enviar_mensaje(t_mensaje* mensaje, int socket){
 	send(socket,a_enviar,bytes,0);
 
 	free(a_enviar);
-	free(buffer_cargado -> stream);
-	free(buffer_cargado);
-	free(paquete -> buffer -> stream);
+//	free(buffer_cargado->stream);
+//	free(buffer_cargado);
+//	free(paquete -> buffer -> stream);
 	free(paquete -> buffer);
 	free(paquete);
 
@@ -154,7 +154,6 @@ t_buffer* buffer_get_pokemon(char** parametros){
 	free(get_pokemon.nombre.nombre);
 
 	buffer -> stream = stream;
-
 
 	//free(stream);
 

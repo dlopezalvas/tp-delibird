@@ -1,76 +1,60 @@
 #include "utils_gameboy.h"
 
+extern t_config* config;
+extern t_log* logger;
+
 
 void iniciar_gameboy(void){
 
-	t_config* config = leer_config(PATH);
-	t_log* logger = iniciar_logger(config);
+	config = leer_config(PATH);
+	logger = iniciar_logger(config);
 
-	iniciar_consola(logger,config);
+	iniciar_consola(config);
   	terminar_proceso(1,logger,config);
 }
 
-void iniciar_consola(t_log* logger, t_config* config){
+//////////////CONSOLA//////////////////////////
+void iniciar_consola(t_config* config){
 
 	char * linea;
+
 	tipo_id flag_id = NO_TIENE_ID;
 
-		linea = readline(">");
+	linea = readline(">");
 
-		if(linea){
-			add_history(linea);
-		}
-
-		char** linea_split = string_split(linea," ");
-
-		free(linea);
-
-		char * proceso = linea_split[0];
-		char * tipo_mensaje = linea_split[1];
-
-		if(string_equals_ignore_case(linea_split[0],comando_help)){
-
-			help(linea_split[1]);
-			//liberar_consola(proceso, tipo_mensaje, linea_split);
-			iniciar_consola(logger,config);
-
-		}else if(verificar_mensaje(linea_split, logger, config, &flag_id)){
-
-
-			ejecutar_proceso(tipo_mensaje, linea_split, proceso, logger, config, flag_id);
-
-			//liberar_consola(proceso, tipo_mensaje, linea_split);
-			iniciar_consola(logger,config);
-		}else if(string_equals_ignore_case(linea_split[0],comando_exit)){
-
-			printf("%s\n", terminar_consola);
-			//liberar_consola(proceso, tipo_mensaje, linea_split);
-
-		}else{
-
-			printf("%s\n", mensaje_invalido);
-			//liberar_consola(proceso, tipo_mensaje, linea_split);
-			iniciar_consola(logger,config);
-		}
-
-}
-
-void ejecutar_proceso(char* tipo_mensaje, char** linea_split, char* proceso, t_log* logger, t_config* config, tipo_id flag_id){
-	if(string_equals_ignore_case(BROKER,proceso)){
-		ejecutar_broker(tipo_mensaje,linea_split, logger, config, flag_id);
-	}else if(string_equals_ignore_case(TEAM,proceso)){
-		ejecutar_team(tipo_mensaje,linea_split, logger, config);
-	}else if(string_equals_ignore_case(GAMECARD,proceso)){
-		ejecutar_gamecard(tipo_mensaje,linea_split, logger, config, flag_id);
-	}else{
-		perror("No se ha podido ejecutar el proceso");
+	if(linea){
+		add_history(linea);
 	}
-}
 
-void liberar_consola(char* proceso, char* mensaje, char** linea_split){
-	free(proceso);
-	free(mensaje);
-	liberar_vector(linea_split);
+	char** linea_split = string_split(linea," ");
+
+	free(linea);
+
+	if(string_equals_ignore_case(linea_split[0],comando_help)){
+
+		help(linea_split[1]);
+		liberar_vector(linea_split);
+		iniciar_consola(config);
+
+	}else if(verificar_mensaje(linea_split, config, &flag_id)){
+
+		ejecutar_proceso(linea_split, config, flag_id);
+		liberar_vector(linea_split);
+
+		//liberar_consola(proceso, tipo_mensaje, linea_split);
+		iniciar_consola(config);
+	}else if(string_equals_ignore_case(linea_split[0],comando_exit)){
+
+		printf("%s\n", terminar_consola);
+		liberar_vector(linea_split);
+
+	}else{
+
+		printf("%s\n", mensaje_invalido);
+		liberar_vector(linea_split);
+		iniciar_consola(config);
+	}
+
 }
 
 void help(char* mensaje){
@@ -93,7 +77,14 @@ void help(char* mensaje){
 		}
 }
 
-bool verificar_mensaje(char** linea_split, t_log* logger, t_config* config, tipo_id* flag_id ){
+void liberar_consola(char* proceso, char* mensaje, char** linea_split){
+	free(proceso);
+	free(mensaje);
+	liberar_vector(linea_split);
+}
+
+//////////////VERIFICACION DEL MENSAJE////////////////////////
+bool verificar_mensaje(char** linea_split, t_config* config, tipo_id* flag_id ){
 
 		char * proceso = linea_split[0];
 		char * tipo_mensaje = linea_split[1];
@@ -102,55 +93,6 @@ bool verificar_mensaje(char** linea_split, t_log* logger, t_config* config, tipo
 		const bool mensaje_valido = validar_mensaje(proceso,tipo_mensaje) && validar_argumentos(tipo_mensaje,linea_split,proceso, flag_id);
 
 		return tiene_argumentos_suficientes && mensaje_valido;
-}
-
-void ejecutar_broker(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id){
-
-	char* ip = config_get_string_value(config,IP_BROKER);
-	char* puerto = config_get_string_value(config,PUERTO_BROKER);
-
-	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
-
-	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = argumentos(linea_split, flag_id);
-	mensaje -> id = calcular_id(flag_id, linea_split);
-
-//	printf("%s", tipo_mensaje);
-
-	int socket_broker = iniciar_cliente(ip, puerto);
-
-	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
-
-	enviar_mensaje(mensaje, socket_broker);
-
-	free(mensaje -> parametros);
-	free(mensaje);
-}
-
-uint32_t calcular_id(tipo_id flag_id, char** linea_split){
-	uint32_t id;
-
-	char** aux = argumentos(linea_split, 0);
-
-	int cantidad = cantidad_argumentos(linea_split) - 1; //posicion del ultimo argumento
-
-	switch(flag_id){
-		case NO_TIENE_ID:
-			id = 0;
-			break;
-		case ID_AL_PRINCIPIO:
-			id = atoi(aux[0]);
-			break;
-		case ID_AL_FINAL:
-			id = atoi(aux[cantidad]);
-			break;
-	}
-
-	free(aux);
-
-	return id;
 }
 
 bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, tipo_id *flag_id){
@@ -198,6 +140,155 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, t
 	return false;
 }
 
+bool validar_mensaje(char* proceso, char* mensaje){
+
+	if(string_equals_ignore_case(TEAM,proceso)){
+		const bool team_is_valid_mensaje = string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje);
+
+		return team_is_valid_mensaje;
+	}
+
+	if(string_equals_ignore_case(GAMECARD,proceso)){
+		const bool gamecard_is_valid_mensaje =
+			string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje);
+
+		return gamecard_is_valid_mensaje;
+	}
+
+	if(string_equals_ignore_case(BROKER,proceso)){
+		const bool broker_is_valid_mensaje =
+				string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_CAUGHT_POKEMON,mensaje) ||
+				string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje);
+
+		return broker_is_valid_mensaje;
+	}
+
+	return false;
+}
+
+//////////////EJECUCION DE PROCESOS/////////////////////////
+void ejecutar_proceso(char** linea_split, t_config* config, tipo_id flag_id){
+	if(string_equals_ignore_case(BROKER,linea_split[0])){
+		ejecutar_broker(linea_split, config, flag_id);
+	}else if(string_equals_ignore_case(TEAM,linea_split[0])){
+		ejecutar_team(linea_split, config);
+	}else if(string_equals_ignore_case(GAMECARD,linea_split[0])){
+		ejecutar_gamecard(linea_split, config, flag_id);
+	}else{
+		perror("No se ha podido ejecutar el proceso");
+	}
+}
+
+
+void ejecutar_broker(char** linea_split, t_config* config, tipo_id flag_id){
+
+	char* ip = config_get_string_value(config,IP_BROKER);
+	char* puerto = config_get_string_value(config,PUERTO_BROKER);
+
+	op_code codigo_operacion = codigo_mensaje(linea_split[1]);
+
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = argumentos(linea_split, flag_id);
+	mensaje -> id = calcular_id(flag_id, linea_split);
+
+	int socket_broker = iniciar_cliente(ip, puerto);
+
+	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+
+	enviar_mensaje(mensaje, socket_broker);
+
+	liberar_conexion(socket_broker);
+
+	free(mensaje -> parametros);
+	free(mensaje);
+}
+
+
+void ejecutar_team(char** linea_split, t_config* config){
+	char* ip = config_get_string_value(config,IP_TEAM);
+	char* puerto = config_get_string_value(config,PUERTO_TEAM);
+
+	op_code codigo_operacion = codigo_mensaje(linea_split[1]);
+
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = argumentos(linea_split, 0); //no necesita id en ningun mensaje
+	mensaje -> id = 0;
+
+	int socket_team = iniciar_cliente(ip, puerto);
+
+	log_info(logger,"Se ha establecido una conexion con el proceso Team");
+
+	enviar_mensaje(mensaje, socket_team);
+
+	liberar_conexion(socket_team);
+
+	free(mensaje -> parametros);
+	free(mensaje);
+}
+
+
+void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
+	char* ip = config_get_string_value(config,IP_GAMECARD);
+	char* puerto = config_get_string_value(config,PUERTO_GAMECARD);
+
+	op_code codigo_operacion = codigo_mensaje(linea_split[1]);
+
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = argumentos(linea_split, flag_id);
+	mensaje -> id = calcular_id(flag_id, linea_split);
+
+	int socket_gamecard = iniciar_cliente(ip, puerto);
+
+	if(socket_gamecard != 1){
+		log_info(logger,"Se ha establecido una conexion con el proceso GameCard");
+
+	}
+
+	enviar_mensaje(mensaje, socket_gamecard);
+
+	liberar_conexion(socket_gamecard);
+
+	free(mensaje -> parametros);
+	free(mensaje);
+}
+
+/////////////////CALCULOS ARGUMENTOS/ID/CODIGO////////////////////////
+
+uint32_t calcular_id(tipo_id flag_id, char** linea_split){
+	uint32_t id;
+
+	char** aux = argumentos(linea_split, 0);
+
+	int cantidad = cantidad_argumentos(linea_split) - 1; //posicion del ultimo argumento
+
+	switch(flag_id){
+		case NO_TIENE_ID:
+			id = 0;
+			break;
+		case ID_AL_PRINCIPIO:
+			id = atoi(aux[0]);
+			break;
+		case ID_AL_FINAL:
+			id = atoi(aux[cantidad]);
+			break;
+	}
+
+	free(aux);
+
+	return id;
+}
+
 int cantidad_argumentos (char** linea_split){
 	int cantidad = 0;
 
@@ -238,7 +329,6 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 	return lista_argumentos;
 }
 
-
 op_code codigo_mensaje(char* tipo_mensaje){
 
 	if(string_equals_ignore_case(MENSAJE_NEW_POKEMON, tipo_mensaje)){
@@ -258,81 +348,4 @@ op_code codigo_mensaje(char* tipo_mensaje){
 	}
 }
 
-bool validar_mensaje(char* proceso, char*mensaje){
 
-	if(string_equals_ignore_case(TEAM,proceso)){
-		const bool team_is_valid_mensaje = string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje);
-
-		return team_is_valid_mensaje;
-	}
-
-	if(string_equals_ignore_case(GAMECARD,proceso)){
-		const bool gamecard_is_valid_mensaje =
-			string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
-			string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
-			string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje);
-
-		return gamecard_is_valid_mensaje;
-	}
-
-	if(string_equals_ignore_case(BROKER,proceso)){
-		const bool broker_is_valid_mensaje =
-				string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
-				string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje) ||
-				string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
-				string_equals_ignore_case(MENSAJE_CAUGHT_POKEMON,mensaje) ||
-				string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje);
-
-		return broker_is_valid_mensaje;
-	}
-
-	return false;
-}
-
-void ejecutar_team(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config){
-	char* ip = config_get_string_value(config,IP_TEAM);
-	char* puerto = config_get_string_value(config,PUERTO_TEAM);
-
-	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
-
-	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = argumentos(linea_split, 0); //no necesita id en ningun mensaje
-	mensaje -> id = 0;
-
-	int socket_team = iniciar_cliente(ip, puerto);
-
-	log_info(logger,"Se ha establecido una conexion con el proceso Team");
-
-	enviar_mensaje(mensaje, socket_team);
-
-	free(mensaje -> parametros);
-	free(mensaje);
-}
-
-void ejecutar_gamecard(char* tipo_mensaje, char** linea_split, t_log* logger, t_config* config, tipo_id flag_id){
-	char* ip = config_get_string_value(config,IP_GAMECARD);
-	char* puerto = config_get_string_value(config,PUERTO_GAMECARD);
-
-	op_code codigo_operacion = codigo_mensaje(tipo_mensaje);
-
-	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = argumentos(linea_split, flag_id);
-	mensaje -> id = calcular_id(flag_id, linea_split);
-
-	int socket_gamecard = iniciar_cliente(ip, puerto);
-
-	if(socket_gamecard != 1){
-		log_info(logger,"Se ha establecido una conexion con el proceso GameCard");
-
-	}
-
-
-	enviar_mensaje(mensaje, socket_gamecard);
-
-	free(mensaje -> parametros);
-	free(mensaje);
-}
