@@ -17,7 +17,7 @@
 #include<stdbool.h>
 #include<../CommonsMCLDG/utils.h>
 #include<../CommonsMCLDG/socket.h>
-#include<../CommonsMCLDG/serializacion.h>
+//#include<../CommonsMCLDG/serializacion.h>
 #include <commons/collections/queue.h>
 #include<pthread.h>
 #include<math.h>
@@ -91,10 +91,14 @@ void atraparPokemon(t_entrenador* entrenador);
 void planificarFIFO();
 void* saludar();
 bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon);
-void llenarColaReady(t_queue* ready);
+void llenarColaReady();
 void ejecutaEntrenadores(t_queue* ready);
 bool estadoNewOBlock(t_entrenador* entrenador);
 void appeared_pokemon(t_pokemon* pokemonNuevo);
+void esperar_cliente(int servidor);
+void serve_client(int* socket);
+void socketEscucha(char*IP, char* Puerto);
+void process_request(int cod_op, int cliente_fd);
 
 
 #endif /* UTILS_H_ */

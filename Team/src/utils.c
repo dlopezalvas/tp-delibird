@@ -5,12 +5,13 @@ extern pthread_mutex_t semaforo;
 extern t_list* pokemonsRequeridos;
 extern t_config* config;
 extern t_log* logger;
+extern t_queue* ready;
 
 
 void iniciarTeam(){ //funciona
 	config = leer_config(PATH);
 	logger = iniciar_logger(config);
-
+	ready = queue_create();
 	entrenadores = list_create();
 	objetivoGlobal = list_create();
 
@@ -29,14 +30,17 @@ void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si fu
 	}
 
 	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
-	free(objetivoGlobal);
+	list_destroy(objetivoGlobal);
+	queue_destroy(ready);
 	config_destroy(config);
 	//liberar_conexion(conexion);
 	log_info(logger,"-----------LOG END--------");
 	log_destroy(logger);
 }
 
-void entrenadorDestroy(t_entrenador * entrenador) { //probar
+void entrenadorDestroy(t_entrenador * entrenador) { //probar con valgrind
+	list_destroy(entrenador->objetivos);
+    list_destroy(entrenador->pokemons);
     free(entrenador);
 }
 
@@ -276,14 +280,14 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Probar si funciona
 	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
 }
 
-void planificar(){// Probar si funciona
+void planificar(){//funciona
 	char* algoritmo = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 	if(strcmp(algoritmo, "FIFO") == 0) planificarFIFO();
 //	if(strcmp(algoritmo, "RR") == 0) planificarRR();
 //	if(strcmp(algoritmo, "SJF-CD") == 0) planificarSJF_CD();
 //	if(strcmp(algoritmo, "SJF-SD") == 0) planificarSJF_SD();
 }
-void planificarFIFO(){// Probar si funciona y agregar hilo sockets
+void planificarFIFO(){// funciona
 	//pthread_t escuchaSockets;
 	pthread_t llenaReady;
 	pthread_t ejecuta;
@@ -292,11 +296,10 @@ void planificarFIFO(){// Probar si funciona y agregar hilo sockets
 
 	//hilo que llena la lista de ready
 
-	t_queue* ready = queue_create();
-	pthread_create(&llenaReady, NULL, (void*)llenarColaReady, (void*)ready);
+	pthread_create(&llenaReady, NULL, (void*)llenarColaReady, NULL);
 
 	//hilo que va decidiendo quien ejecuta
-	pthread_create(&ejecuta, NULL, (void*)ejecutaEntrenadores, (void*)ready);
+	//pthread_create(&ejecuta, NULL, (void*)ejecutaEntrenadores, (void*)ready);
 
 }
 
@@ -309,13 +312,14 @@ void ejecutaEntrenadores(t_queue* ready){ //agregar semaforos y probar
 		}
 }
 
-void llenarColaReady(t_queue* ready){ // Funciona
+void llenarColaReady(){ // Funciona
 
 	t_entrenador* entrenadorAPlanificar;
+	t_pokemon* pokemon;
 	int i = 0;
 	while(i == 0){ //cambiar condicion de while por !cumpleObjetivoGlobal()
 
-		t_pokemon* pokemon = list_remove(pokemonsRequeridos, 0);
+		pokemon = list_remove(pokemonsRequeridos, 0); //cambiar a find y agregar bool planificado en otro struct
 		bool _menorDistancia(void* elem1 , void* elem2){
 				return menorDistancia(elem1, elem2, pokemon);
 			}
@@ -323,8 +327,6 @@ void llenarColaReady(t_queue* ready){ // Funciona
 		bool _estadoNewoBlock(void* entrenador){
 						return estadoNewOBlock(entrenador);
 					}
-
-
 		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
 //		printf("EntrenadorAPlanificar \n");
@@ -354,12 +356,12 @@ void llenarColaReady(t_queue* ready){ // Funciona
 
 }
 
-bool estadoNewOBlock(t_entrenador* entrenador){
+bool estadoNewOBlock(t_entrenador* entrenador){ //funciona
 	return entrenador->estado == NEW || entrenador->estado == BLOCK;
 }
 
 
-bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon){ //probar
+bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon){ //funciona
 	return (distancia(elem1->coordx, elem1->coordy, pokemon->coordx, pokemon->coordy)<distancia(elem2->coordx, elem2->coordy, pokemon->coordx, pokemon->coordy));
 }
 
@@ -381,7 +383,7 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 	return 0;
 }
 
-void appeared_pokemon(t_pokemon* pokemonNuevo){
+void appeared_pokemon(t_pokemon* pokemonNuevo){ //Agregar Verificacion
 	//Verifica que lo necesite
 	list_add(pokemonsRequeridos, pokemonNuevo);
 
@@ -392,5 +394,55 @@ void appeared_pokemon(t_pokemon* pokemonNuevo){
 //	printf("%d \n\n", pokemonPrueba->coordy);
 
 	//signal sem contador llenarColaReady
+}
+
+void process_request(int cod_op, int cliente_fd) {
+	int size = 0;
+	void* buffer = recibir_mensaje(cliente_fd, &size);
+//	uint32_t id = recv(cliente_fd, &id,sizeof(uint32_t),0);
+
+	t_position_and_name* get_pokemon = malloc(sizeof(t_position_and_name));
+
+		switch (cod_op) {
+		case APPEARED_POKEMON:
+			get_pokemon = deserializar_position_and_name(buffer);
+			puts(get_pokemon->nombre.nombre);
+			//appeared_pokemon;
+
+			break;
+		case 0:
+			pthread_exit(NULL);
+		case -1:
+			pthread_exit(NULL);
+		}
+}
+
+
+void esperar_cliente(int servidor){
+	pthread_t thread;
+	struct sockaddr_in direccion_cliente;
+
+	unsigned int tam_direccion = sizeof(struct sockaddr_in);
+
+	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
+
+	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
+	pthread_detach(thread);
+}
+
+void serve_client(int* socket)
+{
+	int cod_op;
+	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+		cod_op = -1;
+	process_request(cod_op, *socket);
+}
+
+void socketEscucha(char*IP, char* Puerto){
+	int servidor = iniciar_servidor(IP,Puerto);
+	while(1){
+		esperar_cliente(servidor);
+	}
+
 }
 

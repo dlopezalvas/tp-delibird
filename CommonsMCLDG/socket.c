@@ -1,7 +1,7 @@
 #include "socket.h"
 
 //Falta cambiar de void a int
-void iniciar_servidor (char* ip, char* puerto){
+int iniciar_servidor (char* ip, char* puerto){
 	struct sockaddr_in direccion_servidor;
 
 	direccion_servidor.sin_family = AF_INET;
@@ -21,32 +21,32 @@ void iniciar_servidor (char* ip, char* puerto){
 
 	listen(servidor,SOMAXCONN); //flag para que tome el maximo posible de espacio
 
-	while(1){
-		esperar_cliente(servidor);
-	}
+//	while(1){
+//		esperar_cliente(servidor);
+//	}
 
-	//return servidor;
+	return servidor;
 
 }
 
-void esperar_cliente(int servidor){
-	struct sockaddr_in direccion_cliente;
+//void esperar_cliente(int servidor){
+//	struct sockaddr_in direccion_cliente;
+//
+//	unsigned int tam_direccion = sizeof(struct sockaddr_in);
+//
+//	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
+//
+//	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
+//	pthread_detach(thread);
+//}
 
-	unsigned int tam_direccion = sizeof(struct sockaddr_in);
-
-	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
-
-	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
-	pthread_detach(thread);
-}
-
-void serve_client(int* socket)
-{
-	int cod_op;
-	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
-		cod_op = -1;
-	process_request(cod_op, *socket);
-}
+//void serve_client(int* socket)
+//{
+//	int cod_op;
+//	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+//		cod_op = -1;
+//	process_request(cod_op, *socket);
+//}
 
 int iniciar_cliente(char* ip, char* puerto){
 	struct sockaddr_in direccion_servidor;
@@ -65,25 +65,25 @@ int iniciar_cliente(char* ip, char* puerto){
 	return cliente;
 }
 //sacar de commons y poner en cada proceso especifico?
-void process_request(int cod_op, int cliente_fd) {
-	int size = 0;
-	void* buffer = recibir_mensaje(cliente_fd, &size);
-	uint32_t id = recv(cliente_fd, &id,sizeof(uint32_t),0);
-
-	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
-
-		switch (cod_op) {
-		case GET_POKEMON:
-			get_pokemon = deserializar_get_pokemon(buffer);
-			puts(get_pokemon->nombre.nombre);
-
-			break;
-		case 0:
-			pthread_exit(NULL);
-		case -1:
-			pthread_exit(NULL);
-		}
-}
+//void process_request(int cod_op, int cliente_fd) {
+//	int size = 0;
+//	void* buffer = recibir_mensaje(cliente_fd, &size);
+//	uint32_t id = recv(cliente_fd, &id,sizeof(uint32_t),0);
+//
+//	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
+//
+//		switch (cod_op) {
+//		case GET_POKEMON:
+//			get_pokemon = deserializar_get_pokemon(buffer);
+//			puts(get_pokemon->nombre.nombre);
+//
+//			break;
+//		case 0:
+//			pthread_exit(NULL);
+//		case -1:
+//			pthread_exit(NULL);
+//		}
+//}
 
 void* recibir_mensaje(int socket_cliente, int* size)
 {

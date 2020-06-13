@@ -20,12 +20,12 @@ pthread_t thread;
 
 void* recibir_mensaje(int socket_cliente, int* size);
 int iniciar_cliente(char *ip, char* puerto);
-void iniciar_servidor(char* ip, char* puerto);
-void esperar_cliente(int);
+int iniciar_servidor(char* ip, char* puerto);
+//void esperar_cliente(int);
 void* recibir_mensaje(int socket_cliente, int* size);
 int recibir_operacion(int);
-void process_request(int cod_queue, int cliente_fd);
-void serve_client(int *socket);
+//void process_request(int cod_queue, int cliente_fd);
+//void serve_client(int *socket);
 void liberar_conexion(int socket_cliente);
 
 
