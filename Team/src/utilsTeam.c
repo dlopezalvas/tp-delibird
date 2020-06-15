@@ -277,6 +277,7 @@ void atraparPokemon(t_entrenador* entrenador){//terminar y probar
 
 void intercambiarPokemon(t_entrenador** entrenador){ // Probar si funciona
 	t_intercambio* intercambio = (*entrenador)->intercambio;
+	printf("%s",intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemons);
 	list_add((*intercambio->entrenador)->pokemons, intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonARecibir, (*intercambio->entrenador)->pokemons);
@@ -334,7 +335,7 @@ void llenarColaReady(){ // Funciona
 		}
 
 
-		pokemon = list_find(pokemonsRequeridos, _noEstaPlanificado); // creemos que funciona probar
+		pokemon = list_find(pokemonsRequeridos, _noEstaPlanificado);
 		bool _menorDistancia(void* elem1 , void* elem2){
 				return menorDistancia(elem1, elem2, pokemon);
 			}
@@ -345,25 +346,19 @@ void llenarColaReady(){ // Funciona
 		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
 		pokemon->planificado = true;
-//		printf("EntrenadorAPlanificar \n");
-//		printf("%s ", entrenadorAPlanificar->pokemonACapturar->especie);
-//		printf("%d ", entrenadorAPlanificar->pokemonACapturar->coordx);
-//		printf("%d \n\n", entrenadorAPlanificar->pokemonACapturar->coordy);
-
-
-		//t_entrenador* entrenadorCambiado = entrenadores->head->data;
-//		printf("Entrenador en la lista de entrenadores \n");
-//		printf("%s ", entrenadorCambiado->pokemonACapturar->especie);
-//		printf("%d ", entrenadorCambiado->pokemonACapturar->coordx);
-//		printf("%d \n\n", entrenadorCambiado->pokemonACapturar->coordy);
 		cambiarEstado(&(entrenadorAPlanificar), READY);
-//		printf("Estado entrenador \n");
-//		printf("%d \n\n", entrenadorCambiado->estado);
 		queue_push(ready, entrenadorAPlanificar);
 
 
 		t_entrenador* entrenadorPrueba = queue_pop(ready);
 		printf("Entrenador sacado de ready \n");
+
+		t_pokemon* pokemonPlanificado = pokemonsRequeridos->head->data;
+		if(pokemonPlanificado->planificado){
+			printf("planificado \n");
+		}
+
+
 		printf("%s ", entrenadorPrueba->pokemonACapturar->especie);
 		printf("%d ", entrenadorPrueba->pokemonACapturar->coordx);
 		printf("%d \n\n", entrenadorPrueba->pokemonACapturar->coordy);
@@ -390,11 +385,12 @@ bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon
 void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 	t_entrenador** entrenador = entre;
 	t_intercambio* intercambio = (*entrenador)->intercambio;
-	while((*entrenador)->estado == EXEC){
+	while((*entrenador)->estado != EXIT){
 		if(puedeAtraparPokemon((*entrenador))){
 			moverEntrenador(entrenador, (*entrenador)->pokemonACapturar->coordx, (*entrenador)->pokemonACapturar->coordy);
 			atraparPokemon(*entrenador);
-			cambiarEstado(entrenador, BLOCK);//avisar hilo planificacion que termino de ejecutar ¿¿id de mensaje??
+			cambiarEstado(entrenador, BLOCK);//se blockea hasta que recibe respuesta de si lo capturo o no
+			//avisar hilo planificacion que termino de ejecutar ¿¿id de mensaje??
 		}else {
 			moverEntrenador(entrenador, (*intercambio->entrenador)->coordx , (*intercambio->entrenador)->coordy);
 			intercambiarPokemon(entrenador);//avisar hilo planificacion que termino de ejecutar
