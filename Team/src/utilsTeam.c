@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "utilsTeam.h"
 extern t_list* entrenadores;
 extern t_list* objetivoGlobal;
 extern pthread_mutex_t semaforo;
@@ -84,7 +84,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 
 
 
-t_list* configurarPokemons(char** pokemons){ //funciona
+t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 	t_list* listaPokemons = list_create();
 	for(int i=0; pokemons[i];i++){
 		list_add(listaPokemons, (pokemons[i]));
@@ -177,12 +177,12 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 	return (entrenador->estado == (NEW || BLOCK) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
 }
 
-void capturoPokemon(t_entrenador** entrenador){
+void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
 
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
 	if(tieneMenosElementos ((*entrenador)->pokemons, (*entrenador)->objetivos)){
-		cambiarEstado(entrenador, READY);
+		cambiarEstado(entrenador, BLOCK);
 	}else{
 		if(cumpleObjetivoParticular(*entrenador)){
 			cambiarEstado(entrenador, EXIT);
@@ -192,13 +192,23 @@ void capturoPokemon(t_entrenador** entrenador){
 		}
 	}
 //Probar si funciona segunda parte
-//	bool mismaEspecie(t_pokemon* pokemon1 ){
-//				return string_equals_ignore_case((*entrenador)->pokemonACapturar->especie, pokemon1->especie);
-//				}
-	//list_remove_by_condition(pokemonsRequeridos, (void*)mismaEspecie);
-	//removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
-	//free((*entrenador)->pokemonACapturar);
-	//(*entrenador)->pokemonACapturar = NULL;
+	bool _mismoPokemon(t_pokemon* pokemon ){
+				return mismoPokemon(pokemon,(*entrenador)->pokemonACapturar);
+				}
+	list_remove_by_condition(pokemonsRequeridos, (void*)_mismoPokemon);
+	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
+	free((*entrenador)->pokemonACapturar);
+	(*entrenador)->pokemonACapturar = NULL;
+
+}
+
+bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2){
+
+	return(pokemon->coordx == pokemon2->coordx && pokemon->coordy == pokemon2->coordy &&
+			string_equals_ignore_case(pokemon->especie, pokemon2->especie) &&
+				pokemon->planificado == true);
+
+
 
 }
 
@@ -319,7 +329,12 @@ void llenarColaReady(){ // Funciona
 	int i = 0;
 	while(i == 0){ //cambiar condicion de while por !cumpleObjetivoGlobal()
 
-		pokemon = list_remove(pokemonsRequeridos, 0); //cambiar a find y agregar bool planificado en otro struct
+		bool _noEstaPlanificado(void* pokemon){
+			return noEstaPlanificado(pokemon);
+		}
+
+
+		pokemon = list_find(pokemonsRequeridos, _noEstaPlanificado); // creemos que funciona probar
 		bool _menorDistancia(void* elem1 , void* elem2){
 				return menorDistancia(elem1, elem2, pokemon);
 			}
@@ -329,6 +344,7 @@ void llenarColaReady(){ // Funciona
 					}
 		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
+		pokemon->planificado = true;
 //		printf("EntrenadorAPlanificar \n");
 //		printf("%s ", entrenadorAPlanificar->pokemonACapturar->especie);
 //		printf("%d ", entrenadorAPlanificar->pokemonACapturar->coordx);
@@ -353,6 +369,12 @@ void llenarColaReady(){ // Funciona
 		printf("%d \n\n", entrenadorPrueba->pokemonACapturar->coordy);
 		i++;
 	}
+
+}
+
+bool noEstaPlanificado(t_pokemon* pokemon){
+
+	return !pokemon->planificado;
 
 }
 
@@ -385,6 +407,7 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 
 void appeared_pokemon(t_pokemon* pokemonNuevo){ //Agregar Verificacion
 	//Verifica que lo necesite
+	pokemonNuevo->planificado = false;
 	list_add(pokemonsRequeridos, pokemonNuevo);
 
 //	t_pokemon* pokemonPrueba = (pokemonsRequeridos->head->data);

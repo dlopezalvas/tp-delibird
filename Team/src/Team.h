@@ -12,6 +12,6 @@
 #include<stdlib.h>
 #include<../CommonsMCLDG/utils.h>
 
-#include "utils.h"
+#include "utilsTeam.h"
 
 #endif /* TEAM_H_ */

@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILSTEAM_H_
+#define UTILSTEAM_H_
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -40,7 +40,8 @@ typedef struct t_pokemon
 {
 	char* especie;
 	uint32_t coordx; // coordenada x
-	uint32_t coordy; //coordenada y
+	uint32_t coordy;//coordenada y
+	bool planificado;
 } t_pokemon;
 
 
@@ -99,6 +100,8 @@ void esperar_cliente(int servidor);
 void serve_client(int* socket);
 void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
+bool noEstaPlanificado(t_pokemon* pokemon);
+bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2);
 
 
-#endif /* UTILS_H_ */
+#endif /* UTILSTEAM_H_ */
