@@ -39,13 +39,6 @@ typedef struct{
 	char* magic_number;
 }t_metadata;
 
-typedef struct{
-	bool directorio;
-	uint32_t size;
-	uint32_t** blocks;
-	bool open;
-}t_archivo;
-
 t_bitarray* bitarray;
 char* pto_montaje;
 
@@ -59,10 +52,12 @@ t_metadata* cargar_metadata(char* punto_montaje);
 bool existe_pokemon(char* path_pokemon);
 void agregar_pokemon_mapa(t_new_pokemon* pokemon);
 void crear_pokemon(t_new_pokemon* pokemon);
-bool archivo_abierto(char* path_archivo);
+bool archivo_abierto(t_config* config_archivo);
 void actualizar_pokemon(t_new_pokemon* pokemon);
 
-void abrir_archivo(char* path_archivo);
+char** abrir_archivo(t_config* config_archivo, char* path_pokemon);
+t_config* leer_archivo(char** blocks);
+int cantidad_bloques(char** blocks);
 
 
 #endif /* UTILS_H_ */

@@ -112,7 +112,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	fprintf(metadata, "OPEN=N\n");
 	fclose(metadata);
 
-	actualizar_pokemon(pokemon);
+	//actualizar_pokemon(pokemon);
 }
 
 void actualizar_pokemon(t_new_pokemon* pokemon){
@@ -120,39 +120,94 @@ void actualizar_pokemon(t_new_pokemon* pokemon){
 	string_append(&path_pokemon, pto_montaje);
 	string_append(&path_pokemon, "/Files/");
 	string_append(&path_pokemon, pokemon->nombre.nombre);
+	string_append(&path_pokemon, "/Metadata.bin");
 
-	if(!archivo_abierto(path_pokemon)){
+	t_config* config_pokemon = config_create(path_pokemon);
 
+	if(!archivo_abierto(config_pokemon)){
+
+		//char** blocks = abrir_archivo(config_pokemon, path_pokemon);
+
+		//leer_archivo(blocks);
+
+//		char** posicion = string_new();
+//
+//		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_x));
+//		string_append(&posicion, "-");
+//		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_y));
+//
+//		if(config_has_property(config_pokemon, posicion)){
+//
 	}else{
 		puts("reintentar");
 	}
 }
 
-void abrir_archivo(char* path_archivo){
+t_config* leer_archivo(char** blocks){ //para leer el archivo, bloque por bloque leo linea por linea y la meto en un archivo config
 
-	char* metadata_archivo = string_new();
+	char* path_blocks = string_new();
 
-	string_append(&metadata_archivo, path_archivo);
-	string_append(&metadata_archivo, "/Metadata.bin");
+	string_append(&path_blocks, pto_montaje);
+	string_append(&path_blocks, "/Blocks/");
 
-	puts(path_archivo);
 
-	t_config* config_archivo = config_create(metadata_archivo);
+	int i;
+	int cantidad = cantidad_bloques(blocks);
 
-	config_set_value(config_archivo, OPEN, YES);
-	config_save_in_file(config_archivo, metadata_archivo);
+	t_config* config_datos = config_create(path_blocks);
 
-	config_destroy(config_archivo);
+	for(i = 0; i < cantidad; i++){
+
+		//armo el path de cada bloque que voy a leer
+		char* bloque_especifico = string_new();
+		string_append(&bloque_especifico, path_blocks);
+		string_append(&bloque_especifico, blocks[i]);
+		string_append(&bloque_especifico, ".bin");
+
+
+		FILE* bloque = fopen(bloque_especifico, "r");
+
+		char* datos = malloc(sizeof(char));
+
+		while(fgets(datos, metadata_fs->block_size, bloque)){
+			char** aux = string_split(datos, "=");
+			config_set_value(config_datos, aux[0], aux[1]);
+			free(aux[0]);
+			free(aux[1]);
+			free(aux);
+
+		}
+
+		free(datos);
+		fclose(bloque);
+		free(bloque_especifico);
+	}
+	free(path_blocks);
+	return config_datos;
 }
 
-bool archivo_abierto(char* path_archivo){
+int cantidad_bloques(char** blocks){
+	int i = 0;
+	while(blocks[i]!=NULL){
+		i++;
+	}
+	return i;
+}
 
-	t_config* config_archivo = config_create(path_archivo);
+char** abrir_archivo(t_config* config_archivo, char* path_pokemon){
+
+	char** bloques = config_get_array_value(config_archivo, BLOCKS);
+
+	config_set_value(config_archivo, OPEN, YES);
+	config_save_in_file(config_archivo, path_pokemon);
+
+	return bloques;
+}
+
+bool archivo_abierto(t_config* config_archivo){
 
 	char* archivo_open = config_get_string_value(config_archivo, OPEN);
 	bool esta_abierto = string_equals_ignore_case(YES, archivo_open);
-
-	config_destroy(config_archivo);
 
 	return esta_abierto;
 }

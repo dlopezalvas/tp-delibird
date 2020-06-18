@@ -10,15 +10,9 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include<../CommonsMCLDG/utils.h>
-#include<../CommonsMCLDG/socket.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 
-#include "utils.h"
+#include "utils_gamecard.h"
 
 #define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/GameCard/GAMECARD.config"
 
