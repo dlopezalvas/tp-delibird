@@ -7,11 +7,25 @@ void crear_tall_grass(t_config* config){
 
 	mkdir(pto_montaje, 0777);
 
-	metadata_fs = cargar_metadata(pto_montaje);
-	//crear_metadata(pto_montaje);
-	crear_bitmap(pto_montaje);
+	char* path_metadata = string_new();
 
-	free(metadata_fs);
+	string_append(&path_metadata, pto_montaje);
+	string_append(&path_metadata,"/Metadata/Metadata.bin");
+
+	t_config* config_metadata = config_create(path_metadata);
+
+	metadata_fs = malloc(sizeof(t_metadata));
+
+	metadata_fs->block_size = config_get_int_value(config_metadata, BLOCK_SIZE);
+	metadata_fs->blocks = config_get_int_value(config_metadata, BLOCKS);
+	metadata_fs->magic_number = config_get_string_value(config_metadata, MAGIC_NUMBER);
+
+	config_destroy(config_metadata);
+	free(path_metadata);
+
+	//crear_bitmap(pto_montaje);
+
+	//free(metadata_fs);
 
 }
 
@@ -58,26 +72,6 @@ void crear_bitmap(char* punto_montaje){
 	free(path_bitarray);
 }
 
-t_metadata* cargar_metadata(char* punto_montaje){
-
-	char* path_metadata = string_new();
-
-	string_append(&path_metadata, punto_montaje);
-	string_append(&path_metadata,"/Metadata/Metadata.bin");
-
-	t_config* config_metadata = config_create(path_metadata);
-
-	t_metadata* aux = malloc(sizeof(t_metadata));
-
-	aux->block_size = atoi(config_get_string_value(config_metadata, BLOCK_SIZE));
-	aux->blocks = atoi(config_get_string_value(config_metadata, BLOCKS));
-	aux->magic_number=config_get_string_value(config_metadata, MAGIC_NUMBER);
-
-	config_destroy(config_metadata);
-	free(path_metadata);
-
-	return aux;
-}
 //journaling, checkeo con el log, si falla a la mitad que se pueda deshacer los pasos
 
 void agregar_pokemon_mapa(t_new_pokemon* pokemon){
@@ -88,7 +82,7 @@ void agregar_pokemon_mapa(t_new_pokemon* pokemon){
 	string_append(&path_pokemon, pokemon->nombre.nombre);
 
 	if(existe_pokemon(path_pokemon)){
-		actualizar_pokemon(pokemon);
+		actualizar_nuevo_pokemon(pokemon);
 	}else{
 		crear_pokemon(pokemon);
 	}
@@ -115,7 +109,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	//actualizar_pokemon(pokemon);
 }
 
-void actualizar_pokemon(t_new_pokemon* pokemon){
+void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	char* path_pokemon = string_new();
 	string_append(&path_pokemon, pto_montaje);
 	string_append(&path_pokemon, "/Files/");
@@ -126,35 +120,79 @@ void actualizar_pokemon(t_new_pokemon* pokemon){
 
 	if(!archivo_abierto(config_pokemon)){
 
-		//char** blocks = abrir_archivo(config_pokemon, path_pokemon);
+		char** blocks = abrir_archivo(config_pokemon, path_pokemon);
 
-		//leer_archivo(blocks);
+		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
-//		char** posicion = string_new();
-//
-//		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_x));
-//		string_append(&posicion, "-");
-//		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_y));
-//
-//		if(config_has_property(config_pokemon, posicion)){
-//
+//		char* datos = leer_archivo(blocks, tamanio_total);
+
+		t_config* config_datos = transformar_a_config(leer_archivo(blocks, tamanio_total));
+
+		char* posicion = string_new();
+
+		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_x));
+		string_append(&posicion, "-");
+		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_y));
+
+		if(config_has_property(config_datos, posicion)){
+			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + 1); //a la cantidad que ya hay, le sumo el nuevo pokemon
+			config_set_value(config_datos, posicion, nueva_cantidad_posicion);
+
+		}else{
+			config_set_value(config_datos, posicion, "1"); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
+		}
+
+		//guardar_archivo(config_datos);
+
 	}else{
 		puts("reintentar");
 	}
 }
 
-t_config* leer_archivo(char** blocks){ //para leer el archivo, bloque por bloque leo linea por linea y la meto en un archivo config
+t_config* transformar_a_config(char* datos){
+	t_config* config_datos = config_create(pto_montaje);
+
+	char** lineas = string_split(datos, "\n");
+
+	int i = 0;
+
+	while(lineas[i]!=NULL){ //por cada "posicion", hay una linea del vector "lineas" (separado por \n)
+		char** key_valor = string_split(lineas[i], "=");
+		config_set_value(config_datos, key_valor[0], key_valor[1]); //separo la posicion de la cantidad (a traves del =)y seteo como key la posicion con su valor cantidad
+		liberar_vector(key_valor);
+		i++;
+	}
+
+	liberar_vector(lineas);
+
+	return config_datos;
+}
+
+
+//void guardar_archivo(t_config* config_datos, t_config* config_pokemon){
+//
+//	//cantidad de bloques = tamanio real en bytes / tamanio de cada bloque redondeado hacia arriba
+//
+//	int cantidad_bloques_antes = ceil(config_get_int_value(config_pokemon, SIZE) / metadata_fs->block_size);
+//	int cantidad_bloques_actuales = ceil(config_get_int_value(config_datos, NUEVO_TAMANIO) / metadata_fs->block_size);
+//
+//
+//
+//}
+
+char* leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si su tamanio es mayor a block_size del metadata tall grass, leo esa cantidad, si no leo el tamanio que tiene
 
 	char* path_blocks = string_new();
 
 	string_append(&path_blocks, pto_montaje);
 	string_append(&path_blocks, "/Blocks/");
 
-
 	int i;
 	int cantidad = cantidad_bloques(blocks);
 
-	t_config* config_datos = config_create(path_blocks);
+	char* datos = malloc(tamanio_total);
+
+	int offset = 0;
 
 	for(i = 0; i < cantidad; i++){
 
@@ -164,26 +202,24 @@ t_config* leer_archivo(char** blocks){ //para leer el archivo, bloque por bloque
 		string_append(&bloque_especifico, blocks[i]);
 		string_append(&bloque_especifico, ".bin");
 
-
 		FILE* bloque = fopen(bloque_especifico, "r");
 
-		char* datos = malloc(sizeof(char));
+		if(tamanio_total > metadata_fs->block_size){
 
-		while(fgets(datos, metadata_fs->block_size, bloque)){
-			char** aux = string_split(datos, "=");
-			config_set_value(config_datos, aux[0], aux[1]);
-			free(aux[0]);
-			free(aux[1]);
-			free(aux);
+			fread(datos + offset, sizeof(char), metadata_fs->block_size, bloque);
+			offset+= metadata_fs->block_size;
+			tamanio_total -= metadata_fs->block_size;
 
+		}else{
+			fread(datos + offset, sizeof(char), tamanio_total, bloque); //si no esta lleno entonces es el ultimo bloque -> no necesito cambiar el tamanio ni el offset???
+			offset+= tamanio_total;
 		}
 
-		free(datos);
 		fclose(bloque);
-		free(bloque_especifico);
 	}
+
 	free(path_blocks);
-	return config_datos;
+	return datos;
 }
 
 int cantidad_bloques(char** blocks){

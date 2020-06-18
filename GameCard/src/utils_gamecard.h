@@ -30,6 +30,7 @@
 #define NO "N"
 #define DIRECTORIO "DIRECTORIO"
 #define SIZE "SIZE"
+#define NUEVO_TAMANIO "NUEVO_TAMANIO"
 
 
 
@@ -47,17 +48,19 @@ t_metadata* metadata_fs;
 void crear_tall_grass(t_config* config);
 //void crear_metadata(char* path_metadata);
 void crear_bitmap(char* path);
-t_metadata* cargar_metadata(char* punto_montaje);
+
 
 bool existe_pokemon(char* path_pokemon);
 void agregar_pokemon_mapa(t_new_pokemon* pokemon);
 void crear_pokemon(t_new_pokemon* pokemon);
 bool archivo_abierto(t_config* config_archivo);
-void actualizar_pokemon(t_new_pokemon* pokemon);
+void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 
 char** abrir_archivo(t_config* config_archivo, char* path_pokemon);
-t_config* leer_archivo(char** blocks);
+char* leer_archivo(char** blocks, int tamanio_total);
 int cantidad_bloques(char** blocks);
+
+t_config* transformar_a_config(char* datos);
 
 
 #endif /* UTILS_H_ */
