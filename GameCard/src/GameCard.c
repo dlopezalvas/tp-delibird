@@ -19,4 +19,6 @@ int main(void) {
 	crear_tall_grass(config);
 	//iniciar_servidor("127.0.0.3", "5001");
 
+	terminar_proceso(0, logger, config);
+
 }
