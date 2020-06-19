@@ -64,7 +64,7 @@ void configurarEntrenadores(){ //funciona
 
 t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){ //funciona
 	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
-	entrenador->estado = NEW;
+	entrenador->estado = BLOCK;
 	char** objetivosEntrenador = string_split(objetivos,"|");
 	entrenador->objetivos = configurarPokemons(objetivosEntrenador);
 	char** coordenadas = string_split(posicion,"|");
@@ -118,7 +118,7 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){ //funciona
 		else return false;
 		break;
 	case BLOCK:
-		if(nuevoEstado == (READY || EXIT)) return true;
+		if(nuevoEstado == (READY || BLOCK || EXIT)) return true;
 		else return false;
 		break;
 	case EXIT:
@@ -276,19 +276,33 @@ void atraparPokemon(t_entrenador* entrenador){//terminar y probar
 }
 
 void intercambiarPokemon(t_entrenador** entrenador){ // Probar si funciona
+//	t_intercambio* intercambio = malloc(sizeof(t_intercambio));
+//	intercambio = (*entrenador)->intercambio;
+
 	t_intercambio* intercambio = (*entrenador)->intercambio;
+	puts("intercambio a");
 	printf("%s",intercambio->pokemonAEntregar);
+	puts("intercambio b");
+
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemons);
-	list_add((*intercambio->entrenador)->pokemons, intercambio->pokemonAEntregar);
-	removerPokemon(intercambio->pokemonARecibir, (*intercambio->entrenador)->pokemons);
+	puts("intercambio c");
+
+	list_add(intercambio->entrenador->pokemons, intercambio->pokemonAEntregar);
+
+	puts("intercambio d");
+	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemons);
+	puts("intercambio e");
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
-	free(intercambio);
+	puts("intercambio f");
+
 	(*entrenador)->intercambio = NULL;
-	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
-	else cambiarEstado(entrenador, BLOCK);
-	if(cumpleObjetivoParticular(*intercambio->entrenador)) cambiarEstado(intercambio->entrenador, EXIT);
-	else cambiarEstado(entrenador, BLOCK);
-	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
+	puts("intercambio g");
+	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(&entrenador, EXIT);
+	else cambiarEstado(&entrenador, BLOCK);
+	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
+	else cambiarEstado(&(intercambio->entrenador), BLOCK);
+	//sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
+	puts("intercambio h");
 }
 
 void planificar(){//funciona
@@ -392,7 +406,7 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 			cambiarEstado(entrenador, BLOCK);//se blockea hasta que recibe respuesta de si lo capturo o no
 			//avisar hilo planificacion que termino de ejecutar ¿¿id de mensaje??
 		}else {
-			moverEntrenador(entrenador, (*intercambio->entrenador)->coordx , (*intercambio->entrenador)->coordy);
+			moverEntrenador(entrenador, intercambio->entrenador->coordx , intercambio->entrenador->coordy);
 			intercambiarPokemon(entrenador);//avisar hilo planificacion que termino de ejecutar
 			}
 	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);

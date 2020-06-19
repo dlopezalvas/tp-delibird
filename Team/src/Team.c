@@ -30,31 +30,50 @@ int main(void) {
 	//Prueba intercambiar
 	t_entrenador* entrenador1 = entrenadores->head->data;
 	t_entrenador* entrenador2 = entrenadores->head->next->data;
+
+
+
 	t_intercambio* inter = malloc(sizeof(t_intercambio));
 	inter->pokemonAEntregar = "Pikachu";
 	inter->pokemonARecibir = "Charmander";
-	inter->entrenador = &(entrenador2);
-	entrenador1->intercambio = &(inter);
-	inter = *(entrenador1->intercambio);
+	inter->entrenador = entrenador2;
+
+	entrenador2 = inter->entrenador;
+	printf("%d", entrenador2->coordx);
+	printf("%d", entrenador2->coordy);
+	puts("llego");
+
+	entrenador1->intercambio = inter;
+
+	inter = entrenador1->intercambio;
+	puts("a");
 	printf("%s",inter->pokemonAEntregar);
+	printf("%s",inter->pokemonARecibir);
+	puts("b");
 	intercambiarPokemon(&entrenador1);
+	puts("c");
 	printf("%s \n", entrenador1->pokemons->head->data);
+	puts("d");
 	printf("%s \n", entrenador1->pokemons->head->next->data);
+	puts("e");
 	printf("%s \n", entrenador1->pokemons->head->next->next->data);
+	puts("f");
 	printf("%s \n", entrenador2->pokemons->head->data);
+	puts("g");
 	printf("%s \n", entrenador2->pokemons->head->next->data);
+	puts("h");
 
 
 
 
 
 //	//Prueba
-	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
-	pokemon->especie = "Pikachu";
-	pokemon->coordx = 1;
-	pokemon->coordy = 1;
-//
-	appeared_pokemon(pokemon);
+//	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
+//	pokemon->especie = "Pikachu";
+//	pokemon->coordx = 1;
+//	pokemon->coordy = 1;
+////
+//	appeared_pokemon(pokemon);
 //
 //	planificar();
 ////
@@ -70,8 +89,8 @@ int main(void) {
 
 
 	//list_add(pokemonsRequeridos, *pokemon);
-	t_queue* ready = queue_create();
-	llenarColaReady(ready);
+	//t_queue* ready = queue_create();
+	//llenarColaReady(ready);
 //	(*entrenador)->pokemonACapturar = pokemon;
 //	moverEntrenador(entrenador, 2,6);
 //	entrenador = (&entrenadores->head->data);
@@ -81,12 +100,12 @@ int main(void) {
 	//Prueba
 
 
-	t_link_element * aux = entrenadores->head;
-	for(int j=0; j<entrenadores->elements_count; j++){
-		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(&aux->data));
-		aux = aux->next;
-		//join o detatch del hilo ??
-	}
+//	t_link_element * aux = entrenadores->head;
+//	for(int j=0; j<entrenadores->elements_count; j++){
+//		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(&aux->data));
+//		aux = aux->next;
+//		//join o detatch del hilo ??
+//	}
 
 	//planificar();
 	sleep(1);

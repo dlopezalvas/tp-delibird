@@ -58,7 +58,7 @@ typedef struct t_entrenador
 } t_entrenador;
 
 typedef struct t_intercambio{
-	t_entrenador** entrenador; //saber como es que hay que destruir el struct con punteros
+	t_entrenador* entrenador; //saber como es que hay que destruir el struct con punteros
 	char* pokemonARecibir;
 	char* pokemonAEntregar;
 }t_intercambio;
