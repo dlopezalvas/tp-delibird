@@ -21,6 +21,7 @@
 #include<sys/mman.h>
 #include<pthread.h>
 #include<dirent.h>
+#include<math.h>
 
 #define PUNTO_MONTAJE_TALLGRASS "PUNTO_MONTAJE_TALLGRASS"
 #define BLOCK_SIZE "BLOCK_SIZE"
@@ -65,6 +66,6 @@ t_config* transformar_a_config(char** datos);
 t_list* transformar_a_lista(char** lineas);
 
 bool comienza_con(char* posicion, char* linea);
-
+int calcular_tamanio(int acc, char* linea);
 
 #endif /* UTILS_H_ */

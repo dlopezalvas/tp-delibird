@@ -61,7 +61,7 @@ void crear_bitmap(char* punto_montaje){
 	string_append(&path_bitarray, punto_montaje);
 	string_append(&path_bitarray,"/Metadata/Bitmap.bin");
 
-	int blocks = metadata_fs->blocks/8; //esto esta para probar, depues hay tirar datos del metadata a alguna estructura
+	int blocks = metadata_fs->blocks/8;
 
 	int bitarray_file = open(path_bitarray, O_RDWR | O_CREAT);  //uso open porque necesito el int para el mmap
 
@@ -155,11 +155,93 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 			list_add(lista_datos, posicion);
 		}
 
-//		guardar_archivo(config_datos, config_pokemon);
+//		guardar_archivo(lista_datos, config_pokemon);
 
 	}else{
 		puts("reintentar");
 	}
+}
+
+void guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
+
+	//cantidad de bloques = tamanio real en bytes / tamanio de cada bloque redondeado hacia arriba
+
+	int cantidad_bloques_antes = ceil(config_get_int_value(config_pokemon, SIZE) / metadata_fs->block_size);
+
+	int tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio) - 1; //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
+
+	int cantidad_bloques_actuales = ceil(tamanio_nuevo / metadata_fs->block_size);
+
+	char* datos = transformar_a_dato(lista_datos);
+
+	char** bloques = config_get_array_value(config_pokemon, BLOCKS);
+
+	if(cantidad_bloques_antes == cantidad_bloques_actuales){ //si tienen el mismo tamanio, solo vuelvo a copiar los datos en los mismos bloques
+		int i;
+
+		int offset = 0;
+
+		for(i = 0; i < cantidad_bloques_antes; i++){
+			char* path_blocks = string_new();
+			string_append(&path_blocks, pto_montaje);
+			string_append(&path_blocks, "/Blocks/");
+			string_append(&path_blocks, bloques[i]);
+			string_append(&path_blocks, ".bin");
+
+			FILE* bloque = fopen(path_blocks, "w+");
+
+			fseek(bloque, 0, SEEK_SET);
+
+			fwrite(datos + offset, metadata_fs->block_size, 1, bloque);
+			offset += metadata_fs->block_size;
+
+			fclose(bloque);
+			free(path_blocks);
+
+		}
+
+//	}else if(cantidad_bloques_antes < cantidad_bloques_actuales){
+//
+//		int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
+//		int i;
+//
+//		int offset = 0;
+//
+//		for(i = 0; i < cantidad_bloques_antes; i++){ //Pide a gritos una funcion escribir_bloque
+//			char* path_blocks = string_new();
+//			string_append(&path_blocks, pto_montaje);
+//			string_append(&path_blocks, "/Blocks/");
+//			string_append(&path_blocks, bloques[i]);
+//			string_append(&path_blocks, ".bin");
+//
+//			FILE* bloque = fopen(path_blocks, "w+");
+//
+//			fseek(bloque, 0, SEEK_SET);
+//
+//			fwrite(datos + offset, metadata_fs->block_size, 1, bloque);
+//			offset += metadata_fs->block_size;
+//			tamanio_nuevo -=
+//
+//			fclose(bloque);
+//			free(path_blocks);
+//		}
+//
+//
+//
+//	}else{
+//
+	}
+
+	liberar_vector(bloques);
+	free(datos);
+
+}
+
+int calcular_tamanio(int acc, char* linea){ //func para el fold en guardar archivo
+
+	int tamanio_linea = strlen(linea) + 1;
+
+	return acc + tamanio_linea;
 }
 
 bool comienza_con(char* posicion, char* linea){
@@ -199,20 +281,6 @@ t_config* transformar_a_config(char** lineas){
 	}
 	return config_datos;
 }
-
-
-//void guardar_archivo(t_config* config_datos, t_config* config_pokemon){
-//
-//	//cantidad de bloques = tamanio real en bytes / tamanio de cada bloque redondeado hacia arriba
-//
-//	int cantidad_bloques_antes = ceil(config_get_int_value(config_pokemon, SIZE) / metadata_fs->block_size);
-//	int cantidad_bloques_actuales = ceil(config_get_int_value(config_datos, NUEVO_TAMANIO) / metadata_fs->block_size);
-//
-//
-//
-//
-//
-//}
 
 char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si su tamanio es mayor a block_size del metadata tall grass, leo esa cantidad, si no leo el tamanio que tiene
 
