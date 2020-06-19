@@ -12,6 +12,7 @@
 #include<commons/string.h>
 #include<commons/config.h>
 #include<commons/bitarray.h>
+#include<commons/collections/list.h>
 #include<../CommonsMCLDG/utils.h>
 #include<../CommonsMCLDG/serializacion.h>
 #include<sys/types.h>
@@ -57,10 +58,13 @@ bool archivo_abierto(t_config* config_archivo);
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 
 char** abrir_archivo(t_config* config_archivo, char* path_pokemon);
-char* leer_archivo(char** blocks, int tamanio_total);
+char** leer_archivo(char** blocks, int tamanio_total);
 int cantidad_bloques(char** blocks);
 
-t_config* transformar_a_config(char* datos);
+t_config* transformar_a_config(char** datos);
+t_list* transformar_a_lista(char** lineas);
+
+bool comienza_con(char* posicion, char* linea);
 
 
 #endif /* UTILS_H_ */

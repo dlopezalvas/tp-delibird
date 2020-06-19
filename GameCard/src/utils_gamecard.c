@@ -124,9 +124,11 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
-//		char* datos = leer_archivo(blocks, tamanio_total);
+		char** datos = leer_archivo(blocks, tamanio_total);
 
-		t_config* config_datos = transformar_a_config(leer_archivo(blocks, tamanio_total));
+		t_list* lista_datos = transformar_a_lista(datos);
+
+		t_config* config_datos = transformar_a_config(datos);
 
 		char* posicion = string_new();
 
@@ -136,23 +138,56 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		if(config_has_property(config_datos, posicion)){
 			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + 1); //a la cantidad que ya hay, le sumo el nuevo pokemon
-			config_set_value(config_datos, posicion, nueva_cantidad_posicion);
+
+			int i = 0;
+
+			while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
+				i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
+			}
+
+			string_append(&posicion, "=");
+			string_append(&posicion, nueva_cantidad_posicion);
+
+			list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
 
 		}else{
-			config_set_value(config_datos, posicion, "1"); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
+			string_append(&posicion, "=1"); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
+			list_add(lista_datos, posicion);
 		}
 
-		//guardar_archivo(config_datos);
+//		guardar_archivo(config_datos, config_pokemon);
 
 	}else{
 		puts("reintentar");
 	}
 }
 
-t_config* transformar_a_config(char* datos){
-	t_config* config_datos = config_create(pto_montaje);
+bool comienza_con(char* posicion, char* linea){
 
-	char** lineas = string_split(datos, "\n");
+	char** posicion_cantidad = string_split(linea, "=");
+
+	bool es_la_posicion = posicion_cantidad[0] == posicion;
+
+	liberar_vector(posicion_cantidad);
+
+	return es_la_posicion;
+}
+
+// Conviene mas con lista o config?????
+t_list* transformar_a_lista(char** lineas){
+	int i = 0;
+	t_list* lista_datos = list_create();
+
+	while(lineas[i]!=NULL){
+		list_add(lista_datos, lineas[i]);
+		i++;
+	}
+
+	return lista_datos;
+}
+
+t_config* transformar_a_config(char** lineas){
+	t_config* config_datos = config_create(pto_montaje);
 
 	int i = 0;
 
@@ -162,9 +197,6 @@ t_config* transformar_a_config(char* datos){
 		liberar_vector(key_valor);
 		i++;
 	}
-
-	liberar_vector(lineas);
-
 	return config_datos;
 }
 
@@ -178,9 +210,11 @@ t_config* transformar_a_config(char* datos){
 //
 //
 //
+//
+//
 //}
 
-char* leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si su tamanio es mayor a block_size del metadata tall grass, leo esa cantidad, si no leo el tamanio que tiene
+char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si su tamanio es mayor a block_size del metadata tall grass, leo esa cantidad, si no leo el tamanio que tiene
 
 	char* path_blocks = string_new();
 
@@ -219,7 +253,12 @@ char* leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si
 	}
 
 	free(path_blocks);
-	return datos;
+
+	char** array_datos = string_split(datos, "\n");
+
+	free(datos);
+
+	return array_datos;
 }
 
 int cantidad_bloques(char** blocks){
