@@ -60,6 +60,10 @@ void terminar_queues();
 //Loguea que un proceso especifico se suscribe a determinada queueu
 void log_suscribir_mensaje_queue(char*,char*);
 
+void esperar_cliente(int servidor);
+void serve_client(int* socket);
+void socketEscucha(char*IP, char* Puerto);
+void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
 
 

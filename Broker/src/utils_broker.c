@@ -17,7 +17,7 @@ void recibir_mensaje_queue(t_mensaje* mensaje,t_config* config){
 //	if(proceso_valido(procesos_validos,mensaje -> proceso))
 //		printf("%s","El proceso no esta autorizado para suscribirse o mandar mensajes");
 
-	if(queue_valida(queues_validas,mensaje -> queue))
+	if(queue_valida(queues_validas,mensaje -> queue)) // @suppress("Field cannot be resolved")
 		printf("%s","La queue no existe");
 
 	//suscribir_mensaje_queue
@@ -40,8 +40,8 @@ int queue_valida(char*queues_validas,char* queue){
 }
 
 void suscribir_mensaje_queue(t_mensaje* mensaje){
-	char* mensaje_queue = mensaje -> queue;
-	//log_suscribir_mensaje_queue(mensaje -> proceso,mensaje_queue);
+	char* mensaje_queue = mensaje -> queue; // @suppress("Field cannot be resolved")
+	//log_suscribir_mensaje_queue(mensaje -> process,mensaje_queue);
 
 	if(string_equals_ignore_case(mensaje_queue,NEW_POKEMON_QUEUE_NAME))
 		list_add(NEW_POKEMON_QUEUE,mensaje);
@@ -81,9 +81,53 @@ void terminar_queues(void){
 	list_destroy(CAUGHT_POKEMON_QUEUE);
 	list_destroy(GET_POKEMON_QUEUE);
 }
-//
-//t_config* leer_config(char* proceso){
-//	char *config_file = "/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/BROKER.config";
-//	t_config* config = config_create(config_file);
-//	return config;
-//};
+
+void esperar_cliente(int servidor){
+	pthread_t thread;
+	struct sockaddr_in direccion_cliente;
+
+	unsigned int tam_direccion = sizeof(struct sockaddr_in);
+
+	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
+
+	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
+	pthread_detach(thread);
+}
+
+void serve_client(int* socket)
+{
+	int cod_op;
+	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+		cod_op = -1;
+	process_request(cod_op, *socket);
+}
+
+void process_request(int cod_op, int cliente_fd) {
+	int size = 0;
+	void* buffer = recibir_mensaje(cliente_fd, &size);
+
+	//int id = recv(cliente_fd, &id,sizeof(int),0);
+
+	t_position_and_name* get_pokemon = malloc(sizeof(t_position_and_name));
+
+		switch (cod_op) {
+		case "h":
+			get_pokemon = deserializar_position_and_name(buffer);
+			puts(get_pokemon->nombre.nombre);
+			//appeared_pokemon;
+
+			break;
+		case 0:
+			pthread_exit(NULL);
+		case -1:
+			pthread_exit(NULL);
+		}
+}
+
+void socketEscucha(char*ip, char* puerto){
+	int servidor = iniciar_servidor(ip,puerto);
+	printf("Se creo el socket servidor en el puerto ( %s )", puerto);
+	while(1){
+		esperar_cliente(servidor);
+	}
+}
