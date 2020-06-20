@@ -39,17 +39,17 @@ typedef enum
 typedef struct t_pokemon
 {
 	char* especie;
-	uint32_t coordx; // coordenada x
-	uint32_t coordy;//coordenada y
+	int coordx; // coordenada x
+	int coordy;//coordenada y
 	bool planificado;
 } t_pokemon;
 
 
 typedef struct t_entrenador
 {
-	uint32_t ID;
-	uint32_t coordx; // coordenada x
-	uint32_t coordy; //coordenada y
+	int ID;
+	int coordx; // coordenada x
+	int coordy; //coordenada y
 	t_list* pokemons; // lista string
 	t_list* objetivos; // array string
 	t_estado estado; //para saber si esta en ready o block
@@ -69,7 +69,7 @@ typedef struct t_intercambio{
 void iniciarTeam();
 void terminarTeam(int conexion, pthread_t* hilo); //falta conexion
 void configurarEntrenadores();
-t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
+t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos, int ID);
 t_list* configurarPokemons(char** pokemons);
 void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado);
 bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado);
@@ -85,8 +85,8 @@ void capturoPokemon(t_entrenador** entrenador);
 void configurarObjetivoGlobal();
 void removerPokemon(char* pokemon, t_list* lista);
 void* entrenadorMaster(void* entrenador);
-uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
-void moverEntrenador(t_entrenador** entrenador, uint32_t x, uint32_t y);
+int distancia(int x1, int y1, int x2, int y2);
+void moverEntrenador(t_entrenador** entrenador, int x, int y);
 void intercambiarPokemon(t_entrenador** entrenador);
 void atraparPokemon(t_entrenador* entrenador);
 void planificarFIFO();
