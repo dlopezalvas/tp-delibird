@@ -23,7 +23,7 @@ void crear_tall_grass(t_config* config){
 	config_destroy(config_metadata);
 	free(path_metadata);
 
-	//crear_bitmap(pto_montaje);
+	crear_bitmap(pto_montaje);
 
 	//free(metadata_fs);
 
@@ -65,9 +65,17 @@ void crear_bitmap(char* punto_montaje){
 
 	int bitarray_file = open(path_bitarray, O_RDWR | O_CREAT);  //uso open porque necesito el int para el mmap
 
+	ftruncate(bitarray_file, blocks);
+
 	char* mapeo_bitarray = mmap(0, blocks, PROT_WRITE | PROT_READ, MAP_SHARED, bitarray_file, 0);
 
-	bitarray = bitarray_create(mapeo_bitarray, blocks); //MODE DEFAULT
+	//ver errores en mapeo
+
+	bitarray = bitarray_create_with_mode(mapeo_bitarray, blocks, LSB_FIRST);
+
+	msync(bitarray, sizeof(bitarray), MS_SYNC);
+
+	sem_init(&bitarray_mtx, 0, 1);
 
 	free(path_bitarray);
 }
@@ -86,6 +94,7 @@ void agregar_pokemon_mapa(t_new_pokemon* pokemon){
 	}else{
 		crear_pokemon(pokemon);
 	}
+
 }
 
 void crear_pokemon(t_new_pokemon* pokemon){
@@ -100,13 +109,48 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	FILE* metadata = fopen(path_pokemon, "w+"); //creo su metadata
 
+
 	fprintf(metadata, "DIRECTORY=N\n");
-	fprintf(metadata, "SIZE=0\n");
-	fprintf(metadata, "BLOCKS=[]\n");
-	fprintf(metadata, "OPEN=N\n");
+	fprintf(metadata, "OPEN=Y\n"); //lo marco como abierto
 	fclose(metadata);
 
-	//actualizar_pokemon(pokemon);
+	char* datos = string_new();
+	string_append(&datos, string_itoa(pokemon->coordenadas.pos_x));
+	string_append(&datos, "-");
+	string_append(&datos, string_itoa(pokemon->coordenadas.pos_y));
+	string_append(&datos, "=");
+	string_append(&datos, string_itoa(pokemon->cantidad));
+
+	int tamanio = strlen(datos);
+
+	int cantidad_bloques = 1;
+
+
+	char** bloques_a_escribir = buscar_bloques_libres(cantidad_bloques);
+
+	t_config* config_aux = config_create(path_pokemon);
+
+	config_set_value(config_aux, SIZE, string_itoa(tamanio));
+
+	//config_set_value(config_aux, BLOCKS, &bloques_a_escribir);
+
+	int offset = 0;
+
+	int i;
+
+	for(i = 0; i < cantidad_bloques; i++){
+		escribir_bloque(&offset, datos, bloques_a_escribir[i], &tamanio);
+	}
+
+	config_set_value(config_aux, OPEN, NO);
+
+	config_save_in_file(config_aux, path_pokemon);
+
+	config_destroy(config_aux);
+
+	//liberar_vector(bloques_a_escribir);
+//	free(datos);
+//	free(path_pokemon);
 }
 
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
@@ -155,7 +199,11 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 			list_add(lista_datos, posicion);
 		}
 
-//		guardar_archivo(lista_datos, config_pokemon);
+		guardar_archivo(lista_datos, config_pokemon);
+		liberar_vector(blocks);
+		liberar_vector(datos);
+		//list_destroy
+		config_destroy(config_datos);
 
 	}else{
 		puts("reintentar");
@@ -172,69 +220,108 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 
 	int cantidad_bloques_actuales = ceil(tamanio_nuevo / metadata_fs->block_size);
 
-	char* datos = transformar_a_dato(lista_datos);
+	int offset = 0;
+
+	char* datos = transformar_a_dato(lista_datos, tamanio_nuevo);
 
 	char** bloques = config_get_array_value(config_pokemon, BLOCKS);
 
-	if(cantidad_bloques_antes == cantidad_bloques_actuales){ //si tienen el mismo tamanio, solo vuelvo a copiar los datos en los mismos bloques
+	if(cantidad_bloques_antes <= cantidad_bloques_actuales){ //si tienen el mismo tamanio, solo vuelvo a copiar los datos en los mismos bloques
 		int i;
 
-		int offset = 0;
-
 		for(i = 0; i < cantidad_bloques_antes; i++){
-			char* path_blocks = string_new();
-			string_append(&path_blocks, pto_montaje);
-			string_append(&path_blocks, "/Blocks/");
-			string_append(&path_blocks, bloques[i]);
-			string_append(&path_blocks, ".bin");
-
-			FILE* bloque = fopen(path_blocks, "w+");
-
-			fseek(bloque, 0, SEEK_SET);
-
-			fwrite(datos + offset, metadata_fs->block_size, 1, bloque);
-			offset += metadata_fs->block_size;
-
-			fclose(bloque);
-			free(path_blocks);
-
+			escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
 		}
 
-//	}else if(cantidad_bloques_antes < cantidad_bloques_actuales){
-//
-//		int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
-//		int i;
-//
-//		int offset = 0;
-//
-//		for(i = 0; i < cantidad_bloques_antes; i++){ //Pide a gritos una funcion escribir_bloque
-//			char* path_blocks = string_new();
-//			string_append(&path_blocks, pto_montaje);
-//			string_append(&path_blocks, "/Blocks/");
-//			string_append(&path_blocks, bloques[i]);
-//			string_append(&path_blocks, ".bin");
-//
-//			FILE* bloque = fopen(path_blocks, "w+");
-//
-//			fseek(bloque, 0, SEEK_SET);
-//
-//			fwrite(datos + offset, metadata_fs->block_size, 1, bloque);
-//			offset += metadata_fs->block_size;
-//			tamanio_nuevo -=
-//
-//			fclose(bloque);
-//			free(path_blocks);
-//		}
-//
-//
-//
-//	}else{
-//
+		if(cantidad_bloques_antes < cantidad_bloques_actuales){ //si es mayor tamanio tengo que pedir mas bloques
+			int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
+
+			char** bloques_nuevos = buscar_bloques_libres(bloques_a_pedir); //falta verificar ver error si no hay disponibles
+
+			int j;
+
+			for(j = 0; j < bloques_a_pedir;i++){
+				escribir_bloque(&offset, datos, bloques_nuevos[j], &tamanio_nuevo);
+			}
+
+			liberar_vector(bloques_nuevos);
+		}
+
+	}else{ //tengo que borrar bloques
+		puts("borrar");
 	}
 
 	liberar_vector(bloques);
 	free(datos);
 
+}
+
+char** buscar_bloques_libres(int cantidad){
+
+	char** bloques_libres = malloc(cantidad);
+
+	while(cantidad > 0){
+		int i;
+
+		for(i=0; i < metadata_fs->blocks; i++){
+			if(!bitarray_test_bit(bitarray, i)){
+				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
+				sem_wait(&bitarray_mtx);
+				bitarray_set_bit(bitarray, i);
+				sem_post(&bitarray_mtx);
+			}
+			break;
+		}
+		cantidad--;
+	}
+
+	return bloques_libres;
+}
+
+void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
+
+		char* path_blocks = string_new();
+		string_append(&path_blocks, pto_montaje);
+		string_append(&path_blocks, "/Blocks/");
+		string_append(&path_blocks, bloque);
+		string_append(&path_blocks, ".bin");
+
+		int tamanio_a_escribir = minimo_entre(metadata_fs->block_size, *tamanio); //si es mayor o igual al block_size escribo el bloque entero, si es menor escribo los bytes que quedan por escribir
+
+		FILE* fd_bloque = fopen(path_blocks, "w+");
+
+		fseek(fd_bloque, 0, SEEK_SET);
+
+		fwrite(datos + *offset, tamanio_a_escribir, 1, fd_bloque);
+		*offset += tamanio_a_escribir;
+		*tamanio -= tamanio_a_escribir;
+
+		fclose(fd_bloque);
+		free(path_blocks);
+}
+
+int minimo_entre (int nro1, int nro2){
+	if (nro1 >= nro2){
+		return nro2;
+	}
+	return nro1;
+}
+
+char* transformar_a_dato(t_list* lista_datos, int tamanio){
+	char* datos = malloc(tamanio);
+
+	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
+
+	int i;
+
+	for (i=0; i < cantidad_lineas; i++){
+		string_append(&datos, list_get(lista_datos, i));
+		string_append(&datos, "\n");
+	}
+
+	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+
+	return datos;
 }
 
 int calcular_tamanio(int acc, char* linea){ //func para el fold en guardar archivo
@@ -278,6 +365,8 @@ t_config* transformar_a_config(char** lineas){
 		config_set_value(config_datos, key_valor[0], key_valor[1]); //separo la posicion de la cantidad (a traves del =)y seteo como key la posicion con su valor cantidad
 		liberar_vector(key_valor);
 		i++;
+
+		liberar_vector(key_valor);
 	}
 	return config_datos;
 }
@@ -342,6 +431,7 @@ char** abrir_archivo(t_config* config_archivo, char* path_pokemon){
 	char** bloques = config_get_array_value(config_archivo, BLOCKS);
 
 	config_set_value(config_archivo, OPEN, YES);
+	//mutex por metadata?
 	config_save_in_file(config_archivo, path_pokemon);
 
 	return bloques;
@@ -351,6 +441,8 @@ bool archivo_abierto(t_config* config_archivo){
 
 	char* archivo_open = config_get_string_value(config_archivo, OPEN);
 	bool esta_abierto = string_equals_ignore_case(YES, archivo_open);
+
+	free(archivo_open);
 
 	return esta_abierto;
 }
@@ -365,7 +457,7 @@ bool existe_pokemon(char* path_pokemon){
 
 	return existe;
 }
-//
+
 //void esperar_cliente(int servidor){
 //	pthread_t thread;
 //	struct sockaddr_in direccion_cliente;
@@ -411,6 +503,6 @@ bool existe_pokemon(char* path_pokemon){
 //			pthread_exit(NULL);
 //		}
 //}
-
+//
 
 
