@@ -68,4 +68,9 @@ t_list* transformar_a_lista(char** lineas);
 bool comienza_con(char* posicion, char* linea);
 int calcular_tamanio(int acc, char* linea);
 
+char** buscar_bloques_libres(int cantidad);
+void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio);
+char* transformar_a_dato(t_list* lista_datos, int tamanio);
+int minimo_entre (int nro1, int nro2);
+
 #endif /* UTILS_H_ */

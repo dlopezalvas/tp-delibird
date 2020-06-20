@@ -172,69 +172,106 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 
 	int cantidad_bloques_actuales = ceil(tamanio_nuevo / metadata_fs->block_size);
 
-	char* datos = transformar_a_dato(lista_datos);
+	int offset = 0;
+
+	char* datos = transformar_a_dato(lista_datos, tamanio_nuevo);
 
 	char** bloques = config_get_array_value(config_pokemon, BLOCKS);
 
-	if(cantidad_bloques_antes == cantidad_bloques_actuales){ //si tienen el mismo tamanio, solo vuelvo a copiar los datos en los mismos bloques
+	if(cantidad_bloques_antes <= cantidad_bloques_actuales){ //si tienen el mismo tamanio, solo vuelvo a copiar los datos en los mismos bloques
 		int i;
 
-		int offset = 0;
-
 		for(i = 0; i < cantidad_bloques_antes; i++){
-			char* path_blocks = string_new();
-			string_append(&path_blocks, pto_montaje);
-			string_append(&path_blocks, "/Blocks/");
-			string_append(&path_blocks, bloques[i]);
-			string_append(&path_blocks, ".bin");
-
-			FILE* bloque = fopen(path_blocks, "w+");
-
-			fseek(bloque, 0, SEEK_SET);
-
-			fwrite(datos + offset, metadata_fs->block_size, 1, bloque);
-			offset += metadata_fs->block_size;
-
-			fclose(bloque);
-			free(path_blocks);
-
+			escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
 		}
 
-//	}else if(cantidad_bloques_antes < cantidad_bloques_actuales){
-//
-//		int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
-//		int i;
-//
-//		int offset = 0;
-//
-//		for(i = 0; i < cantidad_bloques_antes; i++){ //Pide a gritos una funcion escribir_bloque
-//			char* path_blocks = string_new();
-//			string_append(&path_blocks, pto_montaje);
-//			string_append(&path_blocks, "/Blocks/");
-//			string_append(&path_blocks, bloques[i]);
-//			string_append(&path_blocks, ".bin");
-//
-//			FILE* bloque = fopen(path_blocks, "w+");
-//
-//			fseek(bloque, 0, SEEK_SET);
-//
-//			fwrite(datos + offset, metadata_fs->block_size, 1, bloque);
-//			offset += metadata_fs->block_size;
-//			tamanio_nuevo -=
-//
-//			fclose(bloque);
-//			free(path_blocks);
-//		}
-//
-//
-//
-//	}else{
-//
+		if(cantidad_bloques_antes < cantidad_bloques_actuales){ //si es mayor tamanio tengo que pedir mas bloques
+			int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
+
+			char** bloques_nuevos = buscar_bloques_libres(bloques_a_pedir); //falta verificar ver error si no hay disponibles
+
+			int j;
+
+			for(j = 0; j < bloques_a_pedir;i++){
+				escribir_bloque(&offset, datos, bloques_nuevos[j], &tamanio_nuevo);
+			}
+
+			liberar_vector(bloques_nuevos);
+		}
+
+	}else{ //tengo que borrar bloques
+		puts("borrar");
 	}
 
 	liberar_vector(bloques);
 	free(datos);
 
+}
+
+char** buscar_bloques_libres(int cantidad){
+	char** bloques_libres = malloc(sizeof(char) * cantidad);
+
+	while(cantidad > 0){
+		int i;
+
+		for(i=0; i < metadata_fs->blocks; i++){
+			if(!bitarray_test_bit(bitarray, i)){
+				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
+				//falta semaforo aca
+				bitarray_set_bit(bitarray, i);
+			}
+			break;
+		}
+		cantidad--;
+	}
+
+	return bloques_libres;
+}
+
+void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
+
+		char* path_blocks = string_new();
+		string_append(&path_blocks, pto_montaje);
+		string_append(&path_blocks, "/Blocks/");
+		string_append(&path_blocks, bloque);
+		string_append(&path_blocks, ".bin");
+
+		int tamanio_a_escribir = minimo_entre(metadata_fs->block_size, *tamanio); //si es mayor o igual al block_size escribo el bloque entero, si es menor escribo los bytes que quedan por escribir
+
+		FILE* fd_bloque = fopen(path_blocks, "w+");
+
+		fseek(fd_bloque, 0, SEEK_SET);
+
+		fwrite(datos + *offset, tamanio_a_escribir, 1, fd_bloque);
+		*offset += tamanio_a_escribir;
+		*tamanio -= tamanio_a_escribir;
+
+		fclose(fd_bloque);
+		free(path_blocks);
+}
+
+int minimo_entre (int nro1, int nro2){
+	if (nro1 >= nro2){
+		return nro2;
+	}
+	return nro1;
+}
+
+char* transformar_a_dato(t_list* lista_datos, int tamanio){
+	char* datos = malloc(tamanio);
+
+	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
+
+	int i;
+
+	for (i=0; i < cantidad_lineas; i++){
+		string_append(&datos, list_get(lista_datos, i));
+		string_append(&datos, "\n");
+	}
+
+	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+
+	return datos;
 }
 
 int calcular_tamanio(int acc, char* linea){ //func para el fold en guardar archivo
