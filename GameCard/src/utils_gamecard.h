@@ -22,6 +22,7 @@
 #include<pthread.h>
 #include<dirent.h>
 #include<math.h>
+#include<semaphore.h>
 
 #define PUNTO_MONTAJE_TALLGRASS "PUNTO_MONTAJE_TALLGRASS"
 #define BLOCK_SIZE "BLOCK_SIZE"
@@ -43,6 +44,8 @@ typedef struct{
 }t_metadata;
 
 t_bitarray* bitarray;
+sem_t bitarray_mtx;
+
 char* pto_montaje;
 
 t_metadata* metadata_fs;
@@ -61,6 +64,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 char** abrir_archivo(t_config* config_archivo, char* path_pokemon);
 char** leer_archivo(char** blocks, int tamanio_total);
 int cantidad_bloques(char** blocks);
+void guardar_archivo(t_list* lista_datos, t_config* config_pokemon);
 
 t_config* transformar_a_config(char** datos);
 t_list* transformar_a_lista(char** lineas);

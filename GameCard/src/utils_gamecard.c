@@ -23,7 +23,7 @@ void crear_tall_grass(t_config* config){
 	config_destroy(config_metadata);
 	free(path_metadata);
 
-	//crear_bitmap(pto_montaje);
+	crear_bitmap(pto_montaje);
 
 	//free(metadata_fs);
 
@@ -65,9 +65,17 @@ void crear_bitmap(char* punto_montaje){
 
 	int bitarray_file = open(path_bitarray, O_RDWR | O_CREAT);  //uso open porque necesito el int para el mmap
 
+	ftruncate(bitarray_file, blocks);
+
 	char* mapeo_bitarray = mmap(0, blocks, PROT_WRITE | PROT_READ, MAP_SHARED, bitarray_file, 0);
 
-	bitarray = bitarray_create(mapeo_bitarray, blocks); //MODE DEFAULT
+	//ver errores en mapeo
+
+	bitarray = bitarray_create_with_mode(mapeo_bitarray, blocks, LSB_FIRST);
+
+	msync(bitarray, sizeof(bitarray), MS_SYNC);
+
+	sem_init(&bitarray_mtx, 0, 1);
 
 	free(path_bitarray);
 }
@@ -86,6 +94,7 @@ void agregar_pokemon_mapa(t_new_pokemon* pokemon){
 	}else{
 		crear_pokemon(pokemon);
 	}
+
 }
 
 void crear_pokemon(t_new_pokemon* pokemon){
@@ -100,13 +109,48 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	FILE* metadata = fopen(path_pokemon, "w+"); //creo su metadata
 
+
 	fprintf(metadata, "DIRECTORY=N\n");
-	fprintf(metadata, "SIZE=0\n");
-	fprintf(metadata, "BLOCKS=[]\n");
-	fprintf(metadata, "OPEN=N\n");
+	fprintf(metadata, "OPEN=Y\n"); //lo marco como abierto
 	fclose(metadata);
 
-	//actualizar_pokemon(pokemon);
+	char* datos = string_new();
+	string_append(&datos, string_itoa(pokemon->coordenadas.pos_x));
+	string_append(&datos, "-");
+	string_append(&datos, string_itoa(pokemon->coordenadas.pos_y));
+	string_append(&datos, "=");
+	string_append(&datos, string_itoa(pokemon->cantidad));
+
+	int tamanio = strlen(datos);
+
+	int cantidad_bloques = 1;
+
+
+	char** bloques_a_escribir = buscar_bloques_libres(cantidad_bloques);
+
+	t_config* config_aux = config_create(path_pokemon);
+
+	config_set_value(config_aux, SIZE, string_itoa(tamanio));
+
+	//config_set_value(config_aux, BLOCKS, &bloques_a_escribir);
+
+	int offset = 0;
+
+	int i;
+
+	for(i = 0; i < cantidad_bloques; i++){
+		escribir_bloque(&offset, datos, bloques_a_escribir[i], &tamanio);
+	}
+
+	config_set_value(config_aux, OPEN, NO);
+
+	config_save_in_file(config_aux, path_pokemon);
+
+	config_destroy(config_aux);
+
+	//liberar_vector(bloques_a_escribir);
+//	free(datos);
+//	free(path_pokemon);
 }
 
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
@@ -155,7 +199,11 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 			list_add(lista_datos, posicion);
 		}
 
-//		guardar_archivo(lista_datos, config_pokemon);
+		guardar_archivo(lista_datos, config_pokemon);
+		liberar_vector(blocks);
+		liberar_vector(datos);
+		//list_destroy
+		config_destroy(config_datos);
 
 	}else{
 		puts("reintentar");
@@ -209,7 +257,8 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 }
 
 char** buscar_bloques_libres(int cantidad){
-	char** bloques_libres = malloc(sizeof(char) * cantidad);
+
+	char** bloques_libres = malloc(cantidad);
 
 	while(cantidad > 0){
 		int i;
@@ -217,8 +266,9 @@ char** buscar_bloques_libres(int cantidad){
 		for(i=0; i < metadata_fs->blocks; i++){
 			if(!bitarray_test_bit(bitarray, i)){
 				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
-				//falta semaforo aca
+				sem_wait(&bitarray_mtx);
 				bitarray_set_bit(bitarray, i);
+				sem_post(&bitarray_mtx);
 			}
 			break;
 		}
@@ -315,6 +365,8 @@ t_config* transformar_a_config(char** lineas){
 		config_set_value(config_datos, key_valor[0], key_valor[1]); //separo la posicion de la cantidad (a traves del =)y seteo como key la posicion con su valor cantidad
 		liberar_vector(key_valor);
 		i++;
+
+		liberar_vector(key_valor);
 	}
 	return config_datos;
 }
@@ -379,6 +431,7 @@ char** abrir_archivo(t_config* config_archivo, char* path_pokemon){
 	char** bloques = config_get_array_value(config_archivo, BLOCKS);
 
 	config_set_value(config_archivo, OPEN, YES);
+	//mutex por metadata?
 	config_save_in_file(config_archivo, path_pokemon);
 
 	return bloques;
@@ -388,6 +441,8 @@ bool archivo_abierto(t_config* config_archivo){
 
 	char* archivo_open = config_get_string_value(config_archivo, OPEN);
 	bool esta_abierto = string_equals_ignore_case(YES, archivo_open);
+
+	free(archivo_open);
 
 	return esta_abierto;
 }
@@ -402,7 +457,7 @@ bool existe_pokemon(char* path_pokemon){
 
 	return existe;
 }
-//
+
 //void esperar_cliente(int servidor){
 //	pthread_t thread;
 //	struct sockaddr_in direccion_cliente;
@@ -448,6 +503,6 @@ bool existe_pokemon(char* path_pokemon){
 //			pthread_exit(NULL);
 //		}
 //}
-
+//
 
 
