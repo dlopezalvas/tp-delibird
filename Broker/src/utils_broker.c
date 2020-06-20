@@ -111,7 +111,7 @@ void process_request(int cod_op, int cliente_fd) {
 	t_position_and_name* get_pokemon = malloc(sizeof(t_position_and_name));
 
 		switch (cod_op) {
-		case "h":
+		case APPEARED_POKEMON:
 			get_pokemon = deserializar_position_and_name(buffer);
 			puts(get_pokemon->nombre.nombre);
 			//appeared_pokemon;
