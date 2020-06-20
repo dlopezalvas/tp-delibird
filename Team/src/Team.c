@@ -27,6 +27,7 @@ int main(void) {
 	pthread_t hilo[entrenadores->elements_count];
 	//socketEscucha("127.0.0.2", "5002");
 
+
 	/*Prueba intercambiar
 	t_entrenador* entrenador1 = entrenadores->head->data;
 	t_entrenador* entrenador2 = entrenadores->head->next->data;

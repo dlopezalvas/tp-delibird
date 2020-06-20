@@ -69,7 +69,7 @@ typedef struct t_intercambio{
 void iniciarTeam();
 void terminarTeam(int conexion, pthread_t* hilo); //falta conexion
 void configurarEntrenadores();
-t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos);
+t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos, int ID);
 t_list* configurarPokemons(char** pokemons);
 void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado);
 bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado);

@@ -51,7 +51,7 @@ void configurarEntrenadores(){ //funciona
 	char** objetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
 	for(int i=0; posiciones[i];i++){
-		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i]);
+		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i], i);
 		list_add(entrenadores, entrenador);
 	}
 
@@ -62,8 +62,9 @@ void configurarEntrenadores(){ //funciona
 	return ;
 }
 
-t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos){ //funciona
+t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos, int ID){ //funciona
 	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
+	entrenador->ID = ID;
 	entrenador->estado = BLOCK;
 	char** objetivosEntrenador = string_split(objetivos,"|");
 	entrenador->objetivos = configurarPokemons(objetivosEntrenador);
