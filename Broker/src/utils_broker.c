@@ -10,11 +10,12 @@ void recibir_mensaje_broker(t_config* config){
 };
 
 void recibir_mensaje_queue(t_mensaje* mensaje,t_config* config){
+
 	char *procesos_validos = config_get_string_value(config,PROCESOS_VALIDOS);
 	char *queues_validas = config_get_string_value(config,QUEUES_VALIDAS);
 
-	if(proceso_valido(procesos_validos,mensaje -> proceso))
-		printf("%s","El proceso no esta autorizado para suscribirse o mandar mensajes");
+//	if(proceso_valido(procesos_validos,mensaje -> proceso))
+//		printf("%s","El proceso no esta autorizado para suscribirse o mandar mensajes");
 
 	if(queue_valida(queues_validas,mensaje -> queue))
 		printf("%s","La queue no existe");
@@ -40,7 +41,7 @@ int queue_valida(char*queues_validas,char* queue){
 
 void suscribir_mensaje_queue(t_mensaje* mensaje){
 	char* mensaje_queue = mensaje -> queue;
-	log_suscribir_mensaje_queue(mensaje -> proceso,mensaje_queue);
+	//log_suscribir_mensaje_queue(mensaje -> proceso,mensaje_queue);
 
 	if(string_equals_ignore_case(mensaje_queue,NEW_POKEMON_QUEUE_NAME))
 		list_add(NEW_POKEMON_QUEUE,mensaje);
