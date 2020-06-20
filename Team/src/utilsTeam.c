@@ -86,6 +86,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 
 t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 	t_list* listaPokemons = list_create();
+
 	for(int i=0; pokemons[i];i++){
 		list_add(listaPokemons, (pokemons[i]));
 	}
@@ -114,11 +115,11 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){ //funciona
 		else return false;
 		break;
 	case EXEC:
-		if(nuevoEstado == (READY || BLOCK || EXIT)) return true;
+		if(nuevoEstado == READY || nuevoEstado == BLOCK || nuevoEstado == EXIT) return true;
 		else return false;
 		break;
 	case BLOCK:
-		if(nuevoEstado == (READY || BLOCK || EXIT)) return true;
+		if(nuevoEstado == READY || nuevoEstado == BLOCK || nuevoEstado == EXIT) return true;
 		else return false;
 		break;
 	case EXIT:
@@ -226,11 +227,16 @@ void configurarObjetivoGlobal(){ //funciona
 		entrenador = aux;
 	}
 
+
+
+
+
+
 	while(!(list_is_empty(pokemons))){
 
 		pokemon = list_remove(pokemons, 0);
 		removerPokemon(pokemon,objetivoGlobal);
-		free(pokemon);
+//		free(pokemon);
 	}
 	free(pokemons);
 
@@ -244,13 +250,13 @@ void removerPokemon(char* pokemon, t_list* lista){ //funciona
 }
 
 
-uint32_t distancia(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2){ //funciona
+int distancia(int x1, int y1, int x2, int y2){ //funciona
 
 	return abs(x2-x1)+abs(y2-y1);
 
 }
 
-void moverEntrenador(t_entrenador** entrenador, uint32_t x, uint32_t y){ //funciona
+void moverEntrenador(t_entrenador** entrenador, int x, int y){ //funciona
 	int moverse = 1;
 
 	if(x < (*entrenador)->coordx)	moverse = -1;
@@ -275,34 +281,21 @@ void atraparPokemon(t_entrenador* entrenador){//terminar y probar
 	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
 }
 
-void intercambiarPokemon(t_entrenador** entrenador){ // Probar si funciona
-//	t_intercambio* intercambio = malloc(sizeof(t_intercambio));
-//	intercambio = (*entrenador)->intercambio;
+void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 
 	t_intercambio* intercambio = (*entrenador)->intercambio;
-	puts("intercambio a");
 	printf("%s",intercambio->pokemonAEntregar);
-	puts("intercambio b");
-
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemons);
-	puts("intercambio c");
-
 	list_add(intercambio->entrenador->pokemons, intercambio->pokemonAEntregar);
-
-	puts("intercambio d");
 	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemons);
-	puts("intercambio e");
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
-	puts("intercambio f");
-
 	(*entrenador)->intercambio = NULL;
-	puts("intercambio g");
-	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(&entrenador, EXIT);
-	else cambiarEstado(&entrenador, BLOCK);
+	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
+	else cambiarEstado(entrenador, BLOCK);
 	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
 	else cambiarEstado(&(intercambio->entrenador), BLOCK);
-	//sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
-	puts("intercambio h");
+	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
+
 }
 
 void planificar(){//funciona
@@ -432,7 +425,7 @@ void appeared_pokemon(t_pokemon* pokemonNuevo){ //Agregar Verificacion
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
-//	uint32_t id = recv(cliente_fd, &id,sizeof(uint32_t),0);
+//	int id = recv(cliente_fd, &id,sizeof(int),0);
 
 	t_position_and_name* get_pokemon = malloc(sizeof(t_position_and_name));
 

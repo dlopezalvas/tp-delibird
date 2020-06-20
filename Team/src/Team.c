@@ -21,16 +21,19 @@ t_queue* ready;
 
 int main(void) {
 
-	pthread_mutex_init (&semaforo,NULL);
+//	pthread_mutex_init (&semaforo,NULL);
 	pokemonsRequeridos = list_create();
 	iniciarTeam(&logger);
 	pthread_t hilo[entrenadores->elements_count];
 	//socketEscucha("127.0.0.2", "5002");
 
-	//Prueba intercambiar
+	/*Prueba intercambiar
 	t_entrenador* entrenador1 = entrenadores->head->data;
 	t_entrenador* entrenador2 = entrenadores->head->next->data;
 
+
+	printf("Prueba: %s \n", entrenador1->pokemons->head->data);
+	printf("Prueba: %s \n", entrenador1->pokemons->head->next->data);
 
 
 	t_intercambio* inter = malloc(sizeof(t_intercambio));
@@ -46,58 +49,19 @@ int main(void) {
 	entrenador1->intercambio = inter;
 
 	inter = entrenador1->intercambio;
-	puts("a");
 	printf("%s",inter->pokemonAEntregar);
 	printf("%s",inter->pokemonARecibir);
-	puts("b");
 	intercambiarPokemon(&entrenador1);
-	puts("c");
 	printf("%s \n", entrenador1->pokemons->head->data);
-	puts("d");
 	printf("%s \n", entrenador1->pokemons->head->next->data);
-	puts("e");
 	printf("%s \n", entrenador1->pokemons->head->next->next->data);
-	puts("f");
 	printf("%s \n", entrenador2->pokemons->head->data);
-	puts("g");
 	printf("%s \n", entrenador2->pokemons->head->next->data);
-	puts("h");
+
+*************************FIN Prueba Intercambiar***********************
+*/
 
 
-
-
-
-//	//Prueba
-//	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
-//	pokemon->especie = "Pikachu";
-//	pokemon->coordx = 1;
-//	pokemon->coordy = 1;
-////
-//	appeared_pokemon(pokemon);
-//
-//	planificar();
-////
-//	list_add(pokemonsRequeridos, pokemon);
-//	t_pokemon* pokemonPrueba = (pokemonsRequeridos->head->data);
-//	printf("%s", (pokemonPrueba)->especie);
-//	printf("%d", pokemonPrueba->coordx);
-
-
-//	t_entrenador** entrenador = &(entrenadores->head->data);
-//	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordx);
-	//t_pokemon** pokemon = malloc (sizeof(t_pokemon));
-
-
-	//list_add(pokemonsRequeridos, *pokemon);
-	//t_queue* ready = queue_create();
-	//llenarColaReady(ready);
-//	(*entrenador)->pokemonACapturar = pokemon;
-//	moverEntrenador(entrenador, 2,6);
-//	entrenador = (&entrenadores->head->data);
-//	printf("x:%d y:%d\n", (*entrenador)->coordx, (*entrenador)->coordy);
-
-
-	//Prueba
 
 
 //	t_link_element * aux = entrenadores->head;
