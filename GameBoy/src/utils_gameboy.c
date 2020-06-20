@@ -28,7 +28,7 @@ void iniciar_consola(t_config* config){
 
 	char** linea_split = string_split(linea," ");
 
-	free(linea);
+	//free(linea);
 
 	if(string_equals_ignore_case(linea_split[0],comando_help)){
 
@@ -284,7 +284,7 @@ uint32_t calcular_id(tipo_id flag_id, char** linea_split){
 			break;
 	}
 
-	free(aux);
+	//free(aux);
 
 	return id;
 }
