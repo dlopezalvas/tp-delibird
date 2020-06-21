@@ -27,6 +27,18 @@ int main(void) {
 	pthread_t hilo[entrenadores->elements_count];
 	//socketEscucha("127.0.0.2", "5002");
 
+	//Intento de envio de mensaje
+
+		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+		mensaje -> tipo_mensaje = APPEARED_POKEMON;
+		char* hola = "gastooooon 1 2 3";
+		char** hola2 = string_split(hola," ");
+
+		mensaje -> parametros = hola2;
+		mensaje -> id = 2;
+		int socket_broker = iniciar_cliente("127.0.0.1","6009");//IP y Puerto del broker
+		enviar_mensaje(mensaje, socket_broker);
+	//
 
 	/*Prueba intercambiar
 	t_entrenador* entrenador1 = entrenadores->head->data;
