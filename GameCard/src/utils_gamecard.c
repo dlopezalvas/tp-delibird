@@ -36,7 +36,7 @@ void crear_tall_grass(t_config* config){
 }
 
 //metadata es el inodo
-
+//
 //void crear_metadata(char* punto_montaje){
 //
 //	char* path_metadata = string_new();
@@ -51,7 +51,7 @@ void crear_tall_grass(t_config* config){
 //	FILE * metadata = fopen(path_metadata, "w+");
 //
 //	fprintf(metadata, "BLOCK_SIZE=64\n");
-//	fprintf(metadata, "BLOCKS=5192\n");
+//	fprintf(metadata, "BLOCKS=4096\n");
 //	fprintf(metadata, "MAGIC_NUMBER=TALL_GRASS\n");
 //
 //	fclose(metadata);
@@ -137,7 +137,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	sem_wait(&pokemon_mtx); //cambia en la lista tambien?
 
-	fprintf(metadata, "DIRECTORY=N\n");
+	fprintf(metadata, "DIRECTORY=N\n"); //no lo escribe esto???????
 	fprintf(metadata, "OPEN=Y\n"); //lo marco como abierto
 	fclose(metadata);
 
@@ -155,6 +155,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	int cantidad_bloques = ceil((float) tamanio / (float) metadata_fs->block_size);
 
 	char** bloques_a_escribir = buscar_bloques_libres(cantidad_bloques);
+
 
 	//no necesito semaforo porque ya lo marque como abierto, entonces no puede entrar otro hilo al metadata
 
@@ -174,6 +175,10 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	fclose(actualizar_metadata);
 
+	t_config* config_aux = config_create(path_pokemon);
+
+	config_set_value(config_aux, SIZE, string_itoa(tamanio));
+
 	int offset = 0;
 
 	int i;
@@ -182,9 +187,6 @@ void crear_pokemon(t_new_pokemon* pokemon){
 		escribir_bloque(&offset, datos, bloques_a_escribir[i], &tamanio);
 	}
 
-	t_config* config_aux = config_create(path_pokemon);
-
-	config_set_value(config_aux, SIZE, string_itoa(tamanio));
 
 	config_set_value(config_aux, OPEN, NO);
 
@@ -208,7 +210,9 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 	if(!archivo_abierto(config_pokemon)){
 
-		char** blocks = abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+		//abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+
+		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
 
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
@@ -243,7 +247,12 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 			list_add(lista_datos, posicion);
 		}
 
-		guardar_archivo(lista_datos, config_pokemon);
+		char* tamanio_nuevo = string_itoa(guardar_archivo(lista_datos, config_pokemon));
+
+		config_set_value(config_pokemon, SIZE, tamanio_nuevo);
+
+		config_save_in_file(config_pokemon, path_pokemon);
+
 		liberar_vector(blocks);
 		liberar_vector(datos);
 		//list_destroy
@@ -254,15 +263,15 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	}
 }
 
-void guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
+int guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 
 	//cantidad de bloques = tamanio real en bytes / tamanio de cada bloque redondeado hacia arriba
 
-	int cantidad_bloques_antes = ceil(config_get_int_value(config_pokemon, SIZE) / metadata_fs->block_size);
+	int cantidad_bloques_antes = ceil((float)config_get_int_value(config_pokemon, SIZE) / (float)metadata_fs->block_size);
 
 	int tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio) - 1; //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
 
-	int cantidad_bloques_actuales = ceil(tamanio_nuevo / metadata_fs->block_size);
+	int cantidad_bloques_actuales = ceil((float)tamanio_nuevo / (float)metadata_fs->block_size);
 
 	int offset = 0;
 
@@ -298,6 +307,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 	liberar_vector(bloques);
 	free(datos);
 
+	return offset;
 }
 
 char** buscar_bloques_libres(int cantidad){
@@ -311,6 +321,7 @@ char** buscar_bloques_libres(int cantidad){
 			if(!bitarray_test_bit(bitarray, i)){
 				sem_wait(&bitarray_mtx);
 				bitarray_set_bit(bitarray, i);
+				msync(bitarray, sizeof(bitarray), MS_SYNC);
 				sem_post(&bitarray_mtx);
 				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
 			}
@@ -352,7 +363,7 @@ int minimo_entre (int nro1, int nro2){
 }
 
 char* transformar_a_dato(t_list* lista_datos, int tamanio){
-	char* datos = malloc(tamanio);
+	char* datos = string_new();
 
 	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
 
@@ -364,6 +375,8 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio){
 	}
 
 	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+
+	datos[tamanio] = '\0';
 
 	return datos;
 }
@@ -379,7 +392,7 @@ bool comienza_con(char* posicion, char* linea){
 
 	char** posicion_cantidad = string_split(linea, "=");
 
-	bool es_la_posicion = posicion_cantidad[0] == posicion;
+	bool es_la_posicion = string_equals_ignore_case(posicion_cantidad[0], posicion);
 
 	liberar_vector(posicion_cantidad);
 
@@ -409,8 +422,6 @@ t_config* transformar_a_config(char** lineas){
 		config_set_value(config_datos, key_valor[0], key_valor[1]); //separo la posicion de la cantidad (a traves del =)y seteo como key la posicion con su valor cantidad
 		liberar_vector(key_valor);
 		i++;
-
-		liberar_vector(key_valor);
 	}
 	return config_datos;
 }
@@ -423,9 +434,10 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 	string_append(&path_blocks, "/Blocks/");
 
 	int i;
+
 	int cantidad = cantidad_bloques(blocks);
 
-	char* datos = malloc(tamanio_total);
+	char* datos = malloc(tamanio_total + 1);
 
 	int offset = 0;
 
@@ -440,7 +452,6 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 		FILE* bloque = fopen(bloque_especifico, "r");
 
 		if(tamanio_total > metadata_fs->block_size){
-
 			fread(datos + offset, sizeof(char), metadata_fs->block_size, bloque);
 			offset+= metadata_fs->block_size;
 			tamanio_total -= metadata_fs->block_size;
@@ -451,7 +462,9 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 		}
 
 		fclose(bloque);
+
 	}
+	datos[offset] = '\0';
 
 	free(path_blocks);
 
@@ -470,19 +483,20 @@ int cantidad_bloques(char** blocks){
 	return i;
 }
 
-char** abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
+void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
 
-	char** bloques = config_get_array_value(config_archivo, BLOCKS);
-
-	int index_sem_metadata = index_pokemon(nombre_pokemon);
+	//int index_sem_metadata = index_pokemon(nombre_pokemon);
 
 	config_set_value(config_archivo, OPEN, YES);
 
-	sem_wait(list_get(sem_metadatas, index_sem_metadata));
-	config_save_in_file(config_archivo, path_pokemon);
-	sem_post(list_get(sem_metadatas, index_sem_metadata));
+	char** bloques = config_get_array_value(config_archivo, BLOCKS);
 
-	return bloques;
+	//sem_wait(list_get(sem_metadatas, index_sem_metadata));
+	config_save_in_file(config_archivo, path_pokemon);
+
+	//sem_post(list_get(sem_metadatas, index_sem_metadata));
+
+
 }
 
 int index_pokemon(char* nombre){

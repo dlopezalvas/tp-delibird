@@ -67,11 +67,11 @@ void crear_pokemon(t_new_pokemon* pokemon);
 bool archivo_abierto(t_config* config_archivo);
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 
-char** abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
+void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
 int index_pokemon(char* nombre);
 char** leer_archivo(char** blocks, int tamanio_total);
 int cantidad_bloques(char** blocks);
-void guardar_archivo(t_list* lista_datos, t_config* config_pokemon);
+int guardar_archivo(t_list* lista_datos, t_config* config_pokemon);
 
 t_config* transformar_a_config(char** datos);
 t_list* transformar_a_lista(char** lineas);
