@@ -117,7 +117,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	FILE* metadata = fopen(path_pokemon, "w+"); //creo su metadata
 
 	sem_wait(&lista_metadatas_mtx);
-	sem_wait(&pokemones);
+	sem_wait(&pokemones_mtx);
 
 	int index_semaforo = list_size(sem_metadatas); //el index va a ser la cantidad de elementos en la lista - 1 (lista comienza en 0), que es lo mismo que tener el tamanio antes de agregarlo a la lista
 
@@ -133,7 +133,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	list_add(pokemones, pokemon->nombre.nombre);
 
 	sem_post(&lista_metadatas_mtx);
-	sem_post(&pokemones);
+	sem_post(&pokemones_mtx);
 
 	sem_wait(&pokemon_mtx); //cambia en la lista tambien?
 
@@ -156,11 +156,23 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	char** bloques_a_escribir = buscar_bloques_libres(cantidad_bloques);
 
-	t_config* config_aux = config_create(path_pokemon);
+	//no necesito semaforo porque ya lo marque como abierto, entonces no puede entrar otro hilo al metadata
 
-	config_set_value(config_aux, SIZE, string_itoa(tamanio));
+	FILE* actualizar_metadata = fopen(path_pokemon, "r+");
 
-	//config_set_value(config_aux, BLOCKS, &bloques_a_escribir);
+	fprintf(actualizar_metadata, "BLOCKS=[");
+
+	int j;
+
+	for(j = 0; j < (cantidad_bloques - 1); j++){
+		fprintf(actualizar_metadata, "%s", bloques_a_escribir[j]);
+		fprintf(actualizar_metadata, ",");
+	}
+
+	fprintf(actualizar_metadata, "%s", bloques_a_escribir[j]); //imprimo el ultimo sin la coma
+	fprintf(actualizar_metadata, "]\n");
+
+	fclose(actualizar_metadata);
 
 	int offset = 0;
 
@@ -169,6 +181,10 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	for(i = 0; i < cantidad_bloques; i++){
 		escribir_bloque(&offset, datos, bloques_a_escribir[i], &tamanio);
 	}
+
+	t_config* config_aux = config_create(path_pokemon);
+
+	config_set_value(config_aux, SIZE, string_itoa(tamanio));
 
 	config_set_value(config_aux, OPEN, NO);
 
@@ -192,7 +208,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 	if(!archivo_abierto(config_pokemon)){
 
-		char** blocks = abrir_archivo(config_pokemon, path_pokemon);
+		char** blocks = abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
@@ -293,10 +309,10 @@ char** buscar_bloques_libres(int cantidad){
 
 		for(i=0; i < metadata_fs->blocks; i++){
 			if(!bitarray_test_bit(bitarray, i)){
-				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
 				sem_wait(&bitarray_mtx);
 				bitarray_set_bit(bitarray, i);
 				sem_post(&bitarray_mtx);
+				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
 			}
 			break;
 		}
@@ -454,15 +470,28 @@ int cantidad_bloques(char** blocks){
 	return i;
 }
 
-char** abrir_archivo(t_config* config_archivo, char* path_pokemon){
+char** abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
 
 	char** bloques = config_get_array_value(config_archivo, BLOCKS);
 
+	int index_sem_metadata = index_pokemon(nombre_pokemon);
+
 	config_set_value(config_archivo, OPEN, YES);
-	//mutex por metadata?
+
+	sem_wait(list_get(sem_metadatas, index_sem_metadata));
 	config_save_in_file(config_archivo, path_pokemon);
+	sem_post(list_get(sem_metadatas, index_sem_metadata));
 
 	return bloques;
+}
+
+int index_pokemon(char* nombre){
+	int index = 0;
+
+	while(!string_equals_ignore_case(list_get(pokemones, index), nombre)){
+		index++;
+	}
+	return index;
 }
 
 bool archivo_abierto(t_config* config_archivo){
