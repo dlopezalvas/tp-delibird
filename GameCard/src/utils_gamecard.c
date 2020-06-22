@@ -25,6 +25,12 @@ void crear_tall_grass(t_config* config){
 
 	crear_bitmap(pto_montaje);
 
+	sem_metadatas = list_create();
+	sem_init(&lista_metadatas_mtx, 0, 1);
+
+	pokemones = list_create();
+	sem_init(&pokemones_mtx, 0, 1);
+
 	//free(metadata_fs);
 
 }
@@ -98,6 +104,7 @@ void agregar_pokemon_mapa(t_new_pokemon* pokemon){
 }
 
 void crear_pokemon(t_new_pokemon* pokemon){
+
 	char* path_pokemon = string_new();
 	string_append(&path_pokemon, pto_montaje);
 	string_append(&path_pokemon, "/Files/");
@@ -109,10 +116,32 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	FILE* metadata = fopen(path_pokemon, "w+"); //creo su metadata
 
+	sem_wait(&lista_metadatas_mtx);
+	sem_wait(&pokemones);
+
+	int index_semaforo = list_size(sem_metadatas); //el index va a ser la cantidad de elementos en la lista - 1 (lista comienza en 0), que es lo mismo que tener el tamanio antes de agregarlo a la lista
+
+	if(index_semaforo != list_size(pokemones)){
+		perror("No coinciden los semaforos con la cantidad de pokemones");
+	}
+
+	sem_t pokemon_mtx;
+
+	sem_init (&pokemon_mtx, 0, 1);
+
+	list_add(sem_metadatas, &pokemon_mtx);
+	list_add(pokemones, pokemon->nombre.nombre);
+
+	sem_post(&lista_metadatas_mtx);
+	sem_post(&pokemones);
+
+	sem_wait(&pokemon_mtx); //cambia en la lista tambien?
 
 	fprintf(metadata, "DIRECTORY=N\n");
 	fprintf(metadata, "OPEN=Y\n"); //lo marco como abierto
 	fclose(metadata);
+
+	sem_post(&pokemon_mtx);
 
 	char* datos = string_new();
 	string_append(&datos, string_itoa(pokemon->coordenadas.pos_x));
@@ -123,8 +152,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	int tamanio = strlen(datos);
 
-	int cantidad_bloques = 1;
-
+	int cantidad_bloques = ceil((float) tamanio / (float) metadata_fs->block_size);
 
 	char** bloques_a_escribir = buscar_bloques_libres(cantidad_bloques);
 

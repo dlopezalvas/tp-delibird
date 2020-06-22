@@ -46,6 +46,12 @@ typedef struct{
 t_bitarray* bitarray;
 sem_t bitarray_mtx;
 
+t_list* sem_metadatas;
+sem_t lista_metadatas_mtx;
+
+t_list* pokemones; //index del pokemon deberia ser el mismo index de su semaforo
+sem_t pokemones_mtx;
+
 char* pto_montaje;
 
 t_metadata* metadata_fs;
