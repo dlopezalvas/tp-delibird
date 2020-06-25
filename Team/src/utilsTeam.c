@@ -65,7 +65,7 @@ void configurarEntrenadores(){ //funciona
 t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos, int ID){ //funciona
 	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
 	entrenador->ID = ID;
-	entrenador->estado = BLOCK;
+	entrenador->estado = NEW;
 	char** objetivosEntrenador = string_split(objetivos,"|");
 	entrenador->objetivos = configurarPokemons(objetivosEntrenador);
 	char** coordenadas = string_split(posicion,"|");
@@ -74,6 +74,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	char** pokemons = string_split(pokemonsEntrenador,"|");
 	entrenador->pokemons = configurarPokemons(pokemons);
 	entrenador->pokemonACapturar = NULL;
+	entrenador->pokemonsNoNecesarios = list_create();
 	entrenador->intercambio = NULL;
 
 	//	liberar_vector(objetivosEntrenador);
@@ -181,6 +182,9 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
 
+	if(!necesitaPokemon(*(entrenador)))//probar si funciona
+		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
+
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
 	if(tieneMenosElementos ((*entrenador)->pokemons, (*entrenador)->objetivos)){
@@ -210,10 +214,27 @@ bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2){
 			string_equals_ignore_case(pokemon->especie, pokemon2->especie) &&
 				pokemon->planificado == true);
 
-
-
 }
 
+bool necesitaPokemon(t_entrenador* entrenador){
+	bool _mismaEspecie(char* especie){
+			return mismaEspecie(especie, entrenador->pokemonACapturar->especie);
+					}
+
+	int necesarios = list_count_satisfying(entrenador->objetivos, (void*)_mismaEspecie);
+	int capturados = list_count_satisfying(entrenador->pokemons, (void*)_mismaEspecie);
+
+	if(necesarios == 0) return false;
+	if(necesarios > capturados) return true;
+	else return false;
+	}
+
+
+bool mismaEspecie(char* especie,char* especie2){
+
+	return(string_equals_ignore_case(especie, especie2));
+
+}
 
 void configurarObjetivoGlobal(){ //funciona
 	t_link_element *entrenador = entrenadores->head;
@@ -287,8 +308,10 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	t_intercambio* intercambio = (*entrenador)->intercambio;
 	printf("%s",intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemons);
+	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemonsNoNecesarios);
 	list_add(intercambio->entrenador->pokemons, intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemons);
+	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemonsNoNecesarios);
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
 	(*entrenador)->intercambio = NULL;
 	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);

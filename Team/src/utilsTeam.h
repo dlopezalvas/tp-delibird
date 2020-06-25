@@ -55,6 +55,7 @@ typedef struct t_entrenador
 	t_estado estado; //para saber si esta en ready o block
 	t_pokemon* pokemonACapturar;
 	void* intercambio; //siempre castear como t_intercambio
+	t_list* pokemonsNoNecesarios;
 } t_entrenador;
 
 typedef struct t_intercambio{
@@ -102,6 +103,7 @@ void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 bool noEstaPlanificado(t_pokemon* pokemon);
 bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2);
-
+bool necesitaPokemon(t_entrenador* entrenador);
+bool mismaEspecie(char* especie,char* especie2);
 
 #endif /* UTILSTEAM_H_ */

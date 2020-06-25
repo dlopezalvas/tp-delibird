@@ -29,15 +29,15 @@ int main(void) {
 
 	//Intento de envio de mensaje
 
-		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-		mensaje -> tipo_mensaje = APPEARED_POKEMON;
-		char* hola = "gastooooon 1 2 3";
-		char** hola2 = string_split(hola," ");
-
-		mensaje -> parametros = hola2;
-		mensaje -> id = 2;
-		int socket_broker = iniciar_cliente("127.0.0.1","6009");//IP y Puerto del broker
-		enviar_mensaje(mensaje, socket_broker);
+//		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+//		mensaje -> tipo_mensaje = APPEARED_POKEMON;
+//		char* hola = "gastooooon 1 2 3";
+//		char** hola2 = string_split(hola," ");
+//
+//		mensaje -> parametros = hola2;
+//		mensaje -> id = 2;
+//		int socket_broker = iniciar_cliente("127.0.0.1","6009");//IP y Puerto del broker
+//		enviar_mensaje(mensaje, socket_broker);
 	//
 
 	/*Prueba intercambiar
@@ -74,6 +74,17 @@ int main(void) {
 *************************FIN Prueba Intercambiar***********************
 */
 
+
+/*Prueba capturo pokemon
+
+		t_entrenador* entrenador = entrenadores->head->data;
+		entrenador->pokemonACapturar = malloc(sizeof(t_pokemon));
+		entrenador->pokemonACapturar->especie = "Pidgey";
+		capturoPokemon(&(entrenador));
+		printf("%s", entrenador->pokemonsNoNecesarios->head->data);
+
+
+		*************************FIN Prueba Intercambiar***********************/
 
 
 
