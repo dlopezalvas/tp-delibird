@@ -110,38 +110,38 @@ void process_request(int cod_op, int cliente_fd) {
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 	//int id = recv(cliente_fd, &id,sizeof(int),0);
 
+	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
+	t_position_and_name* appeared_pokemon = malloc(sizeof(t_position_and_name));
+	t_position_and_name* catch_pokemon = malloc(sizeof(t_position_and_name));
+	t_caught_pokemon* caught_pokemon = malloc(sizeof(t_caught_pokemon));
+	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
 	switch (cod_op) {
 	case NEW_POKEMON:
-		t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
 		new_pokemon = deserializar_new_pokemon(buffer);
-		list_add(NEW_POKEMON_QUEUE,new_pokemon);
+		puts(new_pokemon->nombre.nombre);
 		break;
 	case APPEARED_POKEMON:
-		t_position_and_name* appeared_pokemon = malloc(sizeof(t_position_and_name));
-		appeared_pokemon  = deserializar_position_and_name(buffer);
-		list_add(APPEARED_POKEMON_QUEUE,new_pokemon);
+		appeared_pokemon = deserializar_position_and_name(buffer);
+		list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
 		break;
 	case CATCH_POKEMON:
-		t_position_and_name* catch_pokemon = malloc(sizeof(t_position_and_name));
-		catch_pokemon = deserializar_catch_pokemon(buffer);
-		list_add(CATCH_POKEMON_QUEUE,new_pokemon);
-
+		catch_pokemon = deserializar_position_and_name(buffer);
+		list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
 		break;
 	case CAUGHT_POKEMON:
-		t_caught_pokemon* caught_pokemon = malloc(sizeof(t_caught_pokemon));
-		caught_pokemon = deserializar_position_and_name(buffer);
-		list_add(CAUGHT_POKEMON_QUEUE,new_pokemon);
+		caught_pokemon = deserializar_caught_pokemon(buffer);
+		list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
 		break;
 	case GET_POKEMON:
-		t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
-		get_pokemon = deserializar_position_and_name(buffer);
-		list_add(GET_POKEMON_QUEUE,new_pokemon);
+		get_pokemon = deserializar_get_pokemon(buffer);
+		list_add(GET_POKEMON_QUEUE,get_pokemon);
 		break;
 	case 0:
 		pthread_exit(NULL);
 	case -1:
 		pthread_exit(NULL);
 	}
+
 }
 
 void socketEscucha(char*ip, char* puerto){
