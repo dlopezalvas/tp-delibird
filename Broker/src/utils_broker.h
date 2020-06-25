@@ -16,7 +16,7 @@
 #include<stdbool.h>
 #include<../CommonsMCLDG/utils.h>
 #include<../CommonsMCLDG/socket.h>
-#include <commons/collections/queue.h>
+
 
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
 #define QUEUES_VALIDAS "QUEUES_VALIDAS"
