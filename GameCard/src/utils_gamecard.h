@@ -34,6 +34,7 @@
 #define DIRECTORIO "DIRECTORIO"
 #define SIZE "SIZE"
 #define NUEVO_TAMANIO "NUEVO_TAMANIO"
+#define TIEMPO_DE_REINTENTO_OPERACION "TIEMPO_DE_REINTENTO_OPERACION"
 
 
 
@@ -80,6 +81,7 @@ bool comienza_con(char* posicion, char* linea);
 int calcular_tamanio(int acc, char* linea);
 
 char** buscar_bloques_libres(int cantidad);
+int bloque_libre();
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio);
 char* transformar_a_dato(t_list* lista_datos, int tamanio);
 int minimo_entre (int nro1, int nro2);

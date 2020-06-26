@@ -69,7 +69,7 @@ void crear_bitmap(char* punto_montaje){
 
 	int blocks = metadata_fs->blocks/8;
 
-	int bitarray_file = open(path_bitarray, O_RDWR | O_CREAT);  //uso open porque necesito el int para el mmap
+	int bitarray_file = open(path_bitarray, O_RDWR | O_CREAT, 0700);  //uso open porque necesito el int para el mmap
 
 	ftruncate(bitarray_file, blocks);
 
@@ -79,11 +79,17 @@ void crear_bitmap(char* punto_montaje){
 
 	bitarray = bitarray_create_with_mode(mapeo_bitarray, blocks, LSB_FIRST);
 
+	for(int i = 0; i < blocks; i++){
+		bitarray_clean_bit(bitarray, i);
+	}
+
 	msync(bitarray, sizeof(bitarray), MS_SYNC);
 
 	sem_init(&bitarray_mtx, 0, 1);
 
-	free(path_bitarray);
+	close(bitarray_file);
+
+	//free(path_bitarray);
 }
 
 //journaling, checkeo con el log, si falla a la mitad que se pueda deshacer los pasos
@@ -104,7 +110,6 @@ void agregar_pokemon_mapa(t_new_pokemon* pokemon){
 }
 
 void crear_pokemon(t_new_pokemon* pokemon){
-
 	char* path_pokemon = string_new();
 	string_append(&path_pokemon, pto_montaje);
 	string_append(&path_pokemon, "/Files/");
@@ -156,12 +161,13 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	char** bloques_a_escribir = buscar_bloques_libres(cantidad_bloques);
 
-
 	//no necesito semaforo porque ya lo marque como abierto, entonces no puede entrar otro hilo al metadata
 
 	FILE* actualizar_metadata = fopen(path_pokemon, "r+");
 
 	fprintf(actualizar_metadata, "BLOCKS=[");
+
+
 
 	int j;
 
@@ -210,7 +216,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 	if(!archivo_abierto(config_pokemon)){
 
-		//abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+		abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
 		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
 
@@ -251,7 +257,11 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		config_set_value(config_pokemon, SIZE, tamanio_nuevo);
 
+		config_set_value(config_pokemon, OPEN, NO);
+
 		config_save_in_file(config_pokemon, path_pokemon);
+
+		config_destroy(config_pokemon);
 
 		liberar_vector(blocks);
 		liberar_vector(datos);
@@ -259,6 +269,8 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 		config_destroy(config_datos);
 
 	}else{
+		//sleep(config_get_int_value(config_gamecard,TIEMPO_DE_REINTENTO_OPERACION));
+		//actualizar_nuevo_pokemon(pokemon);
 		puts("reintentar");
 	}
 }
@@ -311,27 +323,61 @@ int guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 }
 
 char** buscar_bloques_libres(int cantidad){
+	char** bloques = malloc(cantidad);
 
-	char** bloques_libres = malloc(cantidad);
-
-	while(cantidad > 0){
-		int i;
-
-		for(i=0; i < metadata_fs->blocks; i++){
-			if(!bitarray_test_bit(bitarray, i)){
-				sem_wait(&bitarray_mtx);
-				bitarray_set_bit(bitarray, i);
-				msync(bitarray, sizeof(bitarray), MS_SYNC);
-				sem_post(&bitarray_mtx);
-				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
-			}
-			break;
+	for(int i = 0; i < cantidad; i++){
+		int aux = bloque_libre();
+		if(aux == -1){
+			perror("No se encontró bloque libre");
+		}else{
+			bloques[i] = string_itoa(aux);
 		}
-		cantidad--;
 	}
 
-	return bloques_libres;
+	return bloques;
 }
+
+int bloque_libre(){
+	for(int i = 0; i < metadata_fs->blocks; i++){
+		if(!bitarray_test_bit(bitarray,i)){
+			sem_wait(&bitarray_mtx);
+			bitarray_set_bit(bitarray,i);
+			msync(bitarray, sizeof(bitarray), MS_SYNC);
+			sem_post(&bitarray_mtx);
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+//char** buscar_bloques_libres(int cantidad){
+//
+//	char** bloques_libres = malloc(cantidad);
+//
+//	if(bitarray_test_bit(bitarray, 0)){
+//			puts("ta ocupao el 0");
+//	}
+//	while(cantidad > 0){
+//		puts("whule");
+//		int i;
+//
+//		for(i=0; i < metadata_fs->blocks; i++){
+//			puts("for")
+//			if(!bitarray_test_bit(bitarray, i)){
+//				sem_wait(&bitarray_mtx);
+//				bitarray_set_bit(bitarray, i);
+//				msync(bitarray, sizeof(bitarray), MS_SYNC);
+//				sem_post(&bitarray_mtx);
+//				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
+//			}
+//			break;
+//		}
+//		cantidad--;
+//	}
+//
+//	return bloques_libres;
+//}
 
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
 
@@ -487,14 +533,12 @@ void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_po
 
 	//int index_sem_metadata = index_pokemon(nombre_pokemon);
 
+
 	config_set_value(config_archivo, OPEN, YES);
-
-	char** bloques = config_get_array_value(config_archivo, BLOCKS);
-
-	//sem_wait(list_get(sem_metadatas, index_sem_metadata));
+	//sem_wait(list_get(sem_metadatas, 0));
 	config_save_in_file(config_archivo, path_pokemon);
 
-	//sem_post(list_get(sem_metadatas, index_sem_metadata));
+	//sem_post(list_get(sem_metadatas, 0));
 
 
 }
@@ -502,7 +546,9 @@ void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_po
 int index_pokemon(char* nombre){
 	int index = 0;
 
-	while(!string_equals_ignore_case(list_get(pokemones, index), nombre)){
+	char* pokemon = list_get(pokemones, index);
+
+	while(!(string_equals_ignore_case(pokemon, nombre))){
 		index++;
 	}
 	return index;
@@ -513,7 +559,7 @@ bool archivo_abierto(t_config* config_archivo){
 	char* archivo_open = config_get_string_value(config_archivo, OPEN);
 	bool esta_abierto = string_equals_ignore_case(YES, archivo_open);
 
-	free(archivo_open);
+	//free(archivo_open);
 
 	return esta_abierto;
 }
@@ -525,6 +571,7 @@ bool existe_pokemon(char* path_pokemon){
 	free(path_pokemon);
 
 	bool existe = !(verificacion == NULL); //si al abrirlo devuelve NULL, el directorio no existe
+
 
 	return existe;
 }
