@@ -351,34 +351,6 @@ int bloque_libre(){
 	return -1;
 }
 
-//char** buscar_bloques_libres(int cantidad){
-//
-//	char** bloques_libres = malloc(cantidad);
-//
-//	if(bitarray_test_bit(bitarray, 0)){
-//			puts("ta ocupao el 0");
-//	}
-//	while(cantidad > 0){
-//		puts("whule");
-//		int i;
-//
-//		for(i=0; i < metadata_fs->blocks; i++){
-//			puts("for")
-//			if(!bitarray_test_bit(bitarray, i)){
-//				sem_wait(&bitarray_mtx);
-//				bitarray_set_bit(bitarray, i);
-//				msync(bitarray, sizeof(bitarray), MS_SYNC);
-//				sem_post(&bitarray_mtx);
-//				bloques_libres[cantidad - 1] = string_itoa(i); //para que cargue el vector hasta el 0 y no hasta el 1
-//			}
-//			break;
-//		}
-//		cantidad--;
-//	}
-//
-//	return bloques_libres;
-//}
-
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
 
 		char* path_blocks = string_new();
@@ -529,16 +501,19 @@ int cantidad_bloques(char** blocks){
 	return i;
 }
 
+
+
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
 
-	//int index_sem_metadata = index_pokemon(nombre_pokemon);
+	int index_sem_metadata = index_pokemon(nombre_pokemon);
 
+	sem_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
 	config_set_value(config_archivo, OPEN, YES);
-	//sem_wait(list_get(sem_metadatas, 0));
+	sem_wait(semaforo_pokemon);
 	config_save_in_file(config_archivo, path_pokemon);
 
-	//sem_post(list_get(sem_metadatas, 0));
+	sem_post(semaforo_pokemon);
 
 
 }
