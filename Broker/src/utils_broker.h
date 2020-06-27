@@ -48,8 +48,8 @@ int proceso_valido(char*,char*);
 //Valida que una queue sea valida
 int queue_valida(char*,char*);
 
-//Suscribe un mensaje de tipo t_mensaje a una queue
-void suscribir_mensaje_queue(t_mensaje*);
+//Suscribe un mensaje pasandole el tipo de mensaje y el buffer
+int suscribir_mensaje(int cod_op,void* buffer);
 
 //Inicializa todas las queues
 void crear_queues();
