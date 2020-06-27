@@ -28,13 +28,20 @@
 
 t_log* logger;
 
+typedef struct{
+  op_code tipo_mensaje;
+  void* buffer; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
+  char *suscriptor;
+  uint32_t id;
+}t_mensaje_broker;
+
 //Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
 t_list* NEW_POKEMON_QUEUE;
 t_list* APPEARED_POKEMON_QUEUE;
 t_list* CATCH_POKEMON_QUEUE;
 t_list* CAUGHT_POKEMON_QUEUE;
 t_list* GET_POKEMON_QUEUE;
-int unique_message_id = 0;
+uint32_t unique_message_id;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);

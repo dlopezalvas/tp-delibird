@@ -27,6 +27,7 @@ void log_suscribir_mensaje_queue(char* proceso,char* queue){
 }
 
 void crear_queues(void){
+	unique_message_id = 0;
 	NEW_POKEMON_QUEUE = list_create();
 	APPEARED_POKEMON_QUEUE = list_create();
 	CATCH_POKEMON_QUEUE = list_create();
@@ -68,6 +69,8 @@ void process_request(int cod_op, int cliente_fd) {
 	//int id = recv(cliente_fd, &id,sizeof(int),0);
 
 	int id = suscribir_mensaje(cod_op,buffer);
+
+	//reenviar id
 }
 
 int suscribir_mensaje(int cod_op,void* buffer){
@@ -77,6 +80,12 @@ int suscribir_mensaje(int cod_op,void* buffer){
 	t_position_and_name* catch_pokemon = malloc(sizeof(t_position_and_name));
 	t_caught_pokemon* caught_pokemon = malloc(sizeof(t_caught_pokemon));
 	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
+
+	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
+	mensaje->buffer = buffer;
+	mensaje->tipo_mensaje = cod_op;
+	mensaje->id = unique_message_id++;
+
 	switch (cod_op) {
 	case NEW_POKEMON:
 		new_pokemon = deserializar_new_pokemon(buffer);
@@ -103,8 +112,8 @@ int suscribir_mensaje(int cod_op,void* buffer){
 	case -1:
 		pthread_exit(NULL);
 	}
-	unique_message_id++;
-	return unique_message_id;
+
+	return mensaje->id;
 }
 
 void socketEscucha(char*ip, char* puerto){
