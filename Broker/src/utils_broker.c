@@ -103,7 +103,8 @@ int suscribir_mensaje(int cod_op,void* buffer){
 	case -1:
 		pthread_exit(NULL);
 	}
-	return 1;
+	unique_message_id++;
+	return unique_message_id;
 }
 
 void socketEscucha(char*ip, char* puerto){
