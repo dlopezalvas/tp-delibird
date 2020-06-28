@@ -103,7 +103,9 @@ void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 bool noEstaPlanificado(t_pokemon* pokemon);
 bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2);
-bool necesitaPokemon(t_entrenador* entrenador);
+bool necesitaPokemon(t_entrenador* entrenador, char* especie);
 bool mismaEspecie(char* especie,char* especie2);
+bool puedeEstarEnDeadlock(t_entrenador* entrenador);
+//void deteccionDeadlock();
 
 #endif /* UTILSTEAM_H_ */

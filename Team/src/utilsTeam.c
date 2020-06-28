@@ -182,7 +182,7 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
 
-	if(!necesitaPokemon(*(entrenador)))//probar si funciona
+	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))//probar si funciona
 		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
 
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
@@ -216,9 +216,9 @@ bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2){
 
 }
 
-bool necesitaPokemon(t_entrenador* entrenador){
+bool necesitaPokemon(t_entrenador* entrenador, char* pokemon){
 	bool _mismaEspecie(char* especie){
-			return mismaEspecie(especie, entrenador->pokemonACapturar->especie);
+			return mismaEspecie(especie, pokemon);
 					}
 
 	int necesarios = list_count_satisfying(entrenador->objetivos, (void*)_mismaEspecie);
@@ -494,5 +494,44 @@ void socketEscucha(char*IP, char* Puerto){
 		esperar_cliente(servidor);
 	}
 
+}
+
+//void deteccionDeadlock(){
+//	bool _puedeEstarEnDeadlock(void* entrenador){
+//		return puedeEstarEnDeadlock(entrenador);
+//	}
+//	t_list* entrenadoresDeadlock = list_create();
+//	entrenadoresDeadlock = list_filter(entrenadores, _puedeEstarEnDeadlock);
+//	if(list_size(entrenadoresDeadlock) < 1) return false;
+//	t_link_element * entrenador = entrenadoresDeadlock;
+//	t_entrenador* entrenadorAIntercambiar;
+//	t_entrenador* entre;
+//	t_link_element* pokemon;
+//	t_intercambio* intercambio;
+//
+//	while(entrenador!= NULL){
+//		entre = entrenador->data
+//		pokemon = entre->pokemonsNoNecesarios->head;
+//
+//		while(pokemon != NULL){
+//			bool _necesitaPokemon(void* entrenador){
+//						return necesitaPokemon(entrenador, pokemon->data);
+//					}
+//			if(list_any_satisfy(entrenadoresDeadlock, _necesitaPokemon)){
+//				entrenadorAIntercambiar = list_find(_necesitaPokemon);
+//				intercambio=malloc(sizeof(t_intercambio));
+//				intercambio->entrenador = entrenadorAIntercambiar;
+//				intercambio->pokemonARecibir =
+//			}
+//		}
+//
+//	}
+//}
+
+
+
+
+bool puedeEstarEnDeadlock(t_entrenador* entrenador){
+	return (entrenador->estado == BLOCK && tieneMenosElementos(entrenador->pokemons, entrenador->objetivos));
 }
 
