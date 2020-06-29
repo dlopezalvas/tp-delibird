@@ -304,8 +304,6 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 
 	int i_linea_split = 2; //comienza a cargar la lista a partir del primer argumento, sin contar el proceso y tipo de mensaje
 
-	int j_lista_argumentos = 0; //para iterar en la lista
-
 	switch(flag_id){
 		case NO_TIENE_ID:
 			break;
@@ -317,13 +315,11 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 			break;
 	}
 
-	char** lista_argumentos = malloc(sizeof(char**));
+	char** lista_argumentos = malloc(sizeof(char*)*cantidad);
 
-	while(cantidad!= 0){
-		lista_argumentos[j_lista_argumentos] = linea_split[i_linea_split];
+	for(int k = 0; k < cantidad; k++){
+		lista_argumentos[k] = linea_split[i_linea_split];
 		i_linea_split++;
-		j_lista_argumentos++;
-		cantidad --;
 	}
 
 	return lista_argumentos;

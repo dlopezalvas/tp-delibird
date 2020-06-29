@@ -14,7 +14,7 @@
 #include<commons/bitarray.h>
 #include<commons/collections/list.h>
 #include<../CommonsMCLDG/utils.h>
-#include<../CommonsMCLDG/serializacion.h>
+#include<../CommonsMCLDG/socket.h>
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<fcntl.h>
@@ -57,6 +57,8 @@ char* pto_montaje;
 
 t_metadata* metadata_fs;
 
+pthread_t thread;
+
 void crear_tall_grass(t_config* config);
 //void crear_metadata(char* path_metadata);
 void crear_bitmap(char* path);
@@ -85,5 +87,10 @@ int bloque_libre();
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio);
 char* transformar_a_dato(t_list* lista_datos, int tamanio);
 int minimo_entre (int nro1, int nro2);
+
+void esperar_cliente(int servidor);
+void serve_client(int* socket);
+void socket_escucha(char*IP, char* Puerto);
+void process_request(int cod_op, int cliente_fd);
 
 #endif /* UTILS_H_ */

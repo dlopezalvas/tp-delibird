@@ -15,9 +15,6 @@
 #include <pthread.h>
 
 
-
-pthread_t thread;
-
 void* recibir_mensaje(int socket_cliente, int* size);
 int iniciar_cliente(char *ip, char* puerto);
 int iniciar_servidor(char* ip, char* puerto);

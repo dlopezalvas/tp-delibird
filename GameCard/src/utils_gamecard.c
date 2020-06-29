@@ -212,6 +212,8 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	string_append(&path_pokemon, pokemon->nombre.nombre);
 	string_append(&path_pokemon, "/Metadata.bin");
 
+	puts(path_pokemon);
+
 	t_config* config_pokemon = config_create(path_pokemon);
 
 	if(!archivo_abierto(config_pokemon)){
@@ -501,8 +503,6 @@ int cantidad_bloques(char** blocks){
 	return i;
 }
 
-
-
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
 
 	int index_sem_metadata = index_pokemon(nombre_pokemon);
@@ -526,6 +526,7 @@ int index_pokemon(char* nombre){
 	while(!(string_equals_ignore_case(pokemon, nombre))){
 		index++;
 	}
+
 	return index;
 }
 
@@ -551,51 +552,53 @@ bool existe_pokemon(char* path_pokemon){
 	return existe;
 }
 
-//void esperar_cliente(int servidor){
-//	pthread_t thread;
-//	struct sockaddr_in direccion_cliente;
-//
-//	unsigned int tam_direccion = sizeof(struct sockaddr_in);
-//
-//	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
-//
-//	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
-//	pthread_detach(thread);
-//}
-//
-//void serve_client(int* socket)
-//{
-//	int cod_op;
-//	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
-//		cod_op = -1;
-//	process_request(cod_op, *socket);
-//}
-//
-//void socketEscucha(char*IP, char* Puerto){
-//	int servidor = iniciar_servidor(IP,Puerto);
-//	while(1){
-//		esperar_cliente(servidor);
-//	}
-//
-//}
-//void process_request(int cod_op, int cliente_fd) {
-//	int size = 0;
-//	void* buffer = recibir_mensaje(cliente_fd, &size);
-//	uint32_t id = recv(cliente_fd, &id,sizeof(uint32_t),0);
-//
-//	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
-//
-//		switch (cod_op) {
-//		case NEW_POKEMON:
-//			new_pokemon = deserializar_position_and_name(buffer);
-//			agregar_pokemon_mapa(new_pokemon);
-//			break;
-//		case 0:
-//			pthread_exit(NULL);
-//		case -1:
-//			pthread_exit(NULL);
-//		}
-//}
-//
+void esperar_cliente(int servidor){
+
+	struct sockaddr_in direccion_cliente;
+
+	unsigned int tam_direccion = sizeof(struct sockaddr_in);
+
+	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
+
+	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
+	pthread_detach(thread);
+}
+
+void serve_client(int* socket)
+{
+	int cod_op;
+	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+		cod_op = -1;
+	process_request(cod_op, *socket);
+}
+
+void socket_escucha(char*IP, char* Puerto){
+	int servidor = iniciar_servidor(IP,Puerto);
+	while(1){
+		esperar_cliente(servidor);
+	}
+
+}
+void process_request(int cod_op, int cliente_fd) {
+	int size = 0;
+	void* buffer = recibir_mensaje(cliente_fd, &size);
+	uint32_t id = 0;
+
+	recv(cliente_fd, &id, sizeof(uint32_t),0);
+
+	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
+
+		switch (cod_op) {
+		case NEW_POKEMON:
+			new_pokemon = deserializar_new_pokemon(buffer);
+			agregar_pokemon_mapa(new_pokemon);
+			break;
+		case 0:
+			pthread_exit(NULL);
+		case -1:
+			pthread_exit(NULL);
+		}
+}
+
 
 
