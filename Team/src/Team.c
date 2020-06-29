@@ -84,7 +84,25 @@ int main(void) {
 		printf("%s", entrenador->pokemonsNoNecesarios->head->data);
 
 
-		*************************FIN Prueba Intercambiar***********************/
+		*************************FIN Prueba capturo pokemon***********************/
+
+//Prueba necesita pokemon
+
+//	t_entrenador* entrenador = entrenadores->head->next->data;
+//
+//	if(list_is_empty(entrenador->pokemonsNoNecesarios)) puts("esta vacia\n");
+//	else{
+//	printf("%d \n", entrenador->pokemonsNoNecesarios->elements_count);
+//	printf("%s \n",entrenador->pokemonsNoNecesarios->head->data);
+//	}
+	//	if(tienePokemonNoNecesario(entrenador, "Squirtle")) puts("No necesita squirtle");
+//	if(puedeEstarEnDeadlock(entrenador)) puts("puede estar en deadlock");
+
+
+//*************************FIN Prueba necesita pokemon***********************/
+
+
+
 
 
 

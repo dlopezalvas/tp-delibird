@@ -65,7 +65,7 @@ void configurarEntrenadores(){ //funciona
 t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* objetivos, int ID){ //funciona
 	t_entrenador* entrenador = malloc(sizeof(t_entrenador));
 	entrenador->ID = ID;
-	entrenador->estado = NEW;
+	entrenador->estado = BLOCK;
 	char** objetivosEntrenador = string_split(objetivos,"|");
 	entrenador->objetivos = configurarPokemons(objetivosEntrenador);
 	char** coordenadas = string_split(posicion,"|");
@@ -74,14 +74,26 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	char** pokemons = string_split(pokemonsEntrenador,"|");
 	entrenador->pokemons = configurarPokemons(pokemons);
 	entrenador->pokemonACapturar = NULL;
-	entrenador->pokemonsNoNecesarios = list_create();
 	entrenador->intercambio = NULL;
+
+	entrenador->pokemonsNoNecesarios = list_duplicate(entrenador->pokemons);
+	void _eliminarPokemonsObjetivo(void* pokemon){
+		return eliminarPokemonsObjetivo(pokemon, entrenador->pokemonsNoNecesarios);
+	}
+	list_iterate(entrenador->objetivos, (void*)_eliminarPokemonsObjetivo);
 
 	//	liberar_vector(objetivosEntrenador);
 	//	liberar_vector(coordenadas);
 	//	liberar_vector(pokemons);
 
 	return entrenador;
+}
+
+void eliminarPokemonsObjetivo(char* pokemon, t_list* pokemonsNoNecesarios){
+	bool _mismaEspecie(void* pokemonNoNecesario){
+		return mismaEspecie(pokemonNoNecesario, pokemon);
+	}
+	list_remove_by_condition(pokemonsNoNecesarios, _mismaEspecie);
 }
 
 
@@ -216,7 +228,7 @@ bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2){
 
 }
 
-bool necesitaPokemon(t_entrenador* entrenador, char* pokemon){
+bool necesitaPokemon(t_entrenador* entrenador, char* pokemon){ //funciona
 	bool _mismaEspecie(char* especie){
 			return mismaEspecie(especie, pokemon);
 					}
@@ -278,24 +290,20 @@ int distancia(int x1, int y1, int x2, int y2){ //funciona
 
 }
 
-void moverEntrenador(t_entrenador** entrenador, int x, int y){ //funciona
+void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funciona
 	int moverse = 1;
 
-	if(x < (*entrenador)->coordx)	moverse = -1;
-
-	while((*entrenador)->coordx != x){
+	if((*entrenador)->coordx != x){
+		if(x < (*entrenador)->coordx)	moverse = -1;
 		(*entrenador)->coordx += moverse;
 		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+	}else{
+		if((*entrenador)->coordy != y){
+			if(y < (*entrenador)->coordy)	moverse = -1;
+			(*entrenador)->coordy += moverse;
+			sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+		}
 	}
-
-	if(y < (*entrenador)->coordy)	moverse = -1;
-	else moverse = 1;
-
-	while((*entrenador)->coordy != y){
-		(*entrenador)->coordy += moverse;
-		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
-	}
-
 }
 
 void atraparPokemon(t_entrenador* entrenador){//terminar y probar
@@ -416,14 +424,27 @@ bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon
 void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 	t_entrenador** entrenador = entre;
 	t_intercambio* intercambio = (*entrenador)->intercambio;
+	int coordx;
+	int coordy;
+
 	while((*entrenador)->estado != EXIT){
-		if(puedeAtraparPokemon((*entrenador))){
-			moverEntrenador(entrenador, (*entrenador)->pokemonACapturar->coordx, (*entrenador)->pokemonACapturar->coordy);
+		if(puedeAtraparPokemon(*entrenador)){
+				coordx = (*entrenador)->pokemonACapturar->coordx;
+				coordy = (*entrenador)->pokemonACapturar->coordy;
+		}else{
+				coordx = intercambio->entrenador->coordx;
+				coordy = intercambio->entrenador->coordy;
+		}
+
+		while((coordx != (*entrenador)->coordx	&& coordy != (*entrenador)->coordy)){
+					moverEntrenador(entrenador, coordx, coordy);
+					//replanificar?
+					}
+		if(puedeAtraparPokemon(*entrenador)){
 			atraparPokemon(*entrenador);
 			cambiarEstado(entrenador, BLOCK);//se blockea hasta que recibe respuesta de si lo capturo o no
 			//avisar hilo planificacion que termino de ejecutar ¿¿id de mensaje??
 		}else {
-			moverEntrenador(entrenador, intercambio->entrenador->coordx , intercambio->entrenador->coordy);
 			intercambiarPokemon(entrenador);//avisar hilo planificacion que termino de ejecutar
 			}
 	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
@@ -446,7 +467,7 @@ void appeared_pokemon(t_pokemon* pokemonNuevo){ //Agregar Verificacion
 	//signal sem contador llenarColaReady
 }
 
-void process_request(int cod_op, int cliente_fd) {
+void process_request(int cod_op, int cliente_fd) { //funciona
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 //	int id = recv(cliente_fd, &id,sizeof(int),0);
@@ -468,7 +489,7 @@ void process_request(int cod_op, int cliente_fd) {
 }
 
 
-void esperar_cliente(int servidor){
+void esperar_cliente(int servidor){ //funciona
 	pthread_t thread;
 	struct sockaddr_in direccion_cliente;
 
@@ -480,7 +501,7 @@ void esperar_cliente(int servidor){
 	pthread_detach(thread);
 }
 
-void serve_client(int* socket)
+void serve_client(int* socket) //funciona
 {
 	int cod_op;
 	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
@@ -488,7 +509,7 @@ void serve_client(int* socket)
 	process_request(cod_op, *socket);
 }
 
-void socketEscucha(char*IP, char* Puerto){
+void socketEscucha(char*IP, char* Puerto){ //funciona
 	int servidor = iniciar_servidor(IP,Puerto);
 	while(1){
 		esperar_cliente(servidor);
@@ -496,42 +517,56 @@ void socketEscucha(char*IP, char* Puerto){
 
 }
 
-//void deteccionDeadlock(){
-//	bool _puedeEstarEnDeadlock(void* entrenador){
-//		return puedeEstarEnDeadlock(entrenador);
-//	}
-//	t_list* entrenadoresDeadlock = list_create();
-//	entrenadoresDeadlock = list_filter(entrenadores, _puedeEstarEnDeadlock);
-//	if(list_size(entrenadoresDeadlock) < 1) return false;
-//	t_link_element * entrenador = entrenadoresDeadlock;
-//	t_entrenador* entrenadorAIntercambiar;
-//	t_entrenador* entre;
-//	t_link_element* pokemon;
-//	t_intercambio* intercambio;
-//
-//	while(entrenador!= NULL){
-//		entre = entrenador->data
-//		pokemon = entre->pokemonsNoNecesarios->head;
-//
-//		while(pokemon != NULL){
-//			bool _necesitaPokemon(void* entrenador){
-//						return necesitaPokemon(entrenador, pokemon->data);
-//					}
-//			if(list_any_satisfy(entrenadoresDeadlock, _necesitaPokemon)){
-//				entrenadorAIntercambiar = list_find(_necesitaPokemon);
-//				intercambio=malloc(sizeof(t_intercambio));
-//				intercambio->entrenador = entrenadorAIntercambiar;
-//				intercambio->pokemonARecibir =
-//			}
-//		}
-//
-//	}
-//}
+void deteccionDeadlock(){ //probar
+	bool _puedeEstarEnDeadlock(void* entrenador){
+		return puedeEstarEnDeadlock(entrenador);
+	}
+	t_list* entrenadoresDeadlock = list_create();
+	entrenadoresDeadlock = list_filter(entrenadores, _puedeEstarEnDeadlock);
+
+	t_entrenador* entrenador;
+	t_entrenador* entrenadorAIntercambiar;
+	char* pokemon;
+	t_intercambio* intercambio;
+
+	bool _tienePokemonNoNecesario(void* entrenador){
+		return tienePokemonNoNecesario(entrenador, pokemon);
+	}
+
+	bool _necesitaPokemon(void* pokemon){
+		return necesitaPokemon(entrenador, pokemon);
+	}
+
+	while(list_size(entrenadoresDeadlock) >0){
+		entrenador = entrenadoresDeadlock->head->data;
+		while(list_size(entrenador->pokemonsNoNecesarios) > 0 ){
+			pokemon = list_find(entrenador->objetivos, _necesitaPokemon); //devuelve el primer pokemon que necesita el entrenador
+			entrenadorAIntercambiar = list_find(entrenadoresDeadlock, _tienePokemonNoNecesario); //devuelve entrenador que tenga al pokemon en pokemons no necesarios
+			intercambio = malloc(sizeof(t_intercambio));
+			intercambio->entrenador = entrenadorAIntercambiar;
+			intercambio->pokemonARecibir = pokemon;
+			intercambio->pokemonAEntregar = entrenador->pokemonsNoNecesarios->head->data;
+			//agregar cola de ready
+			//wait
+			intercambiarPokemon(&entrenador);
+			if(cumpleObjetivoParticular(entrenadorAIntercambiar)) cambiarEstado(&entrenadorAIntercambiar, EXIT);
+		}
+		if(cumpleObjetivoParticular(entrenador)) cambiarEstado(&entrenador, EXIT);
+	}
+}
 
 
+bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funciona
+	bool _mismaEspecie(char* especie){
+		return mismaEspecie(especie, pokemon);
+		}
+	return list_any_satisfy(entrenador->pokemonsNoNecesarios, (void*)_mismaEspecie);
+	}
 
 
-bool puedeEstarEnDeadlock(t_entrenador* entrenador){
+bool puedeEstarEnDeadlock(t_entrenador* entrenador){ //probar
 	return (entrenador->estado == BLOCK && tieneMenosElementos(entrenador->pokemons, entrenador->objetivos));
 }
+
+
 

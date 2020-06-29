@@ -106,6 +106,7 @@ bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2);
 bool necesitaPokemon(t_entrenador* entrenador, char* especie);
 bool mismaEspecie(char* especie,char* especie2);
 bool puedeEstarEnDeadlock(t_entrenador* entrenador);
-//void deteccionDeadlock();
-
+void deteccionDeadlock();
+bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon);
+void eliminarPokemonsObjetivo(char* pokemon, t_list* pokemonsNoNecesarios);
 #endif /* UTILSTEAM_H_ */
