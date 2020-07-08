@@ -81,6 +81,9 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 		return eliminarPokemonsObjetivo(pokemon, entrenador->pokemonsNoNecesarios);
 	}
 	list_iterate(entrenador->objetivos, (void*)_eliminarPokemonsObjetivo);
+	if(cumpleObjetivoParticular(entrenador)) {
+		cambiarEstado(&entrenador, EXIT);
+	}
 
 	//	liberar_vector(objetivosEntrenador);
 	//	liberar_vector(coordenadas);
@@ -312,22 +315,26 @@ void atraparPokemon(t_entrenador* entrenador){//terminar y probar
 }
 
 void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
-
 	t_intercambio* intercambio = (*entrenador)->intercambio;
-	printf("%s",intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemons);
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemonsNoNecesarios);
+	if(!necesitaPokemon(intercambio->entrenador, intercambio->pokemonAEntregar))
+		list_add(intercambio->entrenador->pokemonsNoNecesarios, intercambio->pokemonAEntregar);
 	list_add(intercambio->entrenador->pokemons, intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemons);
 	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemonsNoNecesarios);
+	if(!necesitaPokemon((*entrenador), intercambio->pokemonARecibir))
+		list_add((*entrenador)->pokemonsNoNecesarios, intercambio->pokemonARecibir);
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
 	(*entrenador)->intercambio = NULL;
-	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
-	else cambiarEstado(entrenador, BLOCK);
-	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
-	else cambiarEstado(&(intercambio->entrenador), BLOCK);
-	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
 
+
+
+//	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
+//	else cambiarEstado(entrenador, BLOCK);
+//	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
+//	else cambiarEstado(&(intercambio->entrenador), BLOCK);
+	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
 }
 
 void planificar(){//funciona
@@ -517,7 +524,7 @@ void socketEscucha(char*IP, char* Puerto){ //funciona
 
 }
 
-void deteccionDeadlock(){ //probar
+void deteccionDeadlock(){ //funciona
 	bool _puedeEstarEnDeadlock(void* entrenador){
 		return puedeEstarEnDeadlock(entrenador);
 	}
@@ -526,6 +533,7 @@ void deteccionDeadlock(){ //probar
 
 	t_entrenador* entrenador;
 	t_entrenador* entrenadorAIntercambiar;
+	int ID;
 	char* pokemon;
 	t_intercambio* intercambio;
 
@@ -536,8 +544,12 @@ void deteccionDeadlock(){ //probar
 	bool _necesitaPokemon(void* pokemon){
 		return necesitaPokemon(entrenador, pokemon);
 	}
+	bool _mismoID(t_entrenador* entrenador1){
+		return mismoID(entrenador1, ID);
+	}
 
-	while(list_size(entrenadoresDeadlock) >0){
+	while(list_size(entrenadoresDeadlock) > 0){
+
 		entrenador = entrenadoresDeadlock->head->data;
 		while(list_size(entrenador->pokemonsNoNecesarios) > 0 ){
 			pokemon = list_find(entrenador->objetivos, _necesitaPokemon); //devuelve el primer pokemon que necesita el entrenador
@@ -546,12 +558,26 @@ void deteccionDeadlock(){ //probar
 			intercambio->entrenador = entrenadorAIntercambiar;
 			intercambio->pokemonARecibir = pokemon;
 			intercambio->pokemonAEntregar = entrenador->pokemonsNoNecesarios->head->data;
+			entrenador->intercambio = intercambio;
+			printf("%s \n",intercambio->pokemonAEntregar);
+			printf("%s \n",intercambio->pokemonARecibir);
+
 			//agregar cola de ready
 			//wait
 			intercambiarPokemon(&entrenador);
-			if(cumpleObjetivoParticular(entrenadorAIntercambiar)) cambiarEstado(&entrenadorAIntercambiar, EXIT);
+			if(cumpleObjetivoParticular(entrenadorAIntercambiar)){
+				puts("cumple objetivo Entrenador a intercambiar");
+				cambiarEstado(&entrenadorAIntercambiar, EXIT);
+				ID = entrenadorAIntercambiar->ID;
+				list_remove_by_condition(entrenadoresDeadlock, _mismoID);
+				}
+			if(cumpleObjetivoParticular(entrenador)) {
+			puts("cumple objetivo entrenador");
+			cambiarEstado(&entrenador, EXIT);
+			ID = entrenador->ID;
+			list_remove_by_condition(entrenadoresDeadlock, _mismoID);
+			}
 		}
-		if(cumpleObjetivoParticular(entrenador)) cambiarEstado(&entrenador, EXIT);
 	}
 }
 
@@ -564,8 +590,12 @@ bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funcion
 	}
 
 
-bool puedeEstarEnDeadlock(t_entrenador* entrenador){ //probar
-	return (entrenador->estado == BLOCK && tieneMenosElementos(entrenador->pokemons, entrenador->objetivos));
+bool puedeEstarEnDeadlock(t_entrenador* entrenador){//funciona
+	return (entrenador->estado == BLOCK &&(entrenador->pokemons->elements_count ==  entrenador->objetivos->elements_count));
+}
+
+bool mismoID(t_entrenador* entrenador, int ID){ //funciona
+	return entrenador->ID == ID;
 }
 
 

@@ -109,4 +109,5 @@ bool puedeEstarEnDeadlock(t_entrenador* entrenador);
 void deteccionDeadlock();
 bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon);
 void eliminarPokemonsObjetivo(char* pokemon, t_list* pokemonsNoNecesarios);
+bool mismoID(t_entrenador* entrenador, int ID);
 #endif /* UTILSTEAM_H_ */
