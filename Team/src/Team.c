@@ -25,7 +25,7 @@ int main(void) {
 	pokemonsRequeridos = list_create();
 	iniciarTeam(&logger);
 	pthread_t hilo[entrenadores->elements_count];
-	//socketEscucha("127.0.0.2", "5002");
+	//socketEscucha("127.0.0.2", "5002"); ip broker puerto broker
 
 	//Intento de envio de mensaje
 

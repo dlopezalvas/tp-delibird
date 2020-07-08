@@ -17,6 +17,22 @@ void iniciarTeam(){ //funciona
 
 	configurarEntrenadores(config);
 	configurarObjetivoGlobal();
+	t_list* especiesNecesarias = list_create();
+
+	void _agregarEspecie(void* pokemon){
+		return agregarEspecie(pokemon, especiesNecesarias);
+	}
+	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
+	//mandar get pokemon de los pokemons de especiesNecesarias
+	//destruir lista especiesNecesarias
+	//suscribirse al broker y reintentar conexion
+}
+
+void agregarEspecie(char* pokemon, t_list* especiesNecesarias){//funciona
+	bool _mismaEspecie(char* especie){
+			return mismaEspecie(especie, pokemon);
+					}
+	if(!list_any_satisfy(especiesNecesarias,  _mismaEspecie )) list_add(especiesNecesarias, pokemon);
 }
 
 void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si funciona
@@ -264,13 +280,7 @@ void configurarObjetivoGlobal(){ //funciona
 		entrenador = aux;
 	}
 
-
-
-
-
-
 	while(!(list_is_empty(pokemons))){
-
 		pokemon = list_remove(pokemons, 0);
 		removerPokemon(pokemon,objetivoGlobal);
 //		free(pokemon);
@@ -521,7 +531,6 @@ void socketEscucha(char*IP, char* Puerto){ //funciona
 	while(1){
 		esperar_cliente(servidor);
 	}
-
 }
 
 void deteccionDeadlock(){ //funciona
@@ -563,7 +572,7 @@ void deteccionDeadlock(){ //funciona
 			printf("%s \n",intercambio->pokemonARecibir);
 
 			//agregar cola de ready
-			//wait
+			//wait (espera a que termine de moverse el entrenador)
 			intercambiarPokemon(&entrenador);
 			if(cumpleObjetivoParticular(entrenadorAIntercambiar)){
 				puts("cumple objetivo Entrenador a intercambiar");
