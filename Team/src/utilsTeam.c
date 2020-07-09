@@ -32,12 +32,12 @@ void agregarEspecie(char* pokemon, t_list* especiesNecesarias){//funciona
 	bool _mismaEspecie(char* especie){
 			return mismaEspecie(especie, pokemon);
 					}
-	if(!list_any_satisfy(especiesNecesarias,  _mismaEspecie )) list_add(especiesNecesarias, pokemon);
+	if(!list_any_satisfy(especiesNecesarias, (void*) _mismaEspecie )) list_add(especiesNecesarias, pokemon);
 }
 
 void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si funciona
 {
-
+	log_info(logger, "Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU"); //agregar variables
 	void _entrenadorDestroy(void* entrenador){
 			return entrenadorDestroy( entrenador);
 		}
@@ -50,13 +50,14 @@ void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si fu
 	queue_destroy(ready);
 	config_destroy(config);
 	//liberar_conexion(conexion);
-	log_info(logger,"-----------LOG END--------");
+	log_info(logger,"-----------LOG END--------"); //borrar
 	log_destroy(logger);
 }
 
 void entrenadorDestroy(t_entrenador * entrenador) { //probar con valgrind
 	list_destroy(entrenador->objetivos);
     list_destroy(entrenador->pokemons);
+    list_destroy(entrenador->pokemonsNoNecesarios);
     free(entrenador);
 }
 
@@ -91,6 +92,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	entrenador->pokemons = configurarPokemons(pokemons);
 	entrenador->pokemonACapturar = NULL;
 	entrenador->intercambio = NULL;
+	entrenador->CiclosCPU = 0;
 
 	entrenador->pokemonsNoNecesarios = list_duplicate(entrenador->pokemons);
 	void _eliminarPokemonsObjetivo(void* pokemon){
@@ -212,7 +214,7 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 }
 
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
-
+	log_info(logger, "Capturo un %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
 	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))//probar si funciona
 		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
 
@@ -310,11 +312,15 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 		if(x < (*entrenador)->coordx)	moverse = -1;
 		(*entrenador)->coordx += moverse;
 		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+		(*entrenador)->CiclosCPU ++;
+		log_info(logger,"Se ha movido al entrenador %d a la posicion (%d,%d)", (*entrenador)->ID,(*entrenador)->coordx, (*entrenador)->coordy);
 	}else{
 		if((*entrenador)->coordy != y){
 			if(y < (*entrenador)->coordy)	moverse = -1;
 			(*entrenador)->coordy += moverse;
 			sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+			(*entrenador)->CiclosCPU ++;
+			log_info(logger,"Se ha movido al entrenador %d a la posicion (%d,%d)", (*entrenador)->ID,(*entrenador)->coordx, (*entrenador)->coordy);
 		}
 	}
 }
@@ -322,6 +328,7 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 void atraparPokemon(t_entrenador* entrenador){//terminar y probar
 	//enviar mensaje catch
 	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
+	entrenador->CiclosCPU ++;
 }
 
 void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
@@ -338,6 +345,7 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
 	(*entrenador)->intercambio = NULL;
 
+	log_info(logger,"Se ha realizado un intercambio entre el entrenador %d y el entrenador %d", (*entrenador)->ID, intercambio->entrenador->ID);
 
 
 //	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
@@ -345,6 +353,8 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 //	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
 //	else cambiarEstado(&(intercambio->entrenador), BLOCK);
 	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
+	(*entrenador)->CiclosCPU ++;
+	intercambio->entrenador->CiclosCPU ++;
 }
 
 void planificar(){//funciona
@@ -534,6 +544,7 @@ void socketEscucha(char*IP, char* Puerto){ //funciona
 }
 
 void deteccionDeadlock(){ //funciona
+	log_info(logger,"Se ha iniciado el algoritmo de deteccion de deadlock");
 	bool _puedeEstarEnDeadlock(void* entrenador){
 		return puedeEstarEnDeadlock(entrenador);
 	}
@@ -578,13 +589,13 @@ void deteccionDeadlock(){ //funciona
 				puts("cumple objetivo Entrenador a intercambiar");
 				cambiarEstado(&entrenadorAIntercambiar, EXIT);
 				ID = entrenadorAIntercambiar->ID;
-				list_remove_by_condition(entrenadoresDeadlock, _mismoID);
+				list_remove_by_condition(entrenadoresDeadlock, (void*)_mismoID);
 				}
 			if(cumpleObjetivoParticular(entrenador)) {
 			puts("cumple objetivo entrenador");
 			cambiarEstado(&entrenador, EXIT);
 			ID = entrenador->ID;
-			list_remove_by_condition(entrenadoresDeadlock, _mismoID);
+			list_remove_by_condition(entrenadoresDeadlock,(void*)_mismoID);
 			}
 		}
 	}

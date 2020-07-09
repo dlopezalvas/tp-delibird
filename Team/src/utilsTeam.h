@@ -51,11 +51,12 @@ typedef struct t_entrenador
 	int coordx; // coordenada x
 	int coordy; //coordenada y
 	t_list* pokemons; // lista string
-	t_list* objetivos; // array string
+	t_list* objetivos; // lista string
 	t_estado estado; //para saber si esta en ready o block
 	t_pokemon* pokemonACapturar;
 	void* intercambio; //siempre castear como t_intercambio
-	t_list* pokemonsNoNecesarios;
+	t_list* pokemonsNoNecesarios; // lista string
+	int CiclosCPU;
 } t_entrenador;
 
 typedef struct t_intercambio{

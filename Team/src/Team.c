@@ -23,7 +23,7 @@ int main(void) {
 
 //	pthread_mutex_init (&semaforo,NULL);
 	pokemonsRequeridos = list_create();
-	iniciarTeam(&logger);
+	iniciarTeam();
 	pthread_t hilo[entrenadores->elements_count];
 	//socketEscucha("127.0.0.2", "5002"); ip broker puerto broker
 
@@ -100,7 +100,6 @@ int main(void) {
 
 
 //*************************FIN Prueba necesita pokemon***********************/
-
 
 	deteccionDeadlock();
 	if(puedeEstarEnDeadlock(entrenadores->head->data)) puts("puede estar en deadlock");
