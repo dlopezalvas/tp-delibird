@@ -11,7 +11,7 @@ extern t_config* config;
 extern t_log* logger;
 extern t_queue* ready;
 extern int ciclosCPUGlobal;
-
+extern sem_t sem_ready;
 
 void iniciarTeam(){ //funciona
 	config = leer_config(PATH);
@@ -23,6 +23,7 @@ void iniciarTeam(){ //funciona
 	configurarEntrenadores(config);
 	configurarObjetivoGlobal();
 	especiesNecesarias = list_create();
+	sem_init(&sem_ready,0,0);
 
 	void _agregarEspecie(void* pokemon){
 		return agregarEspecie(pokemon, especiesNecesarias);
@@ -417,7 +418,7 @@ void llenarColaReady(){ // Funciona
 		bool _noEstaPlanificado(void* pokemon){
 			return noEstaPlanificado(pokemon);
 		}
-
+		sem_wait(&sem_ready);
 		pthread_mutex_lock(&requeridos);
 		pokemon = list_find(pokemonsRequeridos, _noEstaPlanificado);
 		pthread_mutex_unlock(&requeridos);
@@ -504,14 +505,17 @@ void appeared_pokemon(t_pokemon* pokemonNuevo){
 	pthread_mutex_unlock(&objetivo);
 	pthread_mutex_lock(&requeridos);
 	int pokemonsACapturar = list_count_satisfying(pokemonsRequeridos, (void*)_mismaPokemon);
+	pthread_mutex_unlock(&requeridos);
 	if(necesarios>pokemonsACapturar){
+		pthread_mutex_lock(&requeridos);
 		list_add(pokemonsRequeridos, &pokemonNuevo);
+		pthread_mutex_unlock(&requeridos);
+		sem_post(&sem_ready);
 		puts("appeared pokemon");
 	}else{
 		if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
 	}
-	pthread_mutex_unlock(&requeridos);
-	//signal sem contador llenarColaReady
+
 }
 
 void process_request(int cod_op, int cliente_fd) { //funciona

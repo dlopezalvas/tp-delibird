@@ -23,6 +23,7 @@ t_queue* ready;
 pthread_mutex_t mutex_ready;
 int ciclosCPUGlobal;
 t_list* pokemonsDeRepuesto;
+sem_t sem_ready;
 
 
 int main(void) {
