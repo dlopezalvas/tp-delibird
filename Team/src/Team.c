@@ -34,7 +34,7 @@ int main(void) {
 	iniciarTeam();
 	pthread_t hilo[entrenadores->elements_count];
 	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
-
+	//candela sierra
 	//Intento de envio de mensaje
 
 //		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
