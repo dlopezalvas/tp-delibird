@@ -1,7 +1,49 @@
-
-[INFO] 23:51:10:792 TEAM/(25237:25237): -----------LOG END--------
-[INFO] 23:52:46:73 TEAM/(25304:25304): Se ha iniciado el algoritmo de deteccion de deadlock
-[INFO] 23:52:47:74 TEAM/(25304:25304): -----------LOG END--------
-[INFO] 00:09:08:338 TEAM/(25787:25787): Se ha iniciado el algoritmo de deteccion de deadlock
-[INFO] 00:09:09:338 TEAM/(25787:25787): Cantidad total de ciclos de CPU -1080387624, Cantidad de cambios de contexto, Cantidad de ciclos CPU
-[INFO] 00:09:09:339 TEAM/(25787:25787): -----------LOG END--------
+[INFO] 00:22:04:176 TEAM/(26222:26222): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:22:04:178 TEAM/(26222:26222): Se ha realizado un intercambio entre el entrenador 0 y el entrenador 2
+[INFO] 00:22:14:178 TEAM/(26222:26222): Se ha realizado un intercambio entre el entrenador 1 y el entrenador 2
+[INFO] 00:22:25:179 TEAM/(26222:26222): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:22:25:179 TEAM/(26222:26222): -----------LOG END--------
+[INFO] 00:23:21:970 TEAM/(26253:26253): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:23:21:970 TEAM/(26253:26253): Se ha realizado un intercambio entre el entrenador 0 y el entrenador 2
+[INFO] 00:23:31:970 TEAM/(26253:26253): Se ha realizado un intercambio entre el entrenador 1 y el entrenador 2
+[INFO] 00:23:42:971 TEAM/(26253:26253): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:23:42:972 TEAM/(26253:26253): -----------LOG END--------
+[INFO] 00:24:35:101 TEAM/(26291:26291): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:24:36:102 TEAM/(26291:26291): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:24:36:102 TEAM/(26291:26291): -----------LOG END--------
+[INFO] 00:40:42:747 TEAM/(29961:29961): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:40:43:747 TEAM/(29961:29961): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:40:43:747 TEAM/(29961:29961): -----------LOG END--------
+[INFO] 00:43:26:92 TEAM/(30078:30078): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:43:27:94 TEAM/(30078:30078): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:43:27:94 TEAM/(30078:30078): -----------LOG END--------
+[INFO] 00:44:14:560 TEAM/(30118:30118): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:45:04:784 TEAM/(30166:30166): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:45:41:961 TEAM/(30184:30184): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:45:42:962 TEAM/(30184:30184): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:45:42:962 TEAM/(30184:30184): -----------LOG END--------
+[INFO] 00:46:29:15 TEAM/(30227:30227): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:46:30:15 TEAM/(30227:30227): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:46:30:15 TEAM/(30227:30227): -----------LOG END--------
+[INFO] 00:47:02:355 TEAM/(30266:30266): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:47:46:90 TEAM/(30320:30320): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:47:47:90 TEAM/(30320:30320): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:47:47:90 TEAM/(30320:30320): -----------LOG END--------
+[INFO] 00:48:21:817 TEAM/(30358:30358): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:48:22:817 TEAM/(30358:30358): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:48:22:817 TEAM/(30358:30358): -----------LOG END--------
+[INFO] 00:50:15:79 TEAM/(30419:30419): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:50:16:79 TEAM/(30419:30419): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:50:16:79 TEAM/(30419:30419): -----------LOG END--------
+[INFO] 00:52:24:590 TEAM/(30476:30476): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:52:25:591 TEAM/(30476:30476): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:52:25:591 TEAM/(30476:30476): -----------LOG END--------
+[INFO] 00:53:55:77 TEAM/(30530:30530): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:53:56:77 TEAM/(30530:30530): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:53:56:77 TEAM/(30530:30530): -----------LOG END--------
+[INFO] 00:55:34:945 TEAM/(30578:30578): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:55:35:945 TEAM/(30578:30578): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:55:35:945 TEAM/(30578:30578): -----------LOG END--------
+[INFO] 00:58:33:527 TEAM/(30699:30699): Se ha iniciado el algoritmo de deteccion de deadlock
+[INFO] 00:58:34:527 TEAM/(30699:30699): Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU
+[INFO] 00:58:34:527 TEAM/(30699:30699): -----------LOG END--------

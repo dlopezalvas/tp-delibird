@@ -25,7 +25,7 @@ int main(void) {
 	pokemonsRequeridos = list_create();
 	iniciarTeam();
 	pthread_t hilo[entrenadores->elements_count];
-	//socketEscucha("127.0.0.2", "5002"); ip broker puerto broker
+	socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
 
 	//Intento de envio de mensaje
 
@@ -101,10 +101,9 @@ int main(void) {
 
 //*************************FIN Prueba necesita pokemon***********************/
 
-	deteccionDeadlock();
-	if(puedeEstarEnDeadlock(entrenadores->head->data)) puts("puede estar en deadlock");
-	if(cumpleObjetivoGlobal()) puts("cumple objetivo global");
-
+//	deteccionDeadlock();
+//	if(puedeEstarEnDeadlock(entrenadores->head->data)) puts("puede estar en deadlock");
+//	if(cumpleObjetivoGlobal()) puts("cumple objetivo global");
 
 
 //	t_link_element * aux = entrenadores->head;

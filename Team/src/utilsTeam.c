@@ -215,7 +215,7 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
 	log_info(logger, "Capturo un %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
-	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))//probar si funciona
+	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))
 		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
 
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
@@ -343,9 +343,8 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	if(!necesitaPokemon((*entrenador), intercambio->pokemonARecibir))
 		list_add((*entrenador)->pokemonsNoNecesarios, intercambio->pokemonARecibir);
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
-	(*entrenador)->intercambio = NULL;
-
 	log_info(logger,"Se ha realizado un intercambio entre el entrenador %d y el entrenador %d", (*entrenador)->ID, intercambio->entrenador->ID);
+	(*entrenador)->intercambio = NULL;
 
 
 //	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
@@ -480,33 +479,48 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 	return 0;
 }
 
-void appeared_pokemon(t_pokemon* pokemonNuevo){ //Agregar Verificacion
-	//Verifica que lo necesite
-	pokemonNuevo->planificado = false;
-	list_add(pokemonsRequeridos, pokemonNuevo);
+void appeared_pokemon(t_pokemon* pokemonNuevo){
+	bool _mismaEspecie(char* especie){
+				return mismaEspecie(especie, pokemonNuevo->especie);
+						}
+	bool _mismaPokemon(t_pokemon* pokemon){
+				return mismaEspecie(pokemon->especie, pokemonNuevo->especie);
+			}
 
-//	t_pokemon* pokemonPrueba = (pokemonsRequeridos->head->data);
-//	printf("Pokemon de lista de Requeridos \n");
-//	printf("%s ", (pokemonPrueba)->especie);
-//	printf("%d ", pokemonPrueba->coordx);
-//	printf("%d \n\n", pokemonPrueba->coordy);
+	int necesarios = list_count_satisfying(objetivoGlobal, (void*)_mismaEspecie);
+	int pokemonsACapturar = list_count_satisfying(pokemonsRequeridos, (void*)_mismaPokemon);
 
+	if(necesarios>pokemonsACapturar){
+		list_add(pokemonsRequeridos, &pokemonNuevo);
+		puts("appeared pokemon");
+	}
 	//signal sem contador llenarColaReady
 }
 
 void process_request(int cod_op, int cliente_fd) { //funciona
+
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 //	int id = recv(cliente_fd, &id,sizeof(int),0);
 
-	t_position_and_name* get_pokemon = malloc(sizeof(t_position_and_name));
+	t_position_and_name* appeared = malloc(sizeof(t_position_and_name));
+	t_pokemon* nuevoPokemon = malloc(sizeof(t_pokemon));
+
+
 
 		switch (cod_op) {
 		case APPEARED_POKEMON:
-			get_pokemon = deserializar_position_and_name(buffer);
-			puts(get_pokemon->nombre.nombre);
-			//appeared_pokemon;
-
+			appeared = deserializar_position_and_name(buffer);
+			nuevoPokemon->coordx = appeared->coordenadas.pos_x;
+			nuevoPokemon->coordy = appeared->coordenadas.pos_y;
+			nuevoPokemon->especie = appeared->nombre.nombre;
+			nuevoPokemon->planificado = false;
+			puts("aaaaaa");
+			appeared = deserializar_position_and_name(buffer);
+			puts(appeared->nombre.nombre);
+			appeared_pokemon(nuevoPokemon);
+			printf("pokemons requeridos %d", pokemonsRequeridos->elements_count);
+			puts("a");
 			break;
 		case 0:
 			pthread_exit(NULL);
@@ -538,8 +552,10 @@ void serve_client(int* socket) //funciona
 
 void socketEscucha(char*IP, char* Puerto){ //funciona
 	int servidor = iniciar_servidor(IP,Puerto);
+	int i = 1;
 	while(1){
 		esperar_cliente(servidor);
+		i++;
 	}
 }
 
@@ -591,11 +607,17 @@ void deteccionDeadlock(){ //funciona
 				ID = entrenadorAIntercambiar->ID;
 				list_remove_by_condition(entrenadoresDeadlock, (void*)_mismoID);
 				}
+			else{
+				cambiarEstado(&entrenadorAIntercambiar, BLOCK);
+			}
 			if(cumpleObjetivoParticular(entrenador)) {
-			puts("cumple objetivo entrenador");
-			cambiarEstado(&entrenador, EXIT);
-			ID = entrenador->ID;
-			list_remove_by_condition(entrenadoresDeadlock,(void*)_mismoID);
+				puts("cumple objetivo entrenador");
+				cambiarEstado(&entrenador, EXIT);
+				ID = entrenador->ID;
+				list_remove_by_condition(entrenadoresDeadlock,(void*)_mismoID);
+			}
+			else{
+				cambiarEstado(&entrenador, BLOCK);
 			}
 		}
 	}
