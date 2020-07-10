@@ -13,19 +13,27 @@
 //no olvidarse de sincronizar las variables globales
 t_list* entrenadores;
 t_list* objetivoGlobal;
-pthread_mutex_t semaforo; // esto se usa adentro de entrenadorMaster()
+pthread_mutex_t objetivo; // esto se usa adentro de entrenadorMaster()
 t_list* pokemonsRequeridos; //para que se vaya llenando a medida que aparecen los pokemon
+pthread_mutex_t requeridos;
+t_list* especiesNecesarias;
 t_config* config;
 t_log* logger;
 t_queue* ready;
+pthread_mutex_t mutex_ready;
+int ciclosCPUGlobal;
+t_list* pokemonsDeRepuesto;
+
 
 int main(void) {
-
-//	pthread_mutex_init (&semaforo,NULL);
+	pthread_mutex_init(&objetivo, NULL);
+	pthread_mutex_init(&requeridos, NULL);
+	pthread_mutex_init(&mutex_ready, NULL);
 	pokemonsRequeridos = list_create();
+	pokemonsDeRepuesto = list_create();
 	iniciarTeam();
 	pthread_t hilo[entrenadores->elements_count];
-	socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
+	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
 
 	//Intento de envio de mensaje
 

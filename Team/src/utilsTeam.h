@@ -8,6 +8,7 @@
 #include<sys/socket.h>
 #include<netdb.h>
 #include<string.h>
+#include<semaphore.h>
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
@@ -21,6 +22,7 @@
 #include <commons/collections/queue.h>
 #include<pthread.h>
 #include<math.h>
+
 
 
 #define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Team/TEAM.config"

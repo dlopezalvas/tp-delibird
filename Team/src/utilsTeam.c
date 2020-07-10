@@ -1,11 +1,16 @@
 #include "utilsTeam.h"
 extern t_list* entrenadores;
 extern t_list* objetivoGlobal;
-extern pthread_mutex_t semaforo;
+extern pthread_mutex_t objetivo;
+extern pthread_mutex_t requeridos;
+extern pthread_mutex_t mutex_ready;
 extern t_list* pokemonsRequeridos;
+extern t_list* pokemonsDeRepuesto;
+extern t_list* especiesNecesarias;
 extern t_config* config;
 extern t_log* logger;
 extern t_queue* ready;
+extern int ciclosCPUGlobal;
 
 
 void iniciarTeam(){ //funciona
@@ -14,17 +19,17 @@ void iniciarTeam(){ //funciona
 	ready = queue_create();
 	entrenadores = list_create();
 	objetivoGlobal = list_create();
-
+	ciclosCPUGlobal = 0;
 	configurarEntrenadores(config);
 	configurarObjetivoGlobal();
-	t_list* especiesNecesarias = list_create();
+	especiesNecesarias = list_create();
 
 	void _agregarEspecie(void* pokemon){
 		return agregarEspecie(pokemon, especiesNecesarias);
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 	//mandar get pokemon de los pokemons de especiesNecesarias
-	//destruir lista especiesNecesarias
+
 	//suscribirse al broker y reintentar conexion
 }
 
@@ -37,13 +42,16 @@ void agregarEspecie(char* pokemon, t_list* especiesNecesarias){//funciona
 
 void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si funciona
 {
-	log_info(logger, "Cantidad total de ciclos de CPU , Cantidad de cambios de contexto, Cantidad de ciclos CPU"); //agregar variables
+	log_info(logger, "Cantidad total de ciclos %d, Cantidad de cambios de contexto, Cantidad de ciclos CPU", ciclosCPUGlobal); //agregar variables
 	void _entrenadorDestroy(void* entrenador){
 			return entrenadorDestroy( entrenador);
 		}
 	for(int i = 0; i<entrenadores->elements_count ; i++){
 			//destruir hilos
 	}
+	pthread_mutex_destroy(&requeridos);
+	pthread_mutex_destroy(&objetivo);
+	pthread_mutex_destroy(&mutex_ready);
 
 	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
 	list_destroy(objetivoGlobal);
@@ -117,8 +125,6 @@ void eliminarPokemonsObjetivo(char* pokemon, t_list* pokemonsNoNecesarios){
 	list_remove_by_condition(pokemonsNoNecesarios, _mismaEspecie);
 }
 
-
-
 t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 	t_list* listaPokemons = list_create();
 
@@ -128,8 +134,6 @@ t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 
 	return listaPokemons;
 }
-
-
 
 void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado){ //funciona
 	if(cambioEstadoValido((*entrenador)->estado, nuevoEstado)){
@@ -214,12 +218,14 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 }
 
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
-	log_info(logger, "Capturo un %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
+
 	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))
 		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
 
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
+	pthread_mutex_lock(&objetivo);
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
+	pthread_mutex_unlock(&objetivo);
 	if(tieneMenosElementos ((*entrenador)->pokemons, (*entrenador)->objetivos)){
 		cambiarEstado(entrenador, BLOCK);
 	}else{
@@ -234,8 +240,12 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 	bool _mismoPokemon(t_pokemon* pokemon ){
 				return mismoPokemon(pokemon,(*entrenador)->pokemonACapturar);
 				}
+	pthread_mutex_lock(&requeridos);
 	list_remove_by_condition(pokemonsRequeridos, (void*)_mismoPokemon);
+	pthread_mutex_unlock(&requeridos);
+	pthread_mutex_lock(&objetivo);
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
+	pthread_mutex_unlock(&objetivo);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
 
@@ -261,7 +271,6 @@ bool necesitaPokemon(t_entrenador* entrenador, char* pokemon){ //funciona
 	if(necesarios > capturados) return true;
 	else return false;
 	}
-
 
 bool mismaEspecie(char* especie,char* especie2){
 
@@ -298,7 +307,6 @@ void removerPokemon(char* pokemon, t_list* lista){ //funciona
 		list_remove_by_condition(lista, (void*)mismoPokemon);
 }
 
-
 int distancia(int x1, int y1, int x2, int y2){ //funciona
 
 	return abs(x2-x1)+abs(y2-y1);
@@ -312,6 +320,7 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 		if(x < (*entrenador)->coordx)	moverse = -1;
 		(*entrenador)->coordx += moverse;
 		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
+		ciclosCPUGlobal ++;
 		(*entrenador)->CiclosCPU ++;
 		log_info(logger,"Se ha movido al entrenador %d a la posicion (%d,%d)", (*entrenador)->ID,(*entrenador)->coordx, (*entrenador)->coordy);
 	}else{
@@ -320,6 +329,7 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 			(*entrenador)->coordy += moverse;
 			sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
 			(*entrenador)->CiclosCPU ++;
+			ciclosCPUGlobal ++;
 			log_info(logger,"Se ha movido al entrenador %d a la posicion (%d,%d)", (*entrenador)->ID,(*entrenador)->coordx, (*entrenador)->coordy);
 		}
 	}
@@ -327,8 +337,10 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 
 void atraparPokemon(t_entrenador* entrenador){//terminar y probar
 	//enviar mensaje catch
+	log_info(logger, "Atrapar %s en la posicion (%d,%d)", entrenador->pokemonACapturar->especie, entrenador->pokemonACapturar->coordx,entrenador->pokemonACapturar->coordy);
 	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
 	entrenador->CiclosCPU ++;
+	ciclosCPUGlobal ++;
 }
 
 void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
@@ -352,8 +364,8 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 //	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
 //	else cambiarEstado(&(intercambio->entrenador), BLOCK);
 	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
-	(*entrenador)->CiclosCPU ++;
-	intercambio->entrenador->CiclosCPU ++;
+	(*entrenador)->CiclosCPU += 5;
+	ciclosCPUGlobal += 5;
 }
 
 void planificar(){//funciona
@@ -363,6 +375,8 @@ void planificar(){//funciona
 //	if(strcmp(algoritmo, "SJF-CD") == 0) planificarSJF_CD();
 //	if(strcmp(algoritmo, "SJF-SD") == 0) planificarSJF_SD();
 }
+
+
 void planificarFIFO(){// funciona
 	//pthread_t escuchaSockets;
 	pthread_t llenaReady;
@@ -381,7 +395,9 @@ void planificarFIFO(){// funciona
 
 void ejecutaEntrenadores(t_queue* ready){ //agregar semaforos y probar
 	while(!cumpleObjetivoGlobal()){
+		pthread_mutex_lock(&mutex_ready);
 			t_entrenador* entrenador = queue_pop(ready);
+			pthread_mutex_unlock(&mutex_ready);
 			cambiarEstado(&entrenador, EXEC);
 			//activa semaforo exec
 			//espera semoforo de entrenador termina exec
@@ -392,15 +408,19 @@ void llenarColaReady(){ // Funciona
 
 	t_entrenador* entrenadorAPlanificar;
 	t_pokemon* pokemon;
-	int i = 0;
-	while(i == 0){ //cambiar condicion de while por !cumpleObjetivoGlobal()
+
+	bool tieneEspacioEnInventario(t_entrenador* entrenador){
+		return tieneMenosElementos (entrenador->pokemons, entrenador->objetivos);
+	}
+	while(list_any_satisfy(entrenadores, (void*)tieneEspacioEnInventario)){ //cambiar condicion de while any  entrenador no tiene el inventario lleno
 
 		bool _noEstaPlanificado(void* pokemon){
 			return noEstaPlanificado(pokemon);
 		}
 
-
+		pthread_mutex_lock(&requeridos);
 		pokemon = list_find(pokemonsRequeridos, _noEstaPlanificado);
+		pthread_mutex_unlock(&requeridos);
 		bool _menorDistancia(void* elem1 , void* elem2){
 				return menorDistancia(elem1, elem2, pokemon);
 			}
@@ -409,25 +429,15 @@ void llenarColaReady(){ // Funciona
 						return estadoNewOBlock(entrenador);
 					}
 		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
+		pthread_mutex_lock(&requeridos);
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
 		pokemon->planificado = true;
+		pthread_mutex_unlock(&requeridos);
 		cambiarEstado(&(entrenadorAPlanificar), READY);
+		pthread_mutex_lock(&mutex_ready);
 		queue_push(ready, entrenadorAPlanificar);
+		pthread_mutex_unlock(&mutex_ready);
 
-
-		t_entrenador* entrenadorPrueba = queue_pop(ready);
-		printf("Entrenador sacado de ready \n");
-
-		t_pokemon* pokemonPlanificado = pokemonsRequeridos->head->data;
-		if(pokemonPlanificado->planificado){
-			printf("planificado \n");
-		}
-
-
-		printf("%s ", entrenadorPrueba->pokemonACapturar->especie);
-		printf("%d ", entrenadorPrueba->pokemonACapturar->coordx);
-		printf("%d \n\n", entrenadorPrueba->pokemonACapturar->coordy);
-		i++;
 	}
 
 }
@@ -441,7 +451,6 @@ bool noEstaPlanificado(t_pokemon* pokemon){
 bool estadoNewOBlock(t_entrenador* entrenador){ //funciona
 	return entrenador->estado == NEW || entrenador->estado == BLOCK;
 }
-
 
 bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon){ //funciona
 	return (distancia(elem1->coordx, elem1->coordy, pokemon->coordx, pokemon->coordy)<distancia(elem2->coordx, elem2->coordy, pokemon->coordx, pokemon->coordy));
@@ -487,13 +496,21 @@ void appeared_pokemon(t_pokemon* pokemonNuevo){
 				return mismaEspecie(pokemon->especie, pokemonNuevo->especie);
 			}
 
-	int necesarios = list_count_satisfying(objetivoGlobal, (void*)_mismaEspecie);
-	int pokemonsACapturar = list_count_satisfying(pokemonsRequeridos, (void*)_mismaPokemon);
+	if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie))
+		list_remove_by_condition(especiesNecesarias, (void*)_mismaEspecie); //para marcar que ya nos llego un appeared de esta especie
 
+	pthread_mutex_lock(&objetivo);
+	int necesarios = list_count_satisfying(objetivoGlobal, (void*)_mismaEspecie);
+	pthread_mutex_unlock(&objetivo);
+	pthread_mutex_lock(&requeridos);
+	int pokemonsACapturar = list_count_satisfying(pokemonsRequeridos, (void*)_mismaPokemon);
 	if(necesarios>pokemonsACapturar){
 		list_add(pokemonsRequeridos, &pokemonNuevo);
 		puts("appeared pokemon");
+	}else{
+		if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
 	}
+	pthread_mutex_unlock(&requeridos);
 	//signal sem contador llenarColaReady
 }
 
@@ -528,7 +545,6 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			pthread_exit(NULL);
 		}
 }
-
 
 void esperar_cliente(int servidor){ //funciona
 	pthread_t thread;
@@ -623,14 +639,12 @@ void deteccionDeadlock(){ //funciona
 	}
 }
 
-
 bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funciona
 	bool _mismaEspecie(char* especie){
 		return mismaEspecie(especie, pokemon);
 		}
 	return list_any_satisfy(entrenador->pokemonsNoNecesarios, (void*)_mismaEspecie);
 	}
-
 
 bool puedeEstarEnDeadlock(t_entrenador* entrenador){//funciona
 	return (entrenador->estado == BLOCK &&(entrenador->pokemons->elements_count ==  entrenador->objetivos->elements_count));
