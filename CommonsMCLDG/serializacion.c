@@ -104,7 +104,7 @@ t_buffer* buffer_position_and_name(char** parametros){ //para mensajes APPEARED_
 	position_and_name.coordenadas.pos_x = pos_x;
 	position_and_name.coordenadas.pos_y = pos_y;
 
-	free(nombre);
+//	free(nombre);
 
 	buffer -> size = sizeof(uint32_t)*3 + strlen(position_and_name.nombre.nombre) + 1;
 
@@ -119,7 +119,7 @@ t_buffer* buffer_position_and_name(char** parametros){ //para mensajes APPEARED_
 	offset += sizeof(uint32_t);
 	memcpy(stream + offset, position_and_name.nombre.nombre, strlen(position_and_name.nombre.nombre) + 1);
 
-	free(position_and_name.nombre.nombre);
+//	free(position_and_name.nombre.nombre);
 
 	buffer -> stream = stream;
 
@@ -141,7 +141,7 @@ t_buffer* buffer_get_pokemon(char** parametros){
 	strcpy(get_pokemon.nombre.nombre, nombre);
 	get_pokemon.nombre.largo_nombre = strlen(get_pokemon.nombre.nombre);
 
-	free(nombre);
+	//free(nombre);
 
 	buffer -> size = sizeof(uint32_t) + strlen(get_pokemon.nombre.nombre) + 1;
 
@@ -152,7 +152,7 @@ t_buffer* buffer_get_pokemon(char** parametros){
 	offset += sizeof(uint32_t);
 	memcpy(stream + offset, get_pokemon.nombre.nombre, strlen(get_pokemon.nombre.nombre) + 1);
 
-	free(get_pokemon.nombre.nombre);
+//	free(get_pokemon.nombre.nombre);
 
 	buffer -> stream = stream;
 

@@ -21,9 +21,9 @@ int iniciar_servidor (char* ip, char* puerto){
 
 	listen(servidor,SOMAXCONN); //flag para que tome el maximo posible de espacio
 
-//	while(1){
-//		esperar_cliente(servidor);
-//	}
+	while(1){
+		esperar_cliente(servidor);
+	}
 
 	return servidor;
 

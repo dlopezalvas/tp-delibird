@@ -32,7 +32,7 @@ int main(void) {
 
 	iniciarTeam();
 	pthread_t hiloEntrenador[entrenadores->elements_count];
-	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
+	socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
 
 	//Intento de envio de mensaje
 

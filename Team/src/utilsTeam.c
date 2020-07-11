@@ -564,12 +564,12 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			nuevoPokemon->coordy = appeared->coordenadas.pos_y;
 			nuevoPokemon->especie = appeared->nombre.nombre;
 			nuevoPokemon->planificado = false;
-			puts("aaaaaa");
+
 			appeared = deserializar_position_and_name(buffer);
 			puts(appeared->nombre.nombre);
 			appeared_pokemon(nuevoPokemon);
 			printf("pokemons requeridos %d", pokemonsRequeridos->elements_count);
-			puts("a");
+
 			break;
 		case 0:
 			pthread_exit(NULL);
