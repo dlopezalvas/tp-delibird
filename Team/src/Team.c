@@ -24,18 +24,16 @@ pthread_mutex_t mutex_ready;
 int ciclosCPUGlobal;
 t_list* pokemonsDeRepuesto;
 sem_t sem_ready;
+sem_t sem_ejecutar;
+pthread_mutex_t mutex_ejecutar;
 
 
 int main(void) {
-	pthread_mutex_init(&objetivo, NULL);
-	pthread_mutex_init(&requeridos, NULL);
-	pthread_mutex_init(&mutex_ready, NULL);
-	pokemonsRequeridos = list_create();
-	pokemonsDeRepuesto = list_create();
+
 	iniciarTeam();
-	pthread_t hilo[entrenadores->elements_count];
+	pthread_t hiloEntrenador[entrenadores->elements_count];
 	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
-	//candela sierra
+
 	//Intento de envio de mensaje
 
 //		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
@@ -117,14 +115,14 @@ int main(void) {
 
 //	t_link_element * aux = entrenadores->head;
 //	for(int j=0; j<entrenadores->elements_count; j++){
-//		pthread_create(&hilo[j],NULL, entrenadorMaster, (void*)(&aux->data));
+//		pthread_create(&hiloEntrenador[j],NULL, entrenadorMaster, (void*)(&aux->data));
 //		aux = aux->next;
 //		//join o detatch del hilo ??
 //	}
 
 	//planificar();
-	sleep(1);
-	terminarTeam(1, hilo);
+
+	terminarTeam(1, hiloEntrenador);
 	puts("termina");
 	return EXIT_SUCCESS;
 }
