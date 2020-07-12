@@ -212,8 +212,6 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	string_append(&path_pokemon, pokemon->nombre.nombre);
 	string_append(&path_pokemon, "/Metadata.bin");
 
-	puts(path_pokemon);
-
 	t_config* config_pokemon = config_create(path_pokemon);
 
 	if(!archivo_abierto(config_pokemon)){
@@ -521,11 +519,25 @@ void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_po
 int index_pokemon(char* nombre){
 	int index = 0;
 
+	sem_wait(&lista_metadatas_mtx);
+	sem_wait(&pokemones_mtx);
 	char* pokemon = list_get(pokemones, index);
 
-	while(!(string_equals_ignore_case(pokemon, nombre))){
+	while((!string_equals_ignore_case(pokemon, nombre)) && index < (list_size(pokemones)-1)){
+		index++;
+		pokemon = list_get(pokemones, index);
+	}
+	if(!string_equals_ignore_case(pokemon, nombre)){
+		sem_t pokemon_mtx;
+
+		sem_init (&pokemon_mtx, 0, 1);
+
+		list_add(sem_metadatas, &pokemon_mtx);
+		list_add(pokemones, nombre);
 		index++;
 	}
+	sem_post(&lista_metadatas_mtx);
+	sem_post(&pokemones_mtx);
 
 	return index;
 }
@@ -593,6 +605,7 @@ void process_request(int cod_op, int cliente_fd) {
 			new_pokemon = deserializar_new_pokemon(buffer);
 			agregar_pokemon_mapa(new_pokemon);
 			break;
+
 		case 0:
 			pthread_exit(NULL);
 		case -1:

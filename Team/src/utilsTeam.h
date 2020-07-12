@@ -115,4 +115,9 @@ bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon);
 void eliminarPokemonsObjetivo(char* pokemon, t_list* pokemonsNoNecesarios);
 bool mismoID(t_entrenador* entrenador, int ID);
 void agregarEspecie(char* pokemon, t_list* especiesNecesarias);
+
+
+//prueba
+void connect_appeared();
+void connect_get_pokemon();
 #endif /* UTILSTEAM_H_ */
