@@ -32,8 +32,13 @@ int main(void) {
 
 	iniciarTeam();
 	pthread_t hiloEntrenador[entrenadores->elements_count];
-	socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
-
+	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
+	pthread_t appeared_pokemon_thread;
+	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+	pthread_join(appeared_pokemon_thread,NULL);
+//	sleep(5);	pthread_t get_pokemon_thread;
+//	pthread_create(&get_pokemon_thread,NULL,(void*)connect_get_pokemon,NULL);
+//	pthread_join(get_pokemon_thread,NULL);
 	//Intento de envio de mensaje
 
 //		t_mensaje* mensaje = malloc(sizeof(t_mensaje));

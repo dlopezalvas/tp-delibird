@@ -119,4 +119,5 @@ void agregarEspecie(char* pokemon, t_list* especiesNecesarias);
 
 //prueba
 void connect_appeared();
+void connect_get_pokemon();
 #endif /* UTILSTEAM_H_ */

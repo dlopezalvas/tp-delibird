@@ -94,6 +94,7 @@ int suscribir_mensaje(int cod_op,void* buffer){
 	case APPEARED_POKEMON:
 		appeared_pokemon = deserializar_position_and_name(buffer);
 		list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+		puts(appeared_pokemon->nombre.nombre);
 		break;
 	case CATCH_POKEMON:
 		catch_pokemon = deserializar_position_and_name(buffer);
@@ -105,6 +106,7 @@ int suscribir_mensaje(int cod_op,void* buffer){
 		break;
 	case GET_POKEMON:
 		get_pokemon = deserializar_get_pokemon(buffer);
+		puts(get_pokemon->nombre.nombre);
 		list_add(GET_POKEMON_QUEUE,get_pokemon);
 		break;
 	case 0:

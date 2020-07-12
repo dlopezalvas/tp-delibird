@@ -687,6 +687,44 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 }
 
 void connect_appeared(){
-	iniciar_cliente("127.0.0.1","6009");
+	op_code codigo_operacion = APPEARED_POKEMON;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split = "PIKACHU,2,2";
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = string_split(linea_split,",");
+	mensaje -> id = 2;
+
+	int socket_broker = iniciar_cliente("127.0.0.1","6009");
+
+	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+
+	enviar_mensaje(mensaje, socket_broker);
+
+	liberar_conexion(socket_broker);
+
+	free(mensaje -> parametros);
+	free(mensaje);
+}
+
+void connect_get_pokemon(){
+	op_code codigo_operacion = GET_POKEMON;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split = "LAKSJDL,2,2";
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = string_split(linea_split,",");
+	mensaje -> id = 2;
+
+	int socket_broker = iniciar_cliente("127.0.0.1","6009");
+
+	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+
+	enviar_mensaje(mensaje, socket_broker);
+
+	liberar_conexion(socket_broker);
+
+	free(mensaje -> parametros);
+	free(mensaje);
 }
 
