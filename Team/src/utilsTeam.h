@@ -103,7 +103,7 @@ bool estadoNewOBlock(t_entrenador* entrenador);
 void appeared_pokemon(t_pokemon* pokemonNuevo);
 void esperar_cliente(int servidor);
 void serve_client(int* socket);
-void socketEscucha(char*IP, char* Puerto);
+void socketEscucha();
 void process_request(int cod_op, int cliente_fd);
 bool noEstaPlanificado(t_pokemon* pokemon);
 bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2);

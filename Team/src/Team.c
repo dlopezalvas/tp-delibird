@@ -32,8 +32,10 @@ int main(void) {
 
 	iniciarTeam();
 	pthread_t hiloEntrenador[entrenadores->elements_count];
-	socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
-
+	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
+	pthread_t hilo, hilo2;
+	pthread_create(&hilo, NULL, (void*)socketEscucha, NULL);
+	pthread_create(&hilo2, NULL, (void*)socketEscucha, NULL);
 	//Intento de envio de mensaje
 
 //		t_mensaje* mensaje = malloc(sizeof(t_mensaje));

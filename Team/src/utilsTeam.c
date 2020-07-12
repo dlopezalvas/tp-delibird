@@ -555,8 +555,6 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 	t_position_and_name* appeared = malloc(sizeof(t_position_and_name));
 	t_pokemon* nuevoPokemon = malloc(sizeof(t_pokemon));
 
-
-
 		switch (cod_op) {
 		case APPEARED_POKEMON:
 			appeared = deserializar_position_and_name(buffer);
@@ -598,8 +596,12 @@ void serve_client(int* socket) //funciona
 	process_request(cod_op, *socket);
 }
 
-void socketEscucha(char*IP, char* Puerto){ //funciona
-	int servidor = iniciar_servidor(IP,Puerto);
+
+
+
+
+void socketEscucha(){ //funciona
+	int servidor = iniciar_servidor("127.0.0.2", "5002");
 	int i = 1;
 	while(1){
 		esperar_cliente(servidor);
