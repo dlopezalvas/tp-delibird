@@ -16,8 +16,11 @@
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
 
+t_list* multihilos;
+
 int main(void) {
 	t_config* config = leer_config(PATH);
+
 
 	iniciar_broker(&config,&logger);
 //	recibir_mensaje_broker(config);
@@ -31,6 +34,8 @@ void iniciar_broker(t_config** config, t_log** logger){
 
 	*logger = iniciar_logger(*config);
 	crear_queues();
+
+	multihilos = list_create();
 
 	socketEscucha(ip,puerto);
 }

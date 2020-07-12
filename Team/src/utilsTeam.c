@@ -718,7 +718,7 @@ void connect_appeared(){
 		puts("deserializo");
 	}
 
-//	liberar_conexion(socket_broker);
+	liberar_conexion(socket_broker);
 
 	free(mensaje -> parametros);
 	free(mensaje);
