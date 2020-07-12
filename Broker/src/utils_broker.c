@@ -67,9 +67,15 @@ void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 	//int id = recv(cliente_fd, &id,sizeof(int),0);
-
 	int id = suscribir_mensaje(cod_op,buffer);
+	op_code codigo_operacion = APPEARED_POKEMON;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
+	char* linea_split = "PIKACHU,2,2";
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = string_split(linea_split,",");
+	mensaje -> id = 2;
+	enviar_mensaje(mensaje,cliente_fd);
 	//reenviar id
 }
 
@@ -94,7 +100,6 @@ int suscribir_mensaje(int cod_op,void* buffer){
 	case APPEARED_POKEMON:
 		appeared_pokemon = deserializar_position_and_name(buffer);
 		list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
-		puts(appeared_pokemon->nombre.nombre);
 		break;
 	case CATCH_POKEMON:
 		catch_pokemon = deserializar_position_and_name(buffer);
