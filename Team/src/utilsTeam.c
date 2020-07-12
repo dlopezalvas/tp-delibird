@@ -686,5 +686,7 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 	return entrenador->ID == ID;
 }
 
-
+void connect_appeared(){
+	iniciar_cliente("127.0.0.1","6009");
+}
 
