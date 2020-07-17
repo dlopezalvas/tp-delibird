@@ -702,15 +702,25 @@ void connect_appeared(){
 	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
 
 	enviar_mensaje(mensaje, socket_broker);
+
+	puts("envia mensaje");
+
 	int size = 0;
 	t_position_and_name* appeared_pokemon_buffer;
+
 	while(1){
+
+		int cod_op;
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+			cod_op = -1;
 		void* buffer = recibir_mensaje(socket_broker,&size);
+		puts("recibe mensaje");
 		appeared_pokemon_buffer = deserializar_position_and_name(buffer);
 		puts(appeared_pokemon_buffer->nombre.nombre);
+		puts("deserializo");
 	}
 
-//	liberar_conexion(socket_broker);
+	liberar_conexion(socket_broker);
 
 	free(mensaje -> parametros);
 	free(mensaje);

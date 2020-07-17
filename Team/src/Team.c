@@ -36,10 +36,12 @@ int main(void) {
 
 	pthread_t appeared_pokemon_thread;
 	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-	pthread_join(appeared_pokemon_thread,NULL);
-//	sleep(5);	pthread_t get_pokemon_thread;
-//	pthread_create(&get_pokemon_thread,NULL,(void*)connect_get_pokemon,NULL);
-//	pthread_join(get_pokemon_thread,NULL);
+
+	//pthread_join(appeared_pokemon_thread, NULL);
+
+	pthread_t get_pokemon_thread;
+	pthread_create(&get_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+	//pthread_join(get_pokemon_thread, NULL);
 
 	//Intento de envio de mensaje
 
@@ -128,8 +130,9 @@ int main(void) {
 //	}
 
 	//planificar();
-
+	sleep(100);
 	terminarTeam(1, hiloEntrenador);
 	puts("termina");
+	exit(0);
 	return EXIT_SUCCESS;
 }

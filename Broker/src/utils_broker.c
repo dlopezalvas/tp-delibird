@@ -1,6 +1,9 @@
 
 #include "utils_broker.h"
 
+extern t_list* multihilos;
+
+
 int proceso_valido(char*procesos_validos,char* proceso){
 
 	char* s = strstr(procesos_validos,proceso);
@@ -44,15 +47,21 @@ void terminar_queues(void){
 }
 
 void esperar_cliente(int servidor){
-	pthread_t thread;
+
 	struct sockaddr_in direccion_cliente;
 
 	unsigned int tam_direccion = sizeof(struct sockaddr_in);
 
 	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
 
-	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
-	pthread_detach(thread);
+	pthread_t hilo;
+
+	list_add(multihilos, &hilo);
+
+	puts(string_itoa(multihilos->elements_count));
+
+	pthread_create(&hilo,NULL,(void*)serve_client,&cliente);
+	pthread_detach(hilo);
 }
 
 void serve_client(int* socket)
@@ -74,18 +83,20 @@ void process_request(int cod_op, int cliente_fd) {
 	char* linea_split = "PIKACHU,2,2";
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
-	mensaje -> id = 2;
+	puts(mensaje->parametros[0]);
+	mensaje->id = 0;
 	enviar_mensaje(mensaje,cliente_fd);
+	puts("envia mensaje");
 	//reenviar id
 }
 
 int suscribir_mensaje(int cod_op,void* buffer){
-	//TODO: Ver donde meter esa declaracion
-	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
-	t_position_and_name* appeared_pokemon = malloc(sizeof(t_position_and_name));
-	t_position_and_name* catch_pokemon = malloc(sizeof(t_position_and_name));
-	t_caught_pokemon* caught_pokemon = malloc(sizeof(t_caught_pokemon));
-	t_get_pokemon* get_pokemon = malloc(sizeof(t_get_pokemon));
+
+	t_new_pokemon* new_pokemon;
+	t_position_and_name* appeared_pokemon;
+	t_position_and_name* catch_pokemon;
+	t_caught_pokemon* caught_pokemon;
+	t_get_pokemon* get_pokemon;
 
 	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
 	mensaje->buffer = buffer;
