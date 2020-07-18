@@ -36,8 +36,6 @@
 #define NUEVO_TAMANIO "NUEVO_TAMANIO"
 #define TIEMPO_DE_REINTENTO_OPERACION "TIEMPO_DE_REINTENTO_OPERACION"
 
-
-
 typedef struct{
 	uint32_t block_size;
 	uint32_t blocks;
@@ -63,6 +61,7 @@ void crear_tall_grass(t_config* config);
 //void crear_metadata(char* path_metadata);
 void crear_bitmap(char* path);
 
+void actualizar_quitar_pokemon(t_position_and_name* pokemon);
 
 bool existe_pokemon(char* path_pokemon);
 void agregar_pokemon_mapa(t_new_pokemon* pokemon);
