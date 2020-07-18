@@ -26,22 +26,26 @@ t_list* pokemonsDeRepuesto;
 sem_t sem_ready;
 sem_t sem_ejecutar;
 pthread_mutex_t mutex_ejecutar;
+char* estado[5];
 
 
 int main(void) {
 
 	iniciarTeam();
 	pthread_t hiloEntrenador[entrenadores->elements_count];
-	//socketEscucha("127.0.0.2", "5002"); //ip broker puerto broker
 
-	pthread_t appeared_pokemon_thread;
-	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+	pthread_t conexionGameboy;
+	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+//	pthread_t appeared_pokemon_thread;
+//	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_detach(appeared_pokemon_thread);
+//	pthread_t localized_pokemon_thread;
+//	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_detach(localized_pokemon_thread);
+//	pthread_t caught_pokemon_thread;
+//	pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_detach(caught_pokemon_thread);
 
-	//pthread_join(appeared_pokemon_thread, NULL);
-
-	pthread_t get_pokemon_thread;
-	pthread_create(&get_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-	//pthread_join(get_pokemon_thread, NULL);
 
 	//Intento de envio de mensaje
 
@@ -130,7 +134,7 @@ int main(void) {
 //	}
 
 	//planificar();
-	sleep(100);
+
 	terminarTeam(1, hiloEntrenador);
 	puts("termina");
 	exit(0);

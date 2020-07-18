@@ -14,6 +14,9 @@ extern int ciclosCPUGlobal;
 extern sem_t sem_ready;
 extern sem_t sem_ejecutar;
 extern pthread_mutex_t mutex_ejecutar;
+extern char* estado[5];
+int cambiosDeContexto;
+
 
 void iniciarTeam(){ //funciona
 	pthread_mutex_init(&objetivo, NULL);
@@ -22,6 +25,12 @@ void iniciarTeam(){ //funciona
 	pthread_mutex_init(&mutex_ejecutar, NULL);
 	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
+	estado[1] = "NEW";
+	estado[2] = "READY";
+	estado[3] ="EXEC";
+	estado[4] = "BLOCK";
+	estado[5] ="EXIT";
+	cambiosDeContexto = 0;
 
 	entrenadores = list_create();
 	objetivoGlobal = list_create();
@@ -56,7 +65,7 @@ void agregarEspecie(char* pokemon, t_list* especiesNecesarias){//funciona
 
 void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si funciona
 {
-	log_info(logger, "Cantidad total de ciclos %d, Cantidad de cambios de contexto, Cantidad de ciclos CPU", ciclosCPUGlobal); //agregar variables
+	log_info(logger, "Cantidad total de ciclos %d, Cantidad de cambios de contexto %d, Cantidad de ciclos CPU", ciclosCPUGlobal, cambiosDeContexto); //agregar variables
 	void _entrenadorDestroy(void* entrenador){
 			return entrenadorDestroy( entrenador);
 		}
@@ -125,7 +134,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	}
 	list_iterate(entrenador->objetivos, (void*)_eliminarPokemonsObjetivo);
 	if(cumpleObjetivoParticular(entrenador)) {
-		cambiarEstado(&entrenador, EXIT);
+		cambiarEstado(&entrenador, EXIT, "Cumplio Objetivo Particular");
 	}
 
 	//	liberar_vector(objetivosEntrenador);
@@ -152,9 +161,11 @@ t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 	return listaPokemons;
 }
 
-void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado){ //funciona
+void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado, char* razonDeCambio){ //funciona
+	if((*entrenador)->estado == EXEC) cambiosDeContexto ++;
 	if(cambioEstadoValido((*entrenador)->estado, nuevoEstado)){
 	(*entrenador)->estado = nuevoEstado;
+	log_info(logger, "Se cambio al entrenador %d a la cola %s porque %s", (*entrenador)->ID, estado[(*entrenador)->estado], razonDeCambio);
 	}else {
 		printf("Estado invalido");
 	}
@@ -244,13 +255,13 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
 	pthread_mutex_unlock(&objetivo);
 	if(tieneMenosElementos ((*entrenador)->pokemons, (*entrenador)->objetivos)){
-		cambiarEstado(entrenador, BLOCK);
+		cambiarEstado(entrenador, BLOCK, "capturo un pokemon");
 	}else{
 		if(cumpleObjetivoParticular(*entrenador)){
-			cambiarEstado(entrenador, EXIT);
+			cambiarEstado(entrenador, EXIT, "cumplio su objetivo");
 		}
 		else{
-			cambiarEstado(entrenador, BLOCK);
+			cambiarEstado(entrenador, BLOCK, "capturo un pokemon y no puede capturar mas pokemons");
 		}
 	}
 //Probar si funciona segunda parte
@@ -376,10 +387,10 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	(*entrenador)->intercambio = NULL;
 
 
-//	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
-//	else cambiarEstado(entrenador, BLOCK);
-//	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT);
-//	else cambiarEstado(&(intercambio->entrenador), BLOCK);
+//	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumplio objetivo particular");
+//	else cambiarEstado(entrenador, BLOCK, "termino un intercambio");
+//	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT, cumple obejtivo particular);
+//	else cambiarEstado(&(intercambio->entrenador), BLOCK, "termino un intercambio");
 	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
 	(*entrenador)->CiclosCPU += 5;
 	ciclosCPUGlobal += 5;
@@ -417,7 +428,7 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 			pthread_mutex_lock(&mutex_ready);
 			t_entrenador* entrenador = queue_pop(ready);
 			pthread_mutex_unlock(&mutex_ready);
-			cambiarEstado(&entrenador, EXEC);
+			cambiarEstado(&entrenador, EXEC, "va a ejecutar");
 			//activa semaforo exec
 			pthread_mutex_unlock(&(entrenador->mutex));
 
@@ -454,7 +465,7 @@ void llenarColaReady(){ // Funciona
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
 		pokemon->planificado = true;
 		pthread_mutex_unlock(&requeridos);
-		cambiarEstado(&(entrenadorAPlanificar), READY);
+		cambiarEstado(&(entrenadorAPlanificar), READY, "se le asigno el pokemon a atrapar");
 		pthread_mutex_lock(&mutex_ready);
 		queue_push(ready, entrenadorAPlanificar);
 		pthread_mutex_unlock(&mutex_ready);
@@ -501,7 +512,7 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 			pthread_mutex_lock(&((*entrenador)->mutex));
 			atraparPokemon(*entrenador);
 			pthread_mutex_unlock(&mutex_ejecutar);
-			cambiarEstado(entrenador, BLOCK);
+			cambiarEstado(entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
 			//crear conexion
 			//enviar catch
 			//recibir ID
@@ -511,7 +522,7 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 		}else {
 			intercambiarPokemon(entrenador);
 			}
-	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT);
+	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumple objetivo particular");
 	}
 	//pthread_exit(); agregar el hilo
 	return 0;
@@ -600,8 +611,8 @@ void serve_client(int* socket) //funciona
 
 
 
-void socketEscucha(){ //funciona
-	int servidor = iniciar_servidor("127.0.0.2", "5002");
+void socketEscucha(char* ip, char* puerto){ //funciona
+	int servidor = iniciar_servidor(ip, puerto);
 	int i = 1;
 	while(1){
 		esperar_cliente(servidor);
@@ -611,6 +622,7 @@ void socketEscucha(){ //funciona
 
 void deteccionDeadlock(){ //funciona
 	log_info(logger,"Se ha iniciado el algoritmo de deteccion de deadlock");
+	int cantDeadlocks = 0;
 	bool _puedeEstarEnDeadlock(void* entrenador){
 		return puedeEstarEnDeadlock(entrenador);
 	}
@@ -648,29 +660,32 @@ void deteccionDeadlock(){ //funciona
 			printf("%s \n",intercambio->pokemonAEntregar);
 			printf("%s \n",intercambio->pokemonARecibir);
 
+//			if(necesitaPokemon(intercambio->entrenador, intercambio->pokemonAEntregar)) cantDeadlocks++;
+
 			//agregar cola de ready
 			//wait (espera a que termine de moverse el entrenador)
 			intercambiarPokemon(&entrenador);
 			if(cumpleObjetivoParticular(entrenadorAIntercambiar)){
 				puts("cumple objetivo Entrenador a intercambiar");
-				cambiarEstado(&entrenadorAIntercambiar, EXIT);
+				cambiarEstado(&entrenadorAIntercambiar, EXIT, "cumple objetivo particular");
 				ID = entrenadorAIntercambiar->ID;
 				list_remove_by_condition(entrenadoresDeadlock, (void*)_mismoID);
 				}
 			else{
-				cambiarEstado(&entrenadorAIntercambiar, BLOCK);
+				cambiarEstado(&entrenadorAIntercambiar, BLOCK, "Termino de intercambiar pokemon");
 			}
 			if(cumpleObjetivoParticular(entrenador)) {
 				puts("cumple objetivo entrenador");
-				cambiarEstado(&entrenador, EXIT);
+				cambiarEstado(&entrenador, EXIT, "cumple objetivo particular");
 				ID = entrenador->ID;
 				list_remove_by_condition(entrenadoresDeadlock,(void*)_mismoID);
 			}
 			else{
-				cambiarEstado(&entrenador, BLOCK);
+				cambiarEstado(&entrenador, BLOCK, "Termino de intercambiar pokemon");
 			}
 		}
 	}
+	log_info(logger, "Cantidad de deadlocks Detectados: %d Cantidad de deadlocks Resueltos: %d", cantDeadlocks, cantDeadlocks);
 }
 
 bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funciona
@@ -697,9 +712,7 @@ void connect_appeared(){
 	mensaje -> parametros = string_split(linea_split,",");
 	mensaje -> id = 2;
 
-	int socket_broker = iniciar_cliente("127.0.0.1","6009");
-
-	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 	enviar_mensaje(mensaje, socket_broker);
 
@@ -726,8 +739,8 @@ void connect_appeared(){
 	free(mensaje);
 }
 
-void connect_get_pokemon(){
-	op_code codigo_operacion = GET_POKEMON;
+void connect_localized_pokemon(){
+	op_code codigo_operacion = LOCALIZED_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
 	char* linea_split = "LAKSJDL,2,2";
@@ -735,9 +748,7 @@ void connect_get_pokemon(){
 	mensaje -> parametros = string_split(linea_split,",");
 	mensaje -> id = 2;
 
-	int socket_broker = iniciar_cliente("127.0.0.1","6009");
-
-	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 	enviar_mensaje(mensaje, socket_broker);
 
@@ -745,5 +756,48 @@ void connect_get_pokemon(){
 
 	free(mensaje -> parametros);
 	free(mensaje);
+}
+
+void connect_caught_pokemon(){
+	op_code codigo_operacion = CAUGHT_POKEMON;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split = "LAKSJDL,2,2";
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = string_split(linea_split,",");
+	mensaje -> id = 2;
+
+	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
+	enviar_mensaje(mensaje, socket_broker);
+
+	liberar_conexion(socket_broker);
+
+	free(mensaje -> parametros);
+	free(mensaje);
+}
+void connect_gameboy(){
+	socketEscucha(config_get_string_value(config, "IP_TEAM"), config_get_string_value(config, "PUERTO_TEAM"));
+}
+
+int iniciar_cliente_team(char* ip, char* puerto){
+	struct sockaddr_in direccion_servidor;
+
+	direccion_servidor.sin_family = AF_INET;
+	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
+	direccion_servidor.sin_port = htons(atoi(puerto));
+	int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
+	int cliente = socket(AF_INET, SOCK_STREAM, 0);
+
+	while(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		log_info(logger, "No se pudo realizar la conexion");
+		sleep(tiempoReconexion);
+		log_info(logger, "Inicio Reintento de Conexion");
+	}
+
+	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+
+
+	return cliente;
 }
 

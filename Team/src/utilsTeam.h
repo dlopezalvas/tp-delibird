@@ -76,7 +76,7 @@ void terminarTeam(int conexion, pthread_t* hilo); //falta conexion
 void configurarEntrenadores();
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos, int ID);
 t_list* configurarPokemons(char** pokemons);
-void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado);
+void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado, char* razonDeCambio);
 bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado);
 bool cumpleObjetivoGlobal();
 bool esEstadoExit(t_entrenador* entrenador);
@@ -103,7 +103,7 @@ bool estadoNewOBlock(t_entrenador* entrenador);
 void appeared_pokemon(t_pokemon* pokemonNuevo);
 void esperar_cliente(int servidor);
 void serve_client(int* socket);
-void socketEscucha();
+void socketEscucha(char* ip, char* puerto);
 void process_request(int cod_op, int cliente_fd);
 bool noEstaPlanificado(t_pokemon* pokemon);
 bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2);
@@ -115,9 +115,10 @@ bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon);
 void eliminarPokemonsObjetivo(char* pokemon, t_list* pokemonsNoNecesarios);
 bool mismoID(t_entrenador* entrenador, int ID);
 void agregarEspecie(char* pokemon, t_list* especiesNecesarias);
-
-
-//prueba
 void connect_appeared();
-void connect_get_pokemon();
+void connect_localized_pokemon();
+void connect_caught_pokemon();
+void connect_gameboy();
+
+
 #endif /* UTILSTEAM_H_ */
