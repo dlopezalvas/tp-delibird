@@ -10,42 +10,15 @@
 
 #include "Team.h"
 
-//no olvidarse de sincronizar las variables globales
-t_list* entrenadores;
-t_list* objetivoGlobal;
-pthread_mutex_t objetivo; // esto se usa adentro de entrenadorMaster()
-t_list* pokemonsRequeridos; //para que se vaya llenando a medida que aparecen los pokemon
-pthread_mutex_t requeridos;
-t_list* especiesNecesarias;
-t_config* config;
-t_log* logger;
-t_queue* ready;
-pthread_mutex_t mutex_ready;
-int ciclosCPUGlobal;
-t_list* pokemonsDeRepuesto;
-sem_t sem_ready;
-sem_t sem_ejecutar;
-pthread_mutex_t mutex_ejecutar;
-char* estado[5];
+
+
 
 
 int main(void) {
 
 	iniciarTeam();
-	pthread_t hiloEntrenador[entrenadores->elements_count];
 
-	pthread_t conexionGameboy;
-	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
-	pthread_join(conexionGameboy, NULL);
-//	pthread_t appeared_pokemon_thread;
-//	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//	pthread_detach(appeared_pokemon_thread);
-//	pthread_t localized_pokemon_thread;
-//	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//	pthread_detach(localized_pokemon_thread);
-//	pthread_t caught_pokemon_thread;
-//	pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//	pthread_detach(caught_pokemon_thread);
+
 
 
 	//Intento de envio de mensaje
@@ -127,16 +100,10 @@ int main(void) {
 //	if(cumpleObjetivoGlobal()) puts("cumple objetivo global");
 
 
-//	t_link_element * aux = entrenadores->head;
-//	for(int j=0; j<entrenadores->elements_count; j++){
-//		pthread_create(&hiloEntrenador[j],NULL, entrenadorMaster, (void*)(&aux->data));
-//		aux = aux->next;
-//		//join o detatch del hilo ??
-//	}
 
 	//planificar();
 
-	terminarTeam(1, hiloEntrenador);
+	terminarTeam(1);
 	puts("termina");
 
 	exit(0);

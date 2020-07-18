@@ -72,7 +72,7 @@ typedef struct t_intercambio{
 
 
 void iniciarTeam();
-void terminarTeam(int conexion, pthread_t* hilo); //falta conexion
+void terminarTeam(int conexion); //falta conexion
 void configurarEntrenadores();
 t_entrenador* crearEntrenador(char* posiciones, char* pokemonEntrenadores, char* objetivos, int ID);
 t_list* configurarPokemons(char** pokemons);
@@ -119,6 +119,8 @@ void connect_appeared();
 void connect_localized_pokemon();
 void connect_caught_pokemon();
 void connect_gameboy();
+int iniciar_cliente_team(char* ip, char* puerto);
+void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador);
 
 
 #endif /* UTILSTEAM_H_ */

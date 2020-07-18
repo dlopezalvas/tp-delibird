@@ -1,24 +1,24 @@
 #include "utilsTeam.h"
-extern t_list* entrenadores;
-extern t_list* objetivoGlobal;
-extern pthread_mutex_t objetivo;
-extern pthread_mutex_t requeridos;
-extern pthread_mutex_t mutex_ready;
-extern t_list* pokemonsRequeridos;
-extern t_list* pokemonsDeRepuesto;
-extern t_list* especiesNecesarias;
-extern t_config* config;
-extern t_log* logger;
-extern t_queue* ready;
-extern int ciclosCPUGlobal;
-extern sem_t sem_ready;
-extern sem_t sem_ejecutar;
-extern pthread_mutex_t mutex_ejecutar;
-extern char* estado[5];
+t_list* entrenadores;
+t_list* objetivoGlobal;
+pthread_mutex_t objetivo;
+pthread_mutex_t requeridos;
+pthread_mutex_t mutex_ready;
+t_list* pokemonsRequeridos;
+t_list* pokemonsDeRepuesto;
+t_list* especiesNecesarias;
+t_config* config;
+t_log* logger;
+t_queue* ready;
+int ciclosCPUGlobal;
+sem_t sem_ready;
+sem_t sem_ejecutar;
+pthread_mutex_t mutex_ejecutar;
+char* estado[5];
 int cambiosDeContexto;
 
 
-void iniciarTeam(){ //funciona
+void iniciarTeam(){
 	pthread_mutex_init(&objetivo, NULL);
 	pthread_mutex_init(&requeridos, NULL);
 	pthread_mutex_init(&mutex_ready, NULL);
@@ -54,6 +54,7 @@ void iniciarTeam(){ //funciona
 
 	pthread_t conexionGameboy;
 	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+	pthread_join(conexionGameboy, NULL);
 //	pthread_t appeared_pokemon_thread;
 //	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_detach(appeared_pokemon_thread);
@@ -65,6 +66,14 @@ void iniciarTeam(){ //funciona
 //	pthread_detach(caught_pokemon_thread);
 	//mandar get pokemon de los pokemons de especiesNecesarias
 
+	pthread_t hiloEntrenador[entrenadores->elements_count];
+//	t_link_element * aux = entrenadores->head;
+	//	for(int j=0; j<entrenadores->elements_count; j++){
+	//		pthread_create(&hiloEntrenador[j],NULL, entrenadorMaster, (void*)(&aux->data));
+	//		aux = aux->next;
+	//		//join o detatch del hilo ??
+	//	}
+
 	//suscribirse al broker y reintentar conexion
 }
 
@@ -75,7 +84,7 @@ void agregarEspecie(char* pokemon, t_list* especiesNecesarias){//funciona
 	if(!list_any_satisfy(especiesNecesarias, (void*) _mismaEspecie )) list_add(especiesNecesarias, pokemon);
 }
 
-void terminarTeam(int conexion, pthread_t* hilo)//revisar memoria y probar si funciona
+void terminarTeam(int conexion)//revisar memoria y probar si funciona
 {
 	log_info(logger, "Cantidad total de ciclos %d, Cantidad de cambios de contexto %d, Cantidad de ciclos CPU", ciclosCPUGlobal, cambiosDeContexto); //agregar variables
 	void _entrenadorDestroy(void* entrenador){
@@ -530,7 +539,8 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 			//recibir ID
 			//guardar ID mensaje en entrenador
 			//cerrar conexion
-			pthread_mutex_lock(&((*entrenador)->mutex));
+			catch_pokemon(config_get_string_value(config, "IP_BROKER"), config_get_string_value(config, "PUERTO_BROKER"), entrenador);
+
 		}else {
 			intercambiarPokemon(entrenador);
 			}
@@ -724,44 +734,49 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 }
 
 void connect_appeared(){
-	op_code codigo_operacion = APPEARED_POKEMON;
-	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+//	op_code codigo_operacion = APPEARED_POKEMON;
+//	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = "PIKACHU,2,2";
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = string_split(linea_split,",");
-	mensaje -> id = 2;
-
+//	char* linea_split = "PIKACHU,2,2";
+//	mensaje -> tipo_mensaje = codigo_operacion;
+//	mensaje -> parametros = string_split(linea_split,",");
+//	mensaje -> id = 2;
+//
 	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
-
-	enviar_mensaje(mensaje, socket_broker);
-
-	puts("envia mensaje");
+//
+//	enviar_mensaje(mensaje, socket_broker);
+//
+//	puts("envia mensaje");
 
 	int size = 0;
 	t_position_and_name* appeared;
 	bool _mismaEspecie(char* especie1){
 		return mismaEspecie(especie1, appeared->nombre.nombre);
 	}
+	int cod_op;
+
 	while(!(cumpleObjetivoGlobal())){
-		int cod_op;
-		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)
-			cod_op = -1;
+
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		puts("recibe mensaje");
-		appeared = deserializar_position_and_name(buffer);
-		if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
-			log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
-			appeared_pokemon(appeared) ; //hacer dentro de un hilo
+
+		if(cod_op == APPEARED_POKEMON){
+
+			appeared = deserializar_position_and_name(buffer);
+			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
+				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
+				appeared_pokemon(appeared) ; //hacer dentro de un hilo?
+			}
+			puts(appeared->nombre.nombre);
+			puts("deserializo");
 		}
-		puts(appeared->nombre.nombre);
-		puts("deserializo");
 	}
 
-	liberar_conexion(socket_broker);
+	liberar_conexion(socket_broker); //hacer en finalizar team?
 
-	free(mensaje -> parametros);
-	free(mensaje);
+//	free(mensaje -> parametros);
+//	free(mensaje);
 }
 
 void connect_localized_pokemon(){
@@ -821,8 +836,39 @@ int iniciar_cliente_team(char* ip, char* puerto){
 	}
 
 	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
-
-
 	return cliente;
 }
 
+
+void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){
+	struct sockaddr_in direccion_servidor;
+	op_code codigo_operacion = CATCH_POKEMON;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split = malloc(sizeof(t_pokemon)); //ver si funciona
+	sprintf(linea_split, "%s,%d,%d", (*entrenador)->pokemonACapturar->especie,(*entrenador)->pokemonACapturar->coordx, (*entrenador)->pokemonACapturar->coordy);
+
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = string_split(linea_split,",");;
+
+
+	direccion_servidor.sin_family = AF_INET;
+	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
+	direccion_servidor.sin_port = htons(atoi(puerto));
+
+	int socket_broker = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(connect(socket_broker, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
+		pthread_mutex_unlock(&((*entrenador)->mutex));
+	}else{
+		enviar_mensaje(mensaje, socket_broker);
+		//recibir un solo mensaje
+		//guardar id en entrenador
+		liberar_conexion(socket_broker); //hay que liberar si no se pudo cnectar?
+		//bloquear al hilo
+	}
+
+	free(mensaje);
+
+}
