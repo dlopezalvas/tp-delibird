@@ -100,7 +100,7 @@ bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon
 void llenarColaReady();
 void ejecutaEntrenadores();
 bool estadoNewOBlock(t_entrenador* entrenador);
-void appeared_pokemon(t_pokemon* pokemonNuevo);
+void appeared_pokemon(t_position_and_name* pokemonNuevo);
 void esperar_cliente(int servidor);
 void serve_client(int* socket);
 void socketEscucha(char* ip, char* puerto);

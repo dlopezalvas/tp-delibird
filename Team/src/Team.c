@@ -36,6 +36,7 @@ int main(void) {
 
 	pthread_t conexionGameboy;
 	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+	pthread_join(conexionGameboy, NULL);
 //	pthread_t appeared_pokemon_thread;
 //	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_detach(appeared_pokemon_thread);
@@ -137,6 +138,7 @@ int main(void) {
 
 	terminarTeam(1, hiloEntrenador);
 	puts("termina");
+
 	exit(0);
 	return EXIT_SUCCESS;
 }

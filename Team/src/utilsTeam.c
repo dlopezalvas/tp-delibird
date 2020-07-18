@@ -51,6 +51,18 @@ void iniciarTeam(){ //funciona
 		return agregarEspecie(pokemon, especiesNecesarias);
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
+
+	pthread_t conexionGameboy;
+	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+//	pthread_t appeared_pokemon_thread;
+//	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_detach(appeared_pokemon_thread);
+//	pthread_t localized_pokemon_thread;
+//	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_detach(localized_pokemon_thread);
+//	pthread_t caught_pokemon_thread;
+//	pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_detach(caught_pokemon_thread);
 	//mandar get pokemon de los pokemons de especiesNecesarias
 
 	//suscribirse al broker y reintentar conexion
@@ -134,7 +146,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	}
 	list_iterate(entrenador->objetivos, (void*)_eliminarPokemonsObjetivo);
 	if(cumpleObjetivoParticular(entrenador)) {
-		cambiarEstado(&entrenador, EXIT, "Cumplio Objetivo Particular");
+		cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
 	}
 
 	//	liberar_vector(objetivosEntrenador);
@@ -258,7 +270,7 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 		cambiarEstado(entrenador, BLOCK, "capturo un pokemon");
 	}else{
 		if(cumpleObjetivoParticular(*entrenador)){
-			cambiarEstado(entrenador, EXIT, "cumplio su objetivo");
+			cambiarEstado(entrenador, EXIT, "cumplio su objetivo particular");
 		}
 		else{
 			cambiarEstado(entrenador, BLOCK, "capturo un pokemon y no puede capturar mas pokemons");
@@ -387,9 +399,9 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	(*entrenador)->intercambio = NULL;
 
 
-//	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumplio objetivo particular");
+//	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumplio su objetivo particular");
 //	else cambiarEstado(entrenador, BLOCK, "termino un intercambio");
-//	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT, cumple obejtivo particular);
+//	if(cumpleObjetivoParticular(intercambio->entrenador)) cambiarEstado(&(intercambio->entrenador), EXIT, "cumplio su objetivo particular");
 //	else cambiarEstado(&(intercambio->entrenador), BLOCK, "termino un intercambio");
 	sleep(config_get_int_value(config,"RETARDO_CICLO_CPU")*5);
 	(*entrenador)->CiclosCPU += 5;
@@ -522,13 +534,19 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 		}else {
 			intercambiarPokemon(entrenador);
 			}
-	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumple objetivo particular");
+	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumplio su objetivo particular");
 	}
 	//pthread_exit(); agregar el hilo
 	return 0;
 }
 
-void appeared_pokemon(t_pokemon* pokemonNuevo){
+void appeared_pokemon(t_position_and_name* appeared){
+	t_pokemon* pokemonNuevo = malloc(sizeof(t_pokemon));
+	pokemonNuevo->coordx = appeared->coordenadas.pos_x;
+	pokemonNuevo->coordy = appeared->coordenadas.pos_y;
+//	pokemonNuevo->especie = malloc(appeared->nombre.largo_nombre);
+	pokemonNuevo->especie =	appeared->nombre.nombre;
+	pokemonNuevo->planificado = false;
 	bool _mismaEspecie(char* especie){
 				return mismaEspecie(especie, pokemonNuevo->especie);
 						}
@@ -547,7 +565,7 @@ void appeared_pokemon(t_pokemon* pokemonNuevo){
 	pthread_mutex_unlock(&requeridos);
 	if(necesarios>pokemonsACapturar){
 		pthread_mutex_lock(&requeridos);
-		list_add(pokemonsRequeridos, &pokemonNuevo);
+		list_add(pokemonsRequeridos, pokemonNuevo);// se rompe cuando agrego un segundo pokemon
 		pthread_mutex_unlock(&requeridos);
 		sem_post(&sem_ready);
 		puts("appeared pokemon");
@@ -563,21 +581,22 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 //	int id = recv(cliente_fd, &id,sizeof(int),0);
 
-	t_position_and_name* appeared = malloc(sizeof(t_position_and_name));
-	t_pokemon* nuevoPokemon = malloc(sizeof(t_pokemon));
+
+	t_position_and_name* appeared;
+	bool _mismaEspecie(char* especie1){
+			return mismaEspecie(especie1, appeared->nombre.nombre);
+		}
+
 
 		switch (cod_op) {
 		case APPEARED_POKEMON:
 			appeared = deserializar_position_and_name(buffer);
-			nuevoPokemon->coordx = appeared->coordenadas.pos_x;
-			nuevoPokemon->coordy = appeared->coordenadas.pos_y;
-			nuevoPokemon->especie = appeared->nombre.nombre;
-			nuevoPokemon->planificado = false;
 
-			appeared = deserializar_position_and_name(buffer);
 			puts(appeared->nombre.nombre);
-			appeared_pokemon(nuevoPokemon);
-			printf("pokemons requeridos %d", pokemonsRequeridos->elements_count);
+			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
+				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
+				appeared_pokemon(appeared) ; //hacer dentro de un hilo
+			}
 
 			break;
 		case 0:
@@ -585,6 +604,7 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 		case -1:
 			pthread_exit(NULL);
 		}
+
 }
 
 void esperar_cliente(int servidor){ //funciona
@@ -667,7 +687,7 @@ void deteccionDeadlock(){ //funciona
 			intercambiarPokemon(&entrenador);
 			if(cumpleObjetivoParticular(entrenadorAIntercambiar)){
 				puts("cumple objetivo Entrenador a intercambiar");
-				cambiarEstado(&entrenadorAIntercambiar, EXIT, "cumple objetivo particular");
+				cambiarEstado(&entrenadorAIntercambiar, EXIT, "cumplio su objetivo particular");
 				ID = entrenadorAIntercambiar->ID;
 				list_remove_by_condition(entrenadoresDeadlock, (void*)_mismoID);
 				}
@@ -676,7 +696,7 @@ void deteccionDeadlock(){ //funciona
 			}
 			if(cumpleObjetivoParticular(entrenador)) {
 				puts("cumple objetivo entrenador");
-				cambiarEstado(&entrenador, EXIT, "cumple objetivo particular");
+				cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
 				ID = entrenador->ID;
 				list_remove_by_condition(entrenadoresDeadlock,(void*)_mismoID);
 			}
@@ -719,17 +739,22 @@ void connect_appeared(){
 	puts("envia mensaje");
 
 	int size = 0;
-	t_position_and_name* appeared_pokemon_buffer;
-
-	while(1){
-
+	t_position_and_name* appeared;
+	bool _mismaEspecie(char* especie1){
+		return mismaEspecie(especie1, appeared->nombre.nombre);
+	}
+	while(!(cumpleObjetivoGlobal())){
 		int cod_op;
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)
 			cod_op = -1;
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		puts("recibe mensaje");
-		appeared_pokemon_buffer = deserializar_position_and_name(buffer);
-		puts(appeared_pokemon_buffer->nombre.nombre);
+		appeared = deserializar_position_and_name(buffer);
+		if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
+			log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
+			appeared_pokemon(appeared) ; //hacer dentro de un hilo
+		}
+		puts(appeared->nombre.nombre);
 		puts("deserializo");
 	}
 
@@ -740,10 +765,10 @@ void connect_appeared(){
 }
 
 void connect_localized_pokemon(){
-	op_code codigo_operacion = LOCALIZED_POKEMON;
+	op_code codigo_operacion = GET_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = "LAKSJDL,2,2";
+	char* linea_split = " ,0,0";
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
 	mensaje -> id = 2;
