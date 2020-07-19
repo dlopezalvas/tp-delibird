@@ -206,13 +206,11 @@ void ejecutar_modo_suscriptor(char** linea_split, t_config* config){
 	char* ip = config_get_string_value(config,IP_BROKER);
 	char* puerto = config_get_string_value(config,PUERTO_BROKER);
 
-	op_code cola_a_suscribir = codigo_mensaje(linea_split[1]);
-
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	mensaje->tipo_mensaje = cola_a_suscribir;
-	char* asdf = "PIKACHU,2,2";
-	mensaje -> parametros = string_split(asdf,",");
+	mensaje->tipo_mensaje = SUSCRIPCION;
+	char* cola[1] = {linea_split[1]};
+	mensaje -> parametros = cola;
 
 	int socket_broker = iniciar_cliente(ip, puerto);
 

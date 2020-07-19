@@ -10,3 +10,9 @@
 [INFO] 18:15:40:268 GAMEBOY/(8912:8914): Mensaje Appeared_pokemon PIKACHU 2 2
 [INFO] 18:15:52:314 GAMEBOY/(8912:8912): Se ha suscripto a la cola appeared_pokemon
 [INFO] 18:15:52:315 GAMEBOY/(8912:8916): Mensaje Appeared_pokemon PIKACHU 2 2
+[INFO] 19:32:59:482 GAMEBOY/(2930:2930): Se ha suscripto a la cola APPEARED_POKEMON
+[INFO] 19:32:59:482 GAMEBOY/(2930:2935): Mensaje Appeared_pokemon PIKACHU 2 2
+[INFO] 19:36:28:373 GAMEBOY/(3011:3011): Se ha suscripto a la cola APPEARED_POKEMON
+[INFO] 19:36:28:373 GAMEBOY/(3011:3013): Mensaje Appeared_pokemon PIKACHU 2 2
+[INFO] 19:37:07:971 GAMEBOY/(3017:3017): Se ha suscripto a la cola APPEARED_POKEMON
+[INFO] 19:37:07:972 GAMEBOY/(3017:3020): Mensaje Appeared_pokemon PIKACHU 2 2

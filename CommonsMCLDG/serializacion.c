@@ -61,6 +61,7 @@ t_buffer* cargar_buffer(t_mensaje* mensaje){
 		case(CATCH_POKEMON): return buffer_position_and_name(parametros);
 		case(CAUGHT_POKEMON): return buffer_caught_pokemon(parametros);
 		case(LOCALIZED_POKEMON): return buffer_localized_pokemon(parametros);
+		case(SUSCRIPCION): return buffer_suscripcion(parametros);
 	}
 	return 0;
 }
@@ -243,6 +244,27 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	return buffer;
 }
 
+t_buffer* buffer_suscripcion(char** parametros){
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	op_code cola = atoi(parametros[0]);
+
+	t_suscripcion suscripcion;
+	suscripcion.cola = cola;
+
+	buffer -> size = sizeof(op_code);
+
+	void* stream = malloc(buffer -> size);
+
+	memcpy(stream, &suscripcion.cola, sizeof(op_code));
+
+	buffer -> stream = stream;
+
+	//free(stream);
+
+	return buffer;
+
+}
 ///////////////////////////DESERIALIZAR/////////////////////////////////
 
 t_get_pokemon* deserializar_get_pokemon(void* buffer){
@@ -335,6 +357,14 @@ t_caught_pokemon* deserializar_caught_pokemon(void* buffer){
 	return caught_pokemon;
 }
 
+t_suscripcion* deserializar_suscripcion(void* buffer){
+
+	t_suscripcion* suscripcion = malloc(sizeof(t_suscripcion));
+
+	memcpy(&suscripcion->cola, buffer, sizeof(op_code));
+
+	return suscripcion;
+}
 
 
 

@@ -59,6 +59,10 @@ typedef struct{
 	uint32_t caught;
 }t_caught_pokemon;
 
+typedef struct{
+	op_code cola;
+}t_suscripcion;
+
 void enviar_mensaje(t_mensaje* mensaje, int socket);
 void* serializar_paquete(t_paquete* paquete, int *bytes, uint32_t id);
 t_get_pokemon* deserializar_get_pokemon(void* buffer);
@@ -70,12 +74,14 @@ t_buffer* buffer_caught_pokemon(char** parametros);
 t_buffer* buffer_position_and_name(char** parametros);
 t_buffer* buffer_get_pokemon(char** parametros);
 t_buffer* buffer_new_pokemon(char** parametros);
+t_buffer* buffer_suscripcion(char** parametros);
 
 t_get_pokemon* deserializar_get_pokemon(void* buffer);
 t_new_pokemon* deserializar_new_pokemon(void* buffer);
 t_position_and_name* deserializar_position_and_name(void* buffer);
 t_caught_pokemon* deserializar_caught_pokemon(void* buffer);
 t_localized_pokemon* deserializar_localized_pokemon(void*buffer);
+t_suscripcion* deserializar_suscripcion(void* buffer);
 
 
 
