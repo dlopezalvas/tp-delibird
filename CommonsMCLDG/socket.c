@@ -92,7 +92,6 @@ void* recibir_mensaje(int socket_cliente, int* size)
 	recv(socket_cliente, size, sizeof(int), 0);
 	buffer = malloc(*size);
 	recv(socket_cliente, buffer, *size, 0);
-
 	return buffer;
 }
 

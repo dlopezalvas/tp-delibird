@@ -55,19 +55,19 @@ void iniciarTeam(){
 //	pthread_t conexionGameboy;
 //	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
 //	pthread_join(conexionGameboy, NULL);
-	pthread_t appeared_pokemon_thread;
-	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-	pthread_join(appeared_pokemon_thread, NULL);
+//	pthread_t appeared_pokemon_thread;
+//	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_join(appeared_pokemon_thread, NULL);
 //	pthread_detach(appeared_pokemon_thread);
-//	pthread_t localized_pokemon_thread;
-//	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//	pthread_detach(localized_pokemon_thread);
+	pthread_t localized_pokemon_thread;
+	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
+	pthread_join(localized_pokemon_thread, NULL);
 //	pthread_t caught_pokemon_thread;
 //	pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_detach(caught_pokemon_thread);
 	//mandar get pokemon de los pokemons de especiesNecesarias
 
-	pthread_t hiloEntrenador[entrenadores->elements_count];
+//	pthread_t hiloEntrenador[entrenadores->elements_count];
 //	t_link_element * aux = entrenadores->head;
 	//	for(int j=0; j<entrenadores->elements_count; j++){
 	//		pthread_create(&hiloEntrenador[j],NULL, entrenadorMaster, (void*)(&aux->data));
@@ -779,10 +779,10 @@ void connect_appeared(){
 }
 
 void connect_localized_pokemon(){
-	op_code codigo_operacion = GET_POKEMON;
+	op_code codigo_operacion = LOCALIZED_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = " ,0,0";
+	char* linea_split = "Pikachu,2,1,2,3,4";
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
 	mensaje -> id = 2;
@@ -790,7 +790,7 @@ void connect_localized_pokemon(){
 	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 	enviar_mensaje(mensaje, socket_broker);
-
+	puts("Envia Mensaje Localized");
 	liberar_conexion(socket_broker);
 
 	free(mensaje -> parametros);
@@ -806,7 +806,7 @@ void connect_caught_pokemon(){
 	mensaje -> parametros = string_split(linea_split,",");
 	mensaje -> id = 2;
 
-	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 	enviar_mensaje(mensaje, socket_broker);
 

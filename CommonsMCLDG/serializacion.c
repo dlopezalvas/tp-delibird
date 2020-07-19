@@ -60,12 +60,52 @@ t_buffer* cargar_buffer(t_mensaje* mensaje){
 		case(APPEARED_POKEMON): return buffer_position_and_name(parametros);
 		case(CATCH_POKEMON): return buffer_position_and_name(parametros);
 		case(CAUGHT_POKEMON): return buffer_caught_pokemon(parametros);
-		//case(LOCALIZED_POKEMON): return buffer_localized_pokemon(linea_split);
+		case(LOCALIZED_POKEMON): return buffer_localized_pokemon(parametros);
 	}
 	return 0;
 }
 
 ///////////////////////////SERIALIZAR/////////////////////////////////
+t_buffer* buffer_localized_pokemon(char** parametros){
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	char* nombre = parametros[0];
+	uint32_t cantidad = atoi(parametros[1]);
+	uint32_t cantidadParametros = cantidad*2;
+	t_localized_pokemon localized_pokemon;
+	coordenadas_pokemon coord;
+
+	localized_pokemon.nombre.nombre = malloc(sizeof(char*));
+
+	strcpy(localized_pokemon.nombre.nombre, nombre);
+	localized_pokemon.nombre.largo_nombre = strlen(localized_pokemon.nombre.nombre);
+	localized_pokemon.cantidad = cantidad;
+
+	buffer -> size = sizeof(uint32_t)*(cantidadParametros+2) + strlen(localized_pokemon.nombre.nombre) + 1;
+	void* stream = malloc(buffer -> size);
+	int offset = 0;
+
+
+	memcpy(stream + offset, &localized_pokemon.cantidad, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	for(int i = 2; cantidadParametros+2>i ; i++){
+		coord.pos_x = atoi(parametros[i]);
+		i++;
+		coord.pos_y = atoi(parametros[i]);
+
+		memcpy(stream + offset, &coord.pos_x, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(stream + offset, &coord.pos_y, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+	}
+
+	memcpy(stream + offset, &localized_pokemon.nombre.largo_nombre, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(stream + offset, localized_pokemon.nombre.nombre, strlen(localized_pokemon.nombre.nombre) + 1);
+
+	buffer -> stream = stream;
+	return buffer;
+}
 t_buffer* buffer_caught_pokemon(char** parametros){
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
@@ -215,6 +255,41 @@ t_get_pokemon* deserializar_get_pokemon(void* buffer){
 	memcpy(get_pokemon->nombre.nombre, buffer, get_pokemon->nombre.largo_nombre + 1);
 
 	return get_pokemon;
+}
+
+t_localized_pokemon* deserializar_localized_pokemon(void*buffer){
+
+	t_localized_pokemon* localized_pokemon = malloc(sizeof(t_localized_pokemon));
+
+
+	localized_pokemon->listaCoordenadas = list_create();
+
+
+	memcpy(&localized_pokemon->cantidad,buffer,  sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+
+	int cantidadParametros = localized_pokemon->cantidad * 2;
+	coordenadas_pokemon coord;
+	coordenadas_pokemon* coordenadas;
+	for(int i = 0; cantidadParametros>i ; i+=2){
+		coordenadas = malloc(sizeof(coordenadas_pokemon*));
+		memcpy(&coord.pos_x,buffer, sizeof(uint32_t));
+		buffer += sizeof(uint32_t);
+		memcpy(&coord.pos_y,buffer, sizeof(uint32_t));
+		buffer += sizeof(uint32_t);
+		coordenadas->pos_x = coord.pos_x;
+		coordenadas->pos_y = coord.pos_y;
+		list_add(localized_pokemon->listaCoordenadas, coordenadas);
+	}
+
+	memcpy(&localized_pokemon->nombre.largo_nombre, buffer, sizeof(uint32_t));
+	buffer += sizeof(uint32_t);
+	localized_pokemon->nombre.nombre = malloc(localized_pokemon->nombre.largo_nombre + 1);
+	memcpy(localized_pokemon->nombre.nombre,buffer, localized_pokemon->nombre.largo_nombre + 1);
+	buffer += localized_pokemon->nombre.largo_nombre + 1;
+
+	return localized_pokemon;
+
 }
 
 t_new_pokemon* deserializar_new_pokemon(void* buffer){
