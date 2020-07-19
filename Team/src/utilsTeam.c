@@ -575,7 +575,7 @@ void appeared_pokemon(t_position_and_name* appeared){
 	pthread_mutex_unlock(&requeridos);
 	if(necesarios>pokemonsACapturar){
 		pthread_mutex_lock(&requeridos);
-		list_add(pokemonsRequeridos, pokemonNuevo);// se rompe cuando agrego un segundo pokemon
+		list_add(pokemonsRequeridos, pokemonNuevo);
 		pthread_mutex_unlock(&requeridos);
 		sem_post(&sem_ready);
 		puts("appeared pokemon");
@@ -690,7 +690,7 @@ void deteccionDeadlock(){ //funciona
 			printf("%s \n",intercambio->pokemonAEntregar);
 			printf("%s \n",intercambio->pokemonARecibir);
 
-//			if(necesitaPokemon(intercambio->entrenador, intercambio->pokemonAEntregar)) cantDeadlocks++;
+			if(necesitaPokemon(intercambio->entrenador, intercambio->pokemonAEntregar)) cantDeadlocks++;
 
 			//agregar cola de ready
 			//wait (espera a que termine de moverse el entrenador)
