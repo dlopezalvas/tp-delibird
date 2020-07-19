@@ -34,6 +34,7 @@
 #define MENSAJE_CAUGHT_POKEMON "CAUGHT_POKEMON"
 #define MENSAJE_GET_POKEMON "GET_POKEMON"
 #define MENSAJE_LOCALIZED_POKEMON "LOCALIZED_POKEMON"
+#define MENSAJE_MODO_SUSCRIPTOR "SUSCRIPTOR"
 
 //cantidad de argumentos de mensajes
 #define ARGUMENTOS_APPEARED_POKEMON 3
@@ -75,6 +76,7 @@ void ejecutar_proceso(char** linea_split, t_config* config, tipo_id flag_id);
 void ejecutar_broker(char** linea_split, t_config* config, tipo_id flag_id);
 void ejecutar_team(char** linea_split, t_config* config);
 void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id);
+void ejecutar_modo_suscriptor(char** linea_split, t_config* config);
 
 bool validar_mensaje(char* proceso, char* mensaje);
 bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, tipo_id *flag_id);
@@ -85,6 +87,8 @@ op_code codigo_mensaje(char* tipo_mensaje);
 int cantidad_argumentos (char** linea_split);
 char** argumentos(char** linea_split, tipo_id flag_id);
 uint32_t calcular_id(tipo_id flag_id, char** linea_split);
+void recibir_mensajes_de_cola(int* socket);
+void process_request(int cod_op, int cliente_fd);
 
 
 #endif /* UTILS_H_ */

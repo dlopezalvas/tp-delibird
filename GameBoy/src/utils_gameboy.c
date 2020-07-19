@@ -99,7 +99,10 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, t
 
 	int cantidad_total = cantidad_argumentos(linea_split);
 
-	switch(codigo_mensaje(tipo_mensaje)){
+	if(string_equals_ignore_case(proceso, MENSAJE_MODO_SUSCRIPTOR)){
+		return cantidad_total == 1;
+	}else{
+		switch(codigo_mensaje(tipo_mensaje)){
 		case APPEARED_POKEMON:
 			if(string_equals_ignore_case(proceso,BROKER)){
 				*flag_id = ID_AL_FINAL;
@@ -135,6 +138,7 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, t
 			}else{
 				return cantidad_total == ARGUMENTOS_GET_POKEMON;
 			}
+		}
 	}
 
 	return false;
@@ -146,6 +150,18 @@ bool validar_mensaje(char* proceso, char* mensaje){
 		const bool team_is_valid_mensaje = string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje);
 
 		return team_is_valid_mensaje;
+	}
+
+	if(string_equals_ignore_case(MENSAJE_MODO_SUSCRIPTOR, proceso)){
+		const bool suscriptor_is_valid_mensaje =
+			string_equals_ignore_case(MENSAJE_NEW_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_CATCH_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_GET_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_APPEARED_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_LOCALIZED_POKEMON,mensaje) ||
+			string_equals_ignore_case(MENSAJE_CAUGHT_POKEMON,mensaje);
+
+		return suscriptor_is_valid_mensaje;
 	}
 
 	if(string_equals_ignore_case(GAMECARD,proceso)){
@@ -179,9 +195,95 @@ void ejecutar_proceso(char** linea_split, t_config* config, tipo_id flag_id){
 		ejecutar_team(linea_split, config);
 	}else if(string_equals_ignore_case(GAMECARD,linea_split[0])){
 		ejecutar_gamecard(linea_split, config, flag_id);
+	}else if(string_equals_ignore_case(MENSAJE_MODO_SUSCRIPTOR, linea_split[0])){
+		ejecutar_modo_suscriptor(linea_split, config);
 	}else{
 		perror("No se ha podido ejecutar el proceso");
 	}
+}
+
+void ejecutar_modo_suscriptor(char** linea_split, t_config* config){
+	char* ip = config_get_string_value(config,IP_BROKER);
+	char* puerto = config_get_string_value(config,PUERTO_BROKER);
+
+	op_code cola_a_suscribir = codigo_mensaje(linea_split[1]);
+
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	mensaje->tipo_mensaje = cola_a_suscribir;
+	char* asdf = "PIKACHU,2,2";
+	mensaje -> parametros = string_split(asdf,",");
+
+	int socket_broker = iniciar_cliente(ip, puerto);
+
+	log_info(logger,"Se ha suscripto a la cola %s", linea_split[1]);
+
+	enviar_mensaje(mensaje, socket_broker);
+
+	puts("enviar mensaje");
+
+	int tiempo_de_espera = atoi(linea_split[2]);
+
+	pthread_t modo_suscriptor;
+
+	pthread_create(&modo_suscriptor, NULL, (void*) recibir_mensajes_de_cola, &socket_broker);
+
+	pthread_detach(modo_suscriptor);
+
+	sleep(tiempo_de_espera);
+
+	pthread_cancel(modo_suscriptor);
+
+	liberar_conexion(socket_broker);
+}
+
+void recibir_mensajes_de_cola(int* socket){
+
+	while(1){
+		int cod_op;
+		if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+			cod_op = -1;
+		process_request(cod_op, *socket);
+	}
+}
+
+void process_request(int cod_op, int cliente_fd){
+	int size = 0;
+	void* buffer = recibir_mensaje(cliente_fd, &size);
+	puts("recibi un mensaje");
+
+	int id;
+	//recv(cliente_fd, &id,sizeof(int),0);
+
+	t_new_pokemon* new_pokemon;
+	t_position_and_name* appeared_pokemon;
+	t_position_and_name* catch_pokemon;
+	t_caught_pokemon* caught_pokemon;
+	t_get_pokemon* get_pokemon;
+
+	switch (cod_op) {
+	case NEW_POKEMON:
+		new_pokemon = deserializar_new_pokemon(buffer);
+		log_info(logger, "Mensaje New_pokemon %s %d %d %d", new_pokemon->nombre, new_pokemon->coordenadas.pos_x, new_pokemon->coordenadas.pos_y, new_pokemon->cantidad);
+		break;
+	case APPEARED_POKEMON:
+		appeared_pokemon = deserializar_position_and_name(buffer);
+		log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared_pokemon->nombre.nombre, appeared_pokemon->coordenadas.pos_x, appeared_pokemon->coordenadas.pos_y);
+		break;
+	case CATCH_POKEMON:
+		catch_pokemon = deserializar_position_and_name(buffer);
+		log_info(logger, "Mensaje Catch_pokemon %s %d %d", catch_pokemon->nombre.nombre, catch_pokemon->coordenadas.pos_x, catch_pokemon->coordenadas.pos_y);
+		break;
+	case CAUGHT_POKEMON:
+		caught_pokemon = deserializar_caught_pokemon(buffer);
+		log_info(logger, "Mensaje Caught_pokemon %d %d", caught_pokemon->caught, id);
+		break;
+	case GET_POKEMON:
+		get_pokemon = deserializar_get_pokemon(buffer);
+		log_info(logger, "Mensaje Get_pokemon %s", get_pokemon->nombre);
+		break;
+	}
+
 }
 
 
@@ -343,5 +445,4 @@ op_code codigo_mensaje(char* tipo_mensaje){
 		return 0;
 	}
 }
-
 

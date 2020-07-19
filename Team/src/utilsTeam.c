@@ -52,11 +52,12 @@ void iniciarTeam(){
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 
-	pthread_t conexionGameboy;
-	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
-	pthread_join(conexionGameboy, NULL);
-//	pthread_t appeared_pokemon_thread;
-//	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//	pthread_t conexionGameboy;
+//	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+//	pthread_join(conexionGameboy, NULL);
+	pthread_t appeared_pokemon_thread;
+	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+	pthread_join(appeared_pokemon_thread, NULL);
 //	pthread_detach(appeared_pokemon_thread);
 //	pthread_t localized_pokemon_thread;
 //	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_appeared,NULL);
@@ -734,19 +735,17 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 }
 
 void connect_appeared(){
-//	op_code codigo_operacion = APPEARED_POKEMON;
-//	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+	op_code codigo_operacion = APPEARED_POKEMON;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-//	char* linea_split = "PIKACHU,2,2";
-//	mensaje -> tipo_mensaje = codigo_operacion;
-//	mensaje -> parametros = string_split(linea_split,",");
-//	mensaje -> id = 2;
-//
-	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
-//
-//	enviar_mensaje(mensaje, socket_broker);
-//
-//	puts("envia mensaje");
+	char* linea_split = "PIKACHU,2,2";
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = string_split(linea_split,",");
+	mensaje -> id = 2;
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	enviar_mensaje(mensaje, socket_broker);
+
+	puts("envia mensaje");
 
 	int size = 0;
 	t_position_and_name* appeared;
@@ -759,10 +758,10 @@ void connect_appeared(){
 
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
 		void* buffer = recibir_mensaje(socket_broker,&size);
-		puts("recibe mensaje");
 
 		if(cod_op == APPEARED_POKEMON){
 
+			puts("recibe mensaje");
 			appeared = deserializar_position_and_name(buffer);
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
 				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
