@@ -122,6 +122,9 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 	case GET_POKEMON:
 		ejecutar_get_pokemon(mensaje);
 		break;
+	case LOCALIZED_POKEMON:
+		ejecutar_localized_pokemon(mensaje);
+		break;
 	case SUSCRIPCION:
 		ejecutar_suscripcion(mensaje);
 		break;
@@ -179,6 +182,13 @@ void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
 
 }
 
+void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
+	t_localized_pokemon* localized_pokemon;
+	localized_pokemon = deserializar_localized_pokemon(mensaje->buffer);
+	list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
+
+}
+
 void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 	int cola;
 	void* buffer = mensaje->buffer;
@@ -202,6 +212,9 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 			break;
 		case GET_POKEMON:
 			list_add(GET_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			break;
+		case LOCALIZED_POKEMON:
+			list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
 			break;
 		case 0:
 			pthread_exit(NULL);

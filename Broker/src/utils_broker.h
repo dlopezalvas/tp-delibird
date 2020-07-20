@@ -41,11 +41,13 @@ t_list* APPEARED_POKEMON_QUEUE;
 t_list* CATCH_POKEMON_QUEUE;
 t_list* CAUGHT_POKEMON_QUEUE;
 t_list* GET_POKEMON_QUEUE;
+t_list* LOCALIZED_POKEMON_QUEUE;
 t_list* NEW_POKEMON_QUEUE_SUSCRIPT;
 t_list* APPEARED_POKEMON_QUEUE_SUSCRIPT;
 t_list* CATCH_POKEMON_QUEUE_SUSCRIPT;
 t_list* CAUGHT_POKEMON_QUEUE_SUSCRIPT;
 t_list* GET_POKEMON_QUEUE_SUSCRIPT;
+t_list* LOCALIZED_POKEMON_QUEUE_SUSCRIPT;
 uint32_t unique_message_id;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
@@ -82,5 +84,6 @@ void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_catch_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_caught_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_get_pokemon(t_mensaje_broker* mensaje);
+void ejecutar_localized_pokemon(t_mensaje_broker* mensaje);
 
 #endif /* UTILS_BROKER_H_ */
