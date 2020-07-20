@@ -196,25 +196,25 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 	t_suscripcion* mensaje_suscripcion;
 	mensaje_suscripcion = deserializar_suscripcion(buffer);
 	cola = mensaje_suscripcion->cola;
-
+	int* suscriptor = mensaje->suscriptor;
 	switch (cola) {
 		case NEW_POKEMON:
-			list_add(NEW_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 			break;
 		case APPEARED_POKEMON:
-			list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 			break;
 		case CATCH_POKEMON:
-			list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 			break;
 		case CAUGHT_POKEMON:
-			list_add(CAUGHT_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			list_add(CAUGHT_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 			break;
 		case GET_POKEMON:
-			list_add(GET_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 			break;
 		case LOCALIZED_POKEMON:
-			list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 			break;
 		case 0:
 			pthread_exit(NULL);

@@ -85,5 +85,6 @@ void ejecutar_catch_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_caught_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_get_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje);
+void ejecutar_suscripcion(t_mensaje_broker* mensaje);
 
 #endif /* UTILS_BROKER_H_ */
