@@ -43,19 +43,27 @@ typedef struct{
 }t_metadata;
 
 t_bitarray* bitarray;
-sem_t bitarray_mtx;
+pthread_mutex_t bitarray_mtx;
 
 t_list* sem_metadatas;
-sem_t lista_metadatas_mtx;
+pthread_mutex_t lista_metadatas_mtx;
 
 t_list* pokemones; //index del pokemon deberia ser el mismo index de su semaforo
-sem_t pokemones_mtx;
+pthread_mutex_t pokemones_mtx;
 
 char* pto_montaje;
 
 t_metadata* metadata_fs;
 
 pthread_t thread;
+
+sem_t conexiones;
+t_log* logger_gamecard;
+t_config* config;
+
+t_list* mensajes;
+
+pthread_t gameboy;
 
 void crear_tall_grass(t_config* config);
 //void crear_metadata(char* path_metadata);
@@ -64,7 +72,7 @@ void crear_bitmap(char* path);
 void actualizar_quitar_pokemon(t_position_and_name* pokemon);
 
 bool existe_pokemon(char* path_pokemon);
-void agregar_pokemon_mapa(t_new_pokemon* pokemon);
+void agregar_pokemon_mapa(t_buffer* buffer);
 void crear_pokemon(t_new_pokemon* pokemon);
 bool archivo_abierto(t_config* config_archivo);
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
@@ -91,5 +99,11 @@ void esperar_cliente(int servidor);
 void serve_client(int* socket);
 void socket_escucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
+
+int iniciar_cliente_gamecard(char* ip, char* puerto);
+void connect_get_pokemon();
+void connect_catch_pokemon();
+void connect_new_pokemon();
+void crear_conexiones();
 
 #endif /* UTILS_H_ */

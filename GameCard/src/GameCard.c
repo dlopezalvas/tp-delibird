@@ -13,14 +13,22 @@
 
 int main(void) {
 
-	t_config* config = leer_config(PATH);
-	t_log* logger = iniciar_logger(config);
+	config = leer_config(PATH);
+	logger_gamecard = iniciar_logger(config);
 
 
 	crear_tall_grass(config);
 
-	socket_escucha("127.0.0.3", "5001");
+	pthread_t suscripciones;
+	sem_init(&conexiones, 0,0);
+	pthread_create(&suscripciones, NULL, (void*)crear_conexiones, NULL);
+	pthread_detach(suscripciones);
 
-	terminar_proceso(0, logger, config);
+	pthread_create(&gameboy, NULL, (void*)socket_gameboy, NULL);
+	pthread_join(gameboy, NULL);
+
+	terminar_proceso(0, logger_gamecard, config);
 
 }
+
+
