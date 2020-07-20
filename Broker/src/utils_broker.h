@@ -31,7 +31,7 @@ t_log* logger;
 typedef struct{
   op_code tipo_mensaje;
   void* buffer; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
-  char *suscriptor;
+  int suscriptor;
   uint32_t id;
 }t_mensaje_broker;
 
@@ -41,6 +41,11 @@ t_list* APPEARED_POKEMON_QUEUE;
 t_list* CATCH_POKEMON_QUEUE;
 t_list* CAUGHT_POKEMON_QUEUE;
 t_list* GET_POKEMON_QUEUE;
+t_list* NEW_POKEMON_QUEUE_SUSCRIPT;
+t_list* APPEARED_POKEMON_QUEUE_SUSCRIPT;
+t_list* CATCH_POKEMON_QUEUE_SUSCRIPT;
+t_list* CAUGHT_POKEMON_QUEUE_SUSCRIPT;
+t_list* GET_POKEMON_QUEUE_SUSCRIPT;
 uint32_t unique_message_id;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
@@ -56,7 +61,7 @@ int proceso_valido(char*,char*);
 int queue_valida(char*,char*);
 
 //Suscribe un mensaje pasandole el tipo de mensaje y el buffer
-int suscribir_mensaje(int cod_op,void* buffer);
+int suscribir_mensaje(int cod_op,void* buffer,int client_fd);
 
 //Inicializa todas las queues
 void crear_queues();
@@ -72,6 +77,10 @@ void serve_client(int* socket);
 void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
-
+void ejecutar_new_pokemon(t_mensaje_broker* mensaje);
+void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje);
+void ejecutar_catch_pokemon(t_mensaje_broker* mensaje);
+void ejecutar_caught_pokemon(t_mensaje_broker* mensaje);
+void ejecutar_get_pokemon(t_mensaje_broker* mensaje);
 
 #endif /* UTILS_BROKER_H_ */

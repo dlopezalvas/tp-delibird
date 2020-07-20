@@ -12,14 +12,6 @@ int proceso_valido(char*procesos_validos,char* proceso){
 	return 0;
 }
 
-int queue_valida(char*queues_validas,char* queue){
-
-	char* s = strstr(queues_validas, queue);
-
-	if(s != NULL) return 1;
-	return 0;
-}
-
 void log_suscribir_mensaje_queue(char* proceso,char* queue){
 	char* mensaje_log = "Proceso: ";
 	string_append_with_format(&mensaje_log, "%s", proceso);
@@ -36,6 +28,11 @@ void crear_queues(void){
 	CATCH_POKEMON_QUEUE = list_create();
 	CAUGHT_POKEMON_QUEUE = list_create();
 	GET_POKEMON_QUEUE = list_create();
+	NEW_POKEMON_QUEUE_SUSCRIPT = list_create();
+	APPEARED_POKEMON_QUEUE_SUSCRIPT = list_create();
+	CATCH_POKEMON_QUEUE_SUSCRIPT = list_create();
+	CAUGHT_POKEMON_QUEUE_SUSCRIPT = list_create();
+	GET_POKEMON_QUEUE_SUSCRIPT = list_create();
 }
 
 void terminar_queues(void){
@@ -44,6 +41,11 @@ void terminar_queues(void){
 	list_destroy(CATCH_POKEMON_QUEUE);
 	list_destroy(CAUGHT_POKEMON_QUEUE);
 	list_destroy(GET_POKEMON_QUEUE);
+	list_destroy(NEW_POKEMON_QUEUE_SUSCRIPT);
+	list_destroy(APPEARED_POKEMON_QUEUE_SUSCRIPT);
+	list_destroy(CATCH_POKEMON_QUEUE_SUSCRIPT);
+	list_destroy(CAUGHT_POKEMON_QUEUE_SUSCRIPT);
+	list_destroy(GET_POKEMON_QUEUE_SUSCRIPT);
 }
 
 void esperar_cliente(int servidor){
@@ -75,8 +77,8 @@ void serve_client(int* socket)
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
-	//int id = recv(cliente_fd, &id,sizeof(int),0);
-	int id = suscribir_mensaje(cod_op,buffer);
+
+	int id = suscribir_mensaje(cod_op,buffer,cliente_fd);
 	op_code codigo_operacion = APPEARED_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
@@ -84,46 +86,44 @@ void process_request(int cod_op, int cliente_fd) {
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
 	puts(mensaje->parametros[0]);
-	mensaje->id = 0;
+
 	enviar_mensaje(mensaje,cliente_fd);
 	puts("envia mensaje");
 	//reenviar id
 }
 
-int suscribir_mensaje(int cod_op,void* buffer){
+int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 
-	t_new_pokemon* new_pokemon;
-	t_position_and_name* appeared_pokemon;
-	t_position_and_name* catch_pokemon;
-	t_caught_pokemon* caught_pokemon;
-	t_get_pokemon* get_pokemon;
+//	t_new_pokemon* new_pokemon;
+//	t_position_and_name* appeared_pokemon;
+//	t_position_and_name* catch_pokemon;
+//	t_caught_pokemon* caught_pokemon;
+//	t_get_pokemon* get_pokemon;
 
 	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
 	mensaje->buffer = buffer;
 	mensaje->tipo_mensaje = cod_op;
 	mensaje->id = unique_message_id++;
+	mensaje->suscriptor = cliente_fd;
 
 	switch (cod_op) {
 	case NEW_POKEMON:
-		new_pokemon = deserializar_new_pokemon(buffer);
-		list_add(NEW_POKEMON_QUEUE,new_pokemon);
+		ejecutar_new_pokemon(mensaje);
 		break;
 	case APPEARED_POKEMON:
-		appeared_pokemon = deserializar_position_and_name(buffer);
-		list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+		ejecutar_appeared_pokemon(mensaje);
 		break;
 	case CATCH_POKEMON:
-		catch_pokemon = deserializar_position_and_name(buffer);
-		list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
+		ejecutar_catch_pokemon(mensaje);
 		break;
 	case CAUGHT_POKEMON:
-		caught_pokemon = deserializar_caught_pokemon(buffer);
-		list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
+		ejecutar_caught_pokemon(mensaje);
 		break;
 	case GET_POKEMON:
-		get_pokemon = deserializar_get_pokemon(buffer);
-		puts(get_pokemon->nombre.nombre);
-		list_add(GET_POKEMON_QUEUE,get_pokemon);
+		ejecutar_get_pokemon(mensaje);
+		break;
+	case SUSCRIPCION:
+		ejecutar_suscripcion(mensaje);
 		break;
 	case 0:
 		pthread_exit(NULL);
@@ -141,3 +141,72 @@ void socketEscucha(char*ip, char* puerto){
 		esperar_cliente(servidor);
 	}
 }
+
+void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
+	t_new_pokemon* new_pokemon;
+	new_pokemon = deserializar_new_pokemon(mensaje->buffer);
+	list_add(NEW_POKEMON_QUEUE,new_pokemon);
+
+}
+
+void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje){
+	t_position_and_name* appeared_pokemon;
+	appeared_pokemon = deserializar_position_and_name(mensaje->buffer);
+	list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+
+}
+//	t_position_and_name* catch_pokemon;
+//	t_caught_pokemon* caught_pokemon;
+//	t_get_pokemon* get_pokemon;
+void ejecutar_catch_pokemon(t_mensaje_broker* mensaje){
+	t_position_and_name* catch_pokemon;
+	catch_pokemon = deserializar_position_and_name(mensaje->buffer);
+	list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
+
+}
+
+void ejecutar_caught_pokemon(t_mensaje_broker* mensaje){
+	t_caught_pokemon* caught_pokemon;
+	caught_pokemon = deserializar_caught_pokemon(mensaje->buffer);
+	list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
+
+}
+
+void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
+	t_get_pokemon* get_pokemon;
+	get_pokemon = deserializar_get_pokemon(mensaje->buffer);
+	list_add(GET_POKEMON_QUEUE,get_pokemon);
+
+}
+
+void ejecutar_suscripcion(t_mensaje_broker* mensaje){
+	int cola;
+	void* buffer = mensaje->buffer;
+
+	t_suscripcion* mensaje_suscripcion;
+	mensaje_suscripcion = deserializar_suscripcion(buffer);
+	cola = mensaje_suscripcion->cola;
+
+	switch (cola) {
+		case NEW_POKEMON:
+			list_add(NEW_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			break;
+		case APPEARED_POKEMON:
+			list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			break;
+		case CATCH_POKEMON:
+			list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			break;
+		case CAUGHT_POKEMON:
+			list_add(CAUGHT_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			break;
+		case GET_POKEMON:
+			list_add(GET_POKEMON_QUEUE_SUSCRIPT,mensaje->suscriptor);
+			break;
+		case 0:
+			pthread_exit(NULL);
+		case -1:
+			pthread_exit(NULL);
+		}
+}
+
