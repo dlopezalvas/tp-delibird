@@ -11,7 +11,7 @@ void enviar_mensaje(t_mensaje* mensaje, int socket){
 	paquete -> codigo_operacion = mensaje -> tipo_mensaje;
 
 	int bytes = 0;
-;
+
 	void* a_enviar = serializar_paquete(paquete, &bytes);
 
 	send(socket,a_enviar,bytes,0);
@@ -238,10 +238,9 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	new_pokemon.coordenadas.pos_y = pos_y;
 	new_pokemon.cantidad = cantidad;
 	new_pokemon.id = atoi(parametros[4]);
-
 	//free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*4 + strlen(new_pokemon.nombre.nombre) + 1;
+	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre) + 1;
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -257,7 +256,7 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	offset += sizeof(uint32_t);
 	memcpy(stream + offset, new_pokemon.nombre.nombre, strlen(new_pokemon.nombre.nombre) + 1);
 
-	free(new_pokemon.nombre.nombre);
+	//free(new_pokemon.nombre.nombre);
 
 	buffer -> stream = stream;
 
