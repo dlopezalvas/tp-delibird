@@ -22,15 +22,14 @@ void crear_tall_grass(t_config* config){
 
 	config_destroy(config_metadata);
 	//free(path_metadata);
-	puts("antes");
+
 	crear_bitmap(pto_montaje);
-	puts("despues");
 
 	sem_metadatas = list_create();
-	sem_init(&lista_metadatas_mtx, 0, 1);
+	pthread_mutex_init(&lista_metadatas_mtx, NULL);
 
 	pokemones = list_create();
-	sem_init(&pokemones_mtx, 0, 1);
+	pthread_mutex_init(&pokemones_mtx, NULL);
 
 	//free(metadata_fs);
 
@@ -86,7 +85,7 @@ void crear_bitmap(char* punto_montaje){
 
 	msync(bitarray, sizeof(bitarray), MS_SYNC);
 
-	sem_init(&bitarray_mtx, 0, 1);
+	pthread_mutex_init(&bitarray_mtx, NULL);
 
 	close(bitarray_file);
 
@@ -95,7 +94,9 @@ void crear_bitmap(char* punto_montaje){
 
 //journaling, checkeo con el log, si falla a la mitad que se pueda deshacer los pasos
 
-void agregar_pokemon_mapa(t_new_pokemon* pokemon){
+void agregar_pokemon_mapa(t_buffer* buffer){
+
+	t_new_pokemon* pokemon = deserializar_new_pokemon(buffer);
 
 	char* path_pokemon = string_new();
 	string_append(&path_pokemon, pto_montaje);
@@ -136,8 +137,8 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	FILE* metadata = fopen(path_pokemon, "w+"); //creo su metadata
 
-	sem_wait(&lista_metadatas_mtx);
-	sem_wait(&pokemones_mtx);
+	pthread_mutex_lock(&lista_metadatas_mtx);
+	pthread_mutex_lock(&pokemones_mtx);
 
 	int index_semaforo = list_size(sem_metadatas); //el index va a ser la cantidad de elementos en la lista - 1 (lista comienza en 0), que es lo mismo que tener el tamanio antes de agregarlo a la lista
 
@@ -145,23 +146,23 @@ void crear_pokemon(t_new_pokemon* pokemon){
 		perror("No coinciden los semaforos con la cantidad de pokemones");
 	}
 
-	sem_t pokemon_mtx;
+	pthread_mutex_t pokemon_mtx;
 
-	sem_init (&pokemon_mtx, 0, 1);
+	pthread_mutex_init(&pokemon_mtx, NULL);
 
 	list_add(sem_metadatas, &pokemon_mtx);
 	list_add(pokemones, pokemon->nombre.nombre);
 
-	sem_post(&lista_metadatas_mtx);
-	sem_post(&pokemones_mtx);
+	pthread_mutex_unlock(&lista_metadatas_mtx);
+	pthread_mutex_unlock(&pokemones_mtx);
 
-	sem_wait(&pokemon_mtx); //cambia en la lista tambien?
+	pthread_mutex_lock(&pokemon_mtx); //cambia en la lista tambien?
 
 	fprintf(metadata, "DIRECTORY=N\n"); //no lo escribe esto???????
 	fprintf(metadata, "OPEN=Y\n"); //lo marco como abierto
 	fclose(metadata);
 
-	sem_post(&pokemon_mtx);
+	pthread_mutex_unlock(&pokemon_mtx);
 
 	char* datos = string_new();
 	string_append(&datos, string_itoa(pokemon->coordenadas.pos_x));
@@ -430,10 +431,10 @@ char** buscar_bloques_libres(int cantidad){
 int bloque_libre(){
 	for(int i = 0; i < metadata_fs->blocks; i++){
 		if(!bitarray_test_bit(bitarray,i)){
-			sem_wait(&bitarray_mtx);
+			pthread_mutex_lock(&bitarray_mtx);
 			bitarray_set_bit(bitarray,i);
 			msync(bitarray, sizeof(bitarray), MS_SYNC);
-			sem_post(&bitarray_mtx);
+			pthread_mutex_unlock(&bitarray_mtx);
 			return i;
 		}
 	}
@@ -595,22 +596,21 @@ void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_po
 
 	int index_sem_metadata = index_pokemon(nombre_pokemon);
 
-	sem_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
+	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
+
+	//pthread_mutex_lock(semaforo_pokemon);
 	config_set_value(config_archivo, OPEN, YES);
-	sem_wait(semaforo_pokemon);
 	config_save_in_file(config_archivo, path_pokemon);
-
-	sem_post(semaforo_pokemon);
-
+	//pthread_mutex_unlock(semaforo_pokemon);
 
 }
 
 int index_pokemon(char* nombre){
 	int index = 0;
 
-	sem_wait(&lista_metadatas_mtx);
-	sem_wait(&pokemones_mtx);
+	pthread_mutex_lock(&lista_metadatas_mtx);
+	pthread_mutex_lock(&pokemones_mtx);
 	char* pokemon = list_get(pokemones, index);
 
 	while((!string_equals_ignore_case(pokemon, nombre)) && index < (list_size(pokemones)-1)){
@@ -618,16 +618,16 @@ int index_pokemon(char* nombre){
 		pokemon = list_get(pokemones, index);
 	}
 	if(!string_equals_ignore_case(pokemon, nombre)){
-		sem_t pokemon_mtx;
+		pthread_mutex_t pokemon_mtx;
 
-		sem_init (&pokemon_mtx, 0, 1);
+		pthread_mutex_init(&pokemon_mtx, NULL);
 
 		list_add(sem_metadatas, &pokemon_mtx);
 		list_add(pokemones, nombre);
 		index++;
 	}
-	sem_post(&lista_metadatas_mtx);
-	sem_post(&pokemones_mtx);
+	pthread_mutex_unlock(&lista_metadatas_mtx);
+	pthread_mutex_unlock(&pokemones_mtx);
 
 	return index;
 }
@@ -688,12 +688,12 @@ void process_request(int cod_op, int cliente_fd) {
 
 	recv(cliente_fd, &id, sizeof(uint32_t),0);
 
-	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
+	//t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
 
 		switch (cod_op) {
 		case NEW_POKEMON:
-			new_pokemon = deserializar_new_pokemon(buffer);
-			agregar_pokemon_mapa(new_pokemon);
+		//	new_pokemon = deserializar_new_pokemon(buffer);
+			agregar_pokemon_mapa(buffer);
 			break;
 		case CATCH_POKEMON:
 			puts("catch pokemon");
@@ -706,6 +706,185 @@ void process_request(int cod_op, int cliente_fd) {
 		case -1:
 			pthread_exit(NULL);
 		}
+}
+void crear_conexiones(){
+	int tiempoReconexion = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
+	pthread_t new_pokemon_thread;
+	pthread_t catch_pokemon_thread;
+	pthread_t get_pokemon_thread;
+	while(1){
+		pthread_create(&new_pokemon_thread,NULL,(void*)connect_new_pokemon,NULL);
+		pthread_detach(new_pokemon_thread);
+		pthread_create(&catch_pokemon_thread,NULL,(void*)connect_catch_pokemon,NULL);
+		pthread_detach(catch_pokemon_thread);
+		pthread_create(&get_pokemon_thread,NULL,(void*)connect_get_pokemon,NULL);
+		pthread_detach(get_pokemon_thread);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
+		sleep(tiempoReconexion);
+		log_info(logger_gamecard, "Inicio Reintento de todas las conexiones");
+
+	}
+	sem_destroy(&conexiones);
+	return;
+}
+
+void connect_new_pokemon(){
+	op_code codigo_operacion = SUSCRIPCION;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split[1] = {"NEW_POKEMON"};
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = linea_split;
+
+	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	enviar_mensaje(mensaje, socket_broker);
+
+	puts("envia mensaje");
+
+	int size = 0;
+	t_new_pokemon* new_pokemon;
+	int cod_op;
+
+	while(1){
+
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
+			liberar_conexion(socket_broker);
+			sem_post(&conexiones);
+			pthread_exit(NULL);
+		}
+		void* buffer = recibir_mensaje(socket_broker,&size);
+		pthread_t solicitud_mensaje;
+
+		if(cod_op == NEW_POKEMON){
+//			list_add(mensajes, &solicitud_mensaje);
+//			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
+//			pthread_detach(solicitud_mensaje);
+
+		}
+	}
+
+	liberar_conexion(socket_broker);
+
+	//	free(mensaje -> parametros);
+	//	free(mensaje);
+}
+
+void connect_catch_pokemon(){
+	op_code codigo_operacion = SUSCRIPCION;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split[1] = {"CATCH_POKEMON"};
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = linea_split;
+
+	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	enviar_mensaje(mensaje, socket_broker);
+
+	puts("envia mensaje");
+
+	int size = 0;
+	t_position_and_name* catch_pokemon;
+	int cod_op;
+
+	while(1){
+
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
+			liberar_conexion(socket_broker);
+			sem_post(&conexiones);
+			pthread_exit(NULL);
+		}
+		void* buffer = recibir_mensaje(socket_broker,&size);
+		pthread_t solicitud_mensaje;
+
+		if(cod_op == CATCH_POKEMON){
+
+			list_add(mensajes, &solicitud_mensaje);
+			puts("catch_pokemon");
+
+//			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
+
+		}
+	}
+
+	liberar_conexion(socket_broker);
+
+	//	free(mensaje -> parametros);
+	//	free(mensaje);
+}
+
+void connect_get_pokemon(){
+	op_code codigo_operacion = SUSCRIPCION;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split[1] = {"NEW_POKEMON"};
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = linea_split;
+
+	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	enviar_mensaje(mensaje, socket_broker);
+
+	puts("envia mensaje");
+
+	int size = 0;
+	t_get_pokemon* get_pokemon;
+	int cod_op;
+
+	while(1){
+
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
+			liberar_conexion(socket_broker);
+			sem_post(&conexiones);
+			pthread_exit(NULL);
+		}
+		void* buffer = recibir_mensaje(socket_broker,&size);
+		pthread_t solicitud_mensaje;
+
+		if(cod_op == GET_POKEMON){
+
+			list_add(mensajes, &solicitud_mensaje);
+			puts("get_pokemon");
+
+//			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
+
+		}
+	}
+
+	liberar_conexion(socket_broker);
+
+	//	free(mensaje -> parametros);
+	//	free(mensaje);
+}
+
+int iniciar_cliente_gamecard(char* ip, char* puerto){
+	struct sockaddr_in direccion_servidor;
+
+	direccion_servidor.sin_family = AF_INET;
+	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
+	direccion_servidor.sin_port = htons(atoi(puerto));
+
+	int cliente = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		log_info(logger_gamecard, "No se pudo realizar la conexion");
+		liberar_conexion(cliente);
+		sem_post(&conexiones);
+		pthread_exit(NULL);
+	}else{
+
+	log_info(logger_gamecard,"Se ha establecido una conexion con el proceso Broker");
+	return cliente;
+	}
+}
+
+void socket_gameboy(){
+
+	socketEscucha(config_get_string_value(config, "IP_GAMECARD"), config_get_string_value(config, "PUERTO_GAMECARD"));
+
 }
 
 

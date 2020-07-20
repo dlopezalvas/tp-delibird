@@ -1,9 +1,7 @@
-<<<<<<< HEAD
-[INFO] 20:36:22:819 GAMECARD/(20857:20857): -----------LOG START--------
-[INFO] 20:36:22:819 GAMECARD/(20857:20857): 6009
-[INFO] 20:36:22:819 GAMECARD/(20857:20857): 127.0.0.1
-=======
-[INFO] 18:54:47:983 GAMECARD/(11896:11896): -----------LOG START--------
-[INFO] 18:54:47:983 GAMECARD/(11896:11896): 6009
-[INFO] 18:54:47:983 GAMECARD/(11896:11896): 127.0.0.1
->>>>>>> 5e4bfd5d35eb49e0a5d93ff716f62d5c166965fe
+[INFO] 16:44:14:780 GAMECARD/(19109:19115): No se pudo realizar la conexion
+[INFO] 16:44:14:781 GAMECARD/(19109:19114): No se pudo realizar la conexion
+[INFO] 16:44:14:781 GAMECARD/(19109:19113): No se pudo realizar la conexion
+[INFO] 16:44:19:784 GAMECARD/(19109:19111): Inicio Reintento de todas las conexiones
+[INFO] 16:44:19:797 GAMECARD/(19109:19119): Se ha establecido una conexion con el proceso Broker
+[INFO] 16:44:19:798 GAMECARD/(19109:19118): Se ha establecido una conexion con el proceso Broker
+[INFO] 16:44:19:785 GAMECARD/(19109:19120): Se ha establecido una conexion con el proceso Broker
