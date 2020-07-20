@@ -29,3 +29,14 @@
 [INFO] 22:56:58:187 GAMEBOY/(8597:8597): Se ha establecido una conexion con el proceso Team
 [INFO] 22:56:58:947 GAMEBOY/(8597:8597): Se ha establecido una conexion con el proceso Team
 [INFO] 22:56:59:869 GAMEBOY/(8597:8597): Se ha establecido una conexion con el proceso Team
+[INFO] 23:19:03:930 GAMEBOY/(9772:9772): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:22:10:953 GAMEBOY/(9968:9968): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:24:36:140 GAMEBOY/(10137:10137): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:25:34:931 GAMEBOY/(10205:10205): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:25:34:932 GAMEBOY/(10205:10207): Mensaje Localized Pikachu 2
+[INFO] 23:26:58:626 GAMEBOY/(10290:10290): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:26:58:626 GAMEBOY/(10290:10293): Mensaje Localized Pikachu 2
+[INFO] 23:27:43:769 GAMEBOY/(10332:10332): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:27:43:770 GAMEBOY/(10332:10335): Mensaje Localized Pikachu 2 1 2 3 4
+[INFO] 23:31:01:871 GAMEBOY/(10475:10475): Se ha suscripto a la cola localized_pokemon
+[INFO] 23:31:01:871 GAMEBOY/(10475:10485): Mensaje 10 localized_pokemon Pikachu 2 1 2 3 4 correlation id: 11
