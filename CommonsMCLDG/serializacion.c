@@ -269,7 +269,7 @@ t_buffer* buffer_new_pokemon(char** parametros){
 t_buffer* buffer_suscripcion(char** parametros){
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	op_code cola = atoi(parametros[0]);
+	op_code cola = codigo_mensaje(parametros[0]);
 
 	t_suscripcion suscripcion;
 	suscripcion.cola = cola;

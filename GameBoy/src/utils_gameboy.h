@@ -27,14 +27,6 @@
 #define GAMECARD "GAMECARD"
 #define GAMEBOY "GAMEBOY"
 
-//Defino tipo mensajes
-#define MENSAJE_NEW_POKEMON "NEW_POKEMON"
-#define MENSAJE_APPEARED_POKEMON "APPEARED_POKEMON"
-#define MENSAJE_CATCH_POKEMON "CATCH_POKEMON"
-#define MENSAJE_CAUGHT_POKEMON "CAUGHT_POKEMON"
-#define MENSAJE_GET_POKEMON "GET_POKEMON"
-#define MENSAJE_LOCALIZED_POKEMON "LOCALIZED_POKEMON"
-#define MENSAJE_MODO_SUSCRIPTOR "SUSCRIPTOR"
 
 //cantidad de argumentos de mensajes
 #define ARGUMENTOS_APPEARED_POKEMON 3
@@ -83,7 +75,7 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, t
 bool verificar_mensaje(char** linea_split, t_config* config, tipo_id* flag_id );
 
 
-op_code codigo_mensaje(char* tipo_mensaje);
+
 int cantidad_argumentos (char** linea_split);
 char** argumentos(char** linea_split, tipo_id flag_id);
 char* calcular_id(tipo_id flag_id, char** linea_split);

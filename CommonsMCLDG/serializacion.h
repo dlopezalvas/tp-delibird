@@ -68,7 +68,6 @@ typedef struct{
 
 typedef struct{
 	op_code cola;
-	uint32_t id;
 }t_suscripcion;
 
 void enviar_mensaje(t_mensaje* mensaje, int socket);

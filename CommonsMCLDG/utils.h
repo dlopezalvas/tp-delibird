@@ -21,6 +21,14 @@
 #define PUERTO_TEAM "PUERTO_TEAM"
 #define PUERTO_GAMECARD "PUERTO_GAMECARD"
 
+//Defino tipo mensajes
+#define MENSAJE_NEW_POKEMON "NEW_POKEMON"
+#define MENSAJE_APPEARED_POKEMON "APPEARED_POKEMON"
+#define MENSAJE_CATCH_POKEMON "CATCH_POKEMON"
+#define MENSAJE_CAUGHT_POKEMON "CAUGHT_POKEMON"
+#define MENSAJE_GET_POKEMON "GET_POKEMON"
+#define MENSAJE_LOCALIZED_POKEMON "LOCALIZED_POKEMON"
+#define MENSAJE_MODO_SUSCRIPTOR "SUSCRIPTOR"
 
 //Defino diferentes procesos
 #define BROKER "BROKER"
@@ -43,6 +51,7 @@ t_log* iniciar_logger(t_config*);
 t_config* leer_config(char* proceso);
 void terminar_proceso(int, t_log*, t_config*);
 void liberar_vector (char** vector);
+op_code codigo_mensaje(char* tipo_mensaje);
 
 
 #endif /* UTILS_H_ */

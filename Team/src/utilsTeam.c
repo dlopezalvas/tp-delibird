@@ -611,10 +611,10 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			}
 
 			break;
-		case 0:
-			pthread_exit(NULL);
-		case -1:
-			pthread_exit(NULL);
+//		case 0:
+//			//pthread_exit(NULL);
+//		case -1:
+//			//pthread_exit(NULL);
 		}
 
 }
@@ -736,12 +736,12 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 }
 
 void connect_appeared(){
-	op_code codigo_operacion = APPEARED_POKEMON;
+	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = "PIKACHU,2,2";
+	char* linea_split[1] = {"APPEARED_POKEMON"};
 	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = string_split(linea_split,",");
+	mensaje -> parametros = linea_split;
 
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
@@ -757,7 +757,12 @@ void connect_appeared(){
 
 	while(!(cumpleObjetivoGlobal())){
 
-		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
+//		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			liberar_conexion(socket_broker);
+			//singal semaforo de hilo que crea conexiones
+			return;
+		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 
 		if(cod_op == APPEARED_POKEMON){
@@ -778,42 +783,112 @@ void connect_appeared(){
 //	free(mensaje -> parametros);
 //	free(mensaje);
 }
-
-void connect_localized_pokemon(){
-	op_code codigo_operacion = LOCALIZED_POKEMON;
+void get_pokemon(char*especie, int socket_broker){
+	op_code codigo_operacion = GET_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = "Pikachu,2,1,2,3,4";
+	char* linea_split[1] = {especie};
 	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = string_split(linea_split,",");
-
-	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
-
+	mensaje -> parametros = linea_split;
 	enviar_mensaje(mensaje, socket_broker);
-	puts("Envia Mensaje Localized");
-	liberar_conexion(socket_broker);
+}
 
-	free(mensaje -> parametros);
-	free(mensaje);
+void connect_localized_pokemon(){
+	op_code codigo_operacion = SUSCRIPCION;
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+
+	char* linea_split[1] = {"LOCALIZED_POKEMON"};
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = linea_split;
+
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	enviar_mensaje(mensaje, socket_broker);
+	puts("envia mensaje");
+
+	void _get_pokemon(void* especie){
+		return get_pokemon(especie, socket_broker);
+	}
+
+	list_iterate(especiesNecesarias, (void*)get_pokemon); //poner if es la primera vez que lo ejecuta
+
+	int size = 0;
+	t_localized_pokemon* localized_pokemon;
+	bool _mismaEspecie(char* especie1){
+		return mismaEspecie(especie1, localized_pokemon->nombre.nombre);
+	}
+	int cod_op;
+
+	while(!(cumpleObjetivoGlobal())){
+
+//		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			liberar_conexion(socket_broker);
+			//singal semaforo de hilo que crea conexiones
+			return;
+		}
+		void* buffer = recibir_mensaje(socket_broker,&size);
+
+		if(cod_op == LOCALIZED_POKEMON){
+
+			puts("recibe mensaje");
+			localized_pokemon = deserializar_localized_pokemon(buffer);
+			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie)){//list_any_satisfy(id get pokemon, (void*) mismoID)){ //crear mismo ID que localized_> correlation_id
+				char* mensaje = string_new();
+				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized_pokemon->id, localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
+				coordenadas_pokemon* coord;
+				for(int i = 0; i<localized_pokemon->cantidad; i++){
+					coord = list_get(localized_pokemon->listaCoordenadas, i);
+					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
+				}
+				string_append_with_format(&mensaje, " correlation id: %d", localized_pokemon->correlation_id);
+				log_info(logger, mensaje);
+				//localized_pokemon(localized_pokemon) ; //hacer dentro de un hilo? eliminar de lista especieNecesarias
+				//agregar a lista de appeared y signal hilo appeared_pokemon
+			}
+			puts(localized_pokemon->nombre.nombre);
+			puts("deserializo");
+		}
+	}
+
+	liberar_conexion(socket_broker); //hacer en finalizar team?
+
+	//	free(mensaje -> parametros);
+	//	free(mensaje);
 }
 
 void connect_caught_pokemon(){
-	op_code codigo_operacion = CAUGHT_POKEMON;
-	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+	op_code codigo_operacion = SUSCRIPCION;
+		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = "LAKSJDL,2,2";
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = string_split(linea_split,",");
+		char* linea_split[1] = {"CAUGHT_POKEMON"};
+		mensaje -> tipo_mensaje = codigo_operacion;
+		mensaje -> parametros = linea_split;
 
+		int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+		enviar_mensaje(mensaje, socket_broker);
+		puts("envia mensaje");
 
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+		int size = 0;
+		t_caught_pokemon* caught_pokemon;
 
-	enviar_mensaje(mensaje, socket_broker);
+		int cod_op;
 
-	liberar_conexion(socket_broker);
+		while(!(cumpleObjetivoGlobal())){
 
-	free(mensaje -> parametros);
-	free(mensaje);
+	//		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
+			if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+				liberar_conexion(socket_broker);
+				//singal semaforo de hilo que crea conexiones
+				return;
+			}
+			void* buffer = recibir_mensaje(socket_broker,&size);
+			if(cod_op == CAUGHT_POKEMON){
+				puts("recibe mensaje");
+				caught_pokemon = deserializar_caught_pokemon(buffer);
+				//if() correlation id esta en mi lista de id de catch pokemon;
+				//caught_pokemon(); usar capturo_pokemon
+			}
+		}
 }
 void connect_gameboy(){
 	socketEscucha(config_get_string_value(config, "IP_TEAM"), config_get_string_value(config, "PUERTO_TEAM"));

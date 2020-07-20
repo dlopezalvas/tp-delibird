@@ -36,4 +36,23 @@ void liberar_vector (char** vector){
 	free(vector);
 }
 
+op_code codigo_mensaje(char* tipo_mensaje){
+
+	if(string_equals_ignore_case(MENSAJE_NEW_POKEMON, tipo_mensaje)){
+		return NEW_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_APPEARED_POKEMON, tipo_mensaje)){
+		return APPEARED_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_CATCH_POKEMON, tipo_mensaje)){
+		return CATCH_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_CAUGHT_POKEMON, tipo_mensaje)){
+			return CAUGHT_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_GET_POKEMON, tipo_mensaje)){
+		return GET_POKEMON;
+	}else if(string_equals_ignore_case(MENSAJE_LOCALIZED_POKEMON, tipo_mensaje)){
+		return LOCALIZED_POKEMON;
+	}else{
+		return 0;
+	}
+}
+
 
