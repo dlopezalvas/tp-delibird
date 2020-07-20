@@ -52,16 +52,16 @@ void iniciarTeam(){
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 
-//	pthread_t conexionGameboy;
-//	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
-//	pthread_join(conexionGameboy, NULL);
+	pthread_t conexionGameboy;
+	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+	pthread_join(conexionGameboy, NULL);
 //	pthread_t appeared_pokemon_thread;
 //	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_join(appeared_pokemon_thread, NULL);
 //	pthread_detach(appeared_pokemon_thread);
-	pthread_t localized_pokemon_thread;
-	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
-	pthread_join(localized_pokemon_thread, NULL);
+//	pthread_t localized_pokemon_thread;
+//	pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
+//	pthread_join(localized_pokemon_thread, NULL);
 //	pthread_t caught_pokemon_thread;
 //	pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_detach(caught_pokemon_thread);
@@ -604,8 +604,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			appeared = deserializar_position_and_name(buffer);
 
 			puts(appeared->nombre.nombre);
+			puts(string_itoa(appeared->id));
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
-				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
+				log_info(logger, "%d Mensaje Appeared_pokemon %s %d %d", appeared->id, appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
 				appeared_pokemon(appeared) ; //hacer dentro de un hilo
 			}
 
@@ -741,7 +742,7 @@ void connect_appeared(){
 	char* linea_split = "PIKACHU,2,2";
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
-	mensaje -> id = 2;
+
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 
@@ -785,7 +786,6 @@ void connect_localized_pokemon(){
 	char* linea_split = "Pikachu,2,1,2,3,4";
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
-	mensaje -> id = 2;
 
 	int socket_broker = iniciar_cliente(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
@@ -804,7 +804,7 @@ void connect_caught_pokemon(){
 	char* linea_split = "LAKSJDL,2,2";
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");
-	mensaje -> id = 2;
+
 
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 

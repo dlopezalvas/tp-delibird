@@ -10,7 +10,6 @@ typedef struct{
   op_code tipo_mensaje;
   char **parametros; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
   char *queue;
-  uint32_t id;
 }t_mensaje;
 
 
@@ -38,33 +37,42 @@ typedef struct{
 	coordenadas_pokemon coordenadas;
 	nombre_pokemon nombre;
 	uint32_t cantidad;
+	uint32_t id;
 }t_new_pokemon;
 
 typedef struct{
 	coordenadas_pokemon coordenadas;
 	nombre_pokemon nombre;
+	uint32_t id;
+	uint32_t correlation_id;
 }t_position_and_name;
 
 typedef struct{
 	nombre_pokemon nombre;
 	uint32_t cantidad;
 	t_list* listaCoordenadas;
+	uint32_t id;
+	uint32_t correlation_id;
 }t_localized_pokemon;
 
 typedef struct{
 	nombre_pokemon nombre;
+	uint32_t id;
 }t_get_pokemon;
 
 typedef struct{
 	uint32_t caught;
+	uint32_t id;
+	uint32_t correlation_id;
 }t_caught_pokemon;
 
 typedef struct{
 	op_code cola;
+	uint32_t id;
 }t_suscripcion;
 
 void enviar_mensaje(t_mensaje* mensaje, int socket);
-void* serializar_paquete(t_paquete* paquete, int *bytes, uint32_t id);
+void* serializar_paquete(t_paquete* paquete, int *bytes);
 t_get_pokemon* deserializar_get_pokemon(void* buffer);
 
 

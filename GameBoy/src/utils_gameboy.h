@@ -86,7 +86,8 @@ bool verificar_mensaje(char** linea_split, t_config* config, tipo_id* flag_id );
 op_code codigo_mensaje(char* tipo_mensaje);
 int cantidad_argumentos (char** linea_split);
 char** argumentos(char** linea_split, tipo_id flag_id);
-uint32_t calcular_id(tipo_id flag_id, char** linea_split);
+char* calcular_id(tipo_id flag_id, char** linea_split);
+char* calcular_correlation_id(tipo_id flag_id, char** linea_split);
 void recibir_mensajes_de_cola(int* socket);
 void process_request(int cod_op, int cliente_fd);
 

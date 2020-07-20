@@ -250,14 +250,13 @@ void process_request(int cod_op, int cliente_fd){
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 	puts("recibi un mensaje");
 
-	int id;
-	//recv(cliente_fd, &id,sizeof(int),0);
 
 	t_new_pokemon* new_pokemon;
 	t_position_and_name* appeared_pokemon;
 	t_position_and_name* catch_pokemon;
 	t_caught_pokemon* caught_pokemon;
 	t_get_pokemon* get_pokemon;
+	t_localized_pokemon* localized_pokemon;
 
 	switch (cod_op) {
 	case NEW_POKEMON:
@@ -274,12 +273,15 @@ void process_request(int cod_op, int cliente_fd){
 		break;
 	case CAUGHT_POKEMON:
 		caught_pokemon = deserializar_caught_pokemon(buffer);
-		log_info(logger, "Mensaje Caught_pokemon %d %d", caught_pokemon->caught, id);
+		log_info(logger, "Mensaje Caught_pokemon %d %d", caught_pokemon->caught, caught_pokemon->id);
 		break;
 	case GET_POKEMON:
 		get_pokemon = deserializar_get_pokemon(buffer);
 		log_info(logger, "Mensaje Get_pokemon %s", get_pokemon->nombre);
 		break;
+	case LOCALIZED_POKEMON:
+		localized_pokemon = deserializar_localized_pokemon(buffer);
+		log_info(logger, "Mensaje Localized"); //agregar parametros
 	}
 
 }
@@ -296,7 +298,6 @@ void ejecutar_broker(char** linea_split, t_config* config, tipo_id flag_id){
 
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = argumentos(linea_split, flag_id);
-	mensaje -> id = calcular_id(flag_id, linea_split);
 
 	int socket_broker = iniciar_cliente(ip, puerto);
 
@@ -321,7 +322,6 @@ void ejecutar_team(char** linea_split, t_config* config){
 
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = argumentos(linea_split, 0); //no necesita id en ningun mensaje
-	mensaje -> id = 0;
 
 	int socket_team = iniciar_cliente(ip, puerto);
 
@@ -346,7 +346,6 @@ void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
 
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = argumentos(linea_split, flag_id);
-	mensaje -> id = calcular_id(flag_id, linea_split);
 
 	int socket_gamecard = iniciar_cliente(ip, puerto);
 
@@ -365,22 +364,24 @@ void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
 
 /////////////////CALCULOS ARGUMENTOS/ID/CODIGO////////////////////////
 
-uint32_t calcular_id(tipo_id flag_id, char** linea_split){
-	uint32_t id;
+char* calcular_id(tipo_id flag_id, char** linea_split){
+	char* id;
 
-	char** aux = argumentos(linea_split, 0);
+//	char** aux = argumentos(linea_split, 0);
 
 	int cantidad = cantidad_argumentos(linea_split) - 1; //posicion del ultimo argumento
 
 	switch(flag_id){
 		case NO_TIENE_ID:
-			id = 0;
+			id = "0";
 			break;
 		case ID_AL_PRINCIPIO:
-			id = atoi(aux[0]);
+			if(string_equals_ignore_case(linea_split[1], "CAUGHT_POKEMON")) id = "0";
+			else id = linea_split[2];
 			break;
 		case ID_AL_FINAL:
-			id = atoi(aux[cantidad]);
+			if(string_equals_ignore_case(linea_split[1], "APPEARED_POKEMON")) id="0";
+			else	id = linea_split[cantidad+2];
 			break;
 	}
 
@@ -389,6 +390,31 @@ uint32_t calcular_id(tipo_id flag_id, char** linea_split){
 	return id;
 }
 
+char* calcular_correlation_id(tipo_id flag_id, char** linea_split){
+	char* id;
+
+//	char** aux = argumentos(linea_split, 0);
+
+	int cantidad = cantidad_argumentos(linea_split) - 1; //posicion del ultimo argumento
+
+	switch(flag_id){
+		case NO_TIENE_ID:
+			id = "0";
+			break;
+		case ID_AL_FINAL:
+			if(string_equals_ignore_case(linea_split[1], "APPEARED_POKEMON")) id = linea_split[cantidad+2];
+			else id = "0";
+			break;
+		case ID_AL_PRINCIPIO:
+			if(string_equals_ignore_case(linea_split[1], "CAUGHT_POKEMON")) id = linea_split[2];
+			else id = "0";
+			break;
+	}
+
+	//free(aux);
+
+	return id;
+}
 int cantidad_argumentos (char** linea_split){
 	int cantidad = 0;
 
@@ -414,13 +440,19 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 			i_linea_split ++;
 			break;
 	}
+	char* id = calcular_id(flag_id, linea_split);
+	char* correlation_id = calcular_correlation_id(flag_id, linea_split);
 
-	char** lista_argumentos = malloc(sizeof(char*)*cantidad);
-
-	for(int k = 0; k < cantidad; k++){
+	char** lista_argumentos = malloc(sizeof(char*)*(cantidad+2));
+	int k;
+	for(k = 0; k < cantidad; k++){
 		lista_argumentos[k] = linea_split[i_linea_split];
 		i_linea_split++;
+
 	}
+
+	lista_argumentos[k] = id;
+	lista_argumentos[k+1] = correlation_id;
 
 	return lista_argumentos;
 }
