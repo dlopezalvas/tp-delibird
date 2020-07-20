@@ -86,5 +86,12 @@ void ejecutar_caught_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_get_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_suscripcion(t_mensaje_broker* mensaje);
+void ejecutar_new_pokemon_suscripcion(int suscriptor);
+void ejecutar_appeared_pokemon_suscripcion(int suscriptor);
+void ejecutar_catch_pokemon_suscripcion(int suscriptor);
+void ejecutar_caught_pokemon_suscripcion(int suscriptor);
+void ejecutar_get_pokemon_suscripcion(int suscriptor);
+void ejecutar_localized_pokemon_suscripcion(int suscriptor);
+void ejecutar_suscripcion_suscripcion(int suscriptor);
 
 #endif /* UTILS_BROKER_H_ */
