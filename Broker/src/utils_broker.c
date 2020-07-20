@@ -164,30 +164,26 @@ void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 
 	//arma mensaje para enviar
-	char* linea_split;
-	coordenadas_pokemon coordenadas;
-	nombre_pokemon nombre;
-	uint32_t cantidad;
+	char* linea_split = "";
+	char* nombre;
 
 	nombre = new_pokemon->nombre.nombre;
-	char* coordenadas_x = new_pokemon->coordenadas.pos_x;
-	char* coordenadas_y = new_pokemon->coordenadas.pos_y;
+	int coordenadas_x = new_pokemon->coordenadas.pos_x;
+	int coordenadas_y = new_pokemon->coordenadas.pos_y;
 
-	sprintf(linea_split, "%s,%s,%s,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
+	sprintf(linea_split, "%s,%d,%d,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
 	mensaje_enviar -> tipo_mensaje = codigo_operacion;
 	mensaje_enviar -> parametros = string_split(linea_split,",");
 	//
 
 	//envia y loguea mensaje
 	char* log_envio_new_pokemon;
-		sprintf(log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,cliente_a_enviar);
+	sprintf(log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,cliente_a_enviar);
 
 	void _enviar_mensaje_broker(void* pokemon){
 		return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,log_envio_new_pokemon);
 	}
 	list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
-
-
 }
 
 void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje){
@@ -233,25 +229,25 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 	t_suscripcion* mensaje_suscripcion;
 	mensaje_suscripcion = deserializar_suscripcion(buffer);
 	cola = mensaje_suscripcion->cola;
-	int* suscriptor = mensaje->suscriptor;
+	int suscriptor = mensaje->suscriptor;
 	switch (cola) {
 		case NEW_POKEMON:
-			ejecutar_new_pokemon_suscriptor(suscriptor);
+			ejecutar_new_pokemon_suscripcion(suscriptor);
 			break;
 		case APPEARED_POKEMON:
-			ejecutar_appeared_pokemon_suscriptor(suscriptor);
+			ejecutar_appeared_pokemon_suscripcion(suscriptor);
 			break;
 		case CATCH_POKEMON:
-			ejecutar_catch_pokemon_suscriptor(suscriptor);
+			ejecutar_catch_pokemon_suscripcion(suscriptor);
 			break;
 		case CAUGHT_POKEMON:
-			ejecutar_caught_pokemon_suscriptor(suscriptor);
+			ejecutar_caught_pokemon_suscripcion(suscriptor);
 			break;
 		case GET_POKEMON:
-			ejecutar_get_pokemon_suscriptor(suscriptor);
+			ejecutar_get_pokemon_suscripcion(suscriptor);
 			break;
 		case LOCALIZED_POKEMON:
-			ejecutar_localized_pokemon_suscriptor(suscriptor);
+			ejecutar_localized_pokemon_suscripcion(suscriptor);
 			break;
 		case 0:
 			pthread_exit(NULL);
@@ -261,44 +257,44 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 }
 
 void ejecutar_new_pokemon_suscripcion(int suscriptor){
-	char* log_new_pokemon_suscriptor;
+	char* log_new_pokemon_suscriptor = "";
 	sprintf(log_new_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT",suscriptor);
-	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
 	log_info(logger,log_new_pokemon_suscriptor);
 }
 
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor){
-	char* log_appeared_pokemon_suscriptor;
+	char* log_appeared_pokemon_suscriptor= "";
 	sprintf(log_appeared_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola APPEAREAD_POKEMON",suscriptor);
-	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
 	log_info(logger,log_appeared_pokemon_suscriptor);
 }
 
 void ejecutar_catch_pokemon_suscripcion(int suscriptor){
-	char* log_catch_pokemon_suscriptor;
+	char* log_catch_pokemon_suscriptor= "";
 	sprintf(log_catch_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
-	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
 	log_info(logger,log_catch_pokemon_suscriptor);
 }
 
 void ejecutar_caught_pokemon_suscripcion(int suscriptor){
-	char* log_caught_pokemon_suscriptor;
+	char* log_caught_pokemon_suscriptor= "";
 	sprintf(log_caught_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
-	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
 	log_info(logger,log_caught_pokemon_suscriptor);
 }
 
 void ejecutar_get_pokemon_suscripcion(int suscriptor){
-	char* log_get_pokemon_suscriptor;
+	char* log_get_pokemon_suscriptor= "";
 	sprintf(log_get_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola GET_POKEMON",suscriptor);
-	list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(GET_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
 	log_info(logger,log_get_pokemon_suscriptor);
 }
 
 void ejecutar_localized_pokemon_suscripcion(int suscriptor){
-	char* log_localized_pokemon_suscriptor;
+	char* log_localized_pokemon_suscriptor= "";
 	sprintf(log_localized_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
-	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
 	log_info(logger,log_localized_pokemon_suscriptor);
 }
 
