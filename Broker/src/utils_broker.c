@@ -33,6 +33,7 @@ void crear_queues(void){
 	CATCH_POKEMON_QUEUE_SUSCRIPT = list_create();
 	CAUGHT_POKEMON_QUEUE_SUSCRIPT = list_create();
 	GET_POKEMON_QUEUE_SUSCRIPT = list_create();
+	LOCALIZED_POKEMON_QUEUE_SUSCRIPT = list_create();
 }
 
 void terminar_queues(void){
@@ -80,16 +81,16 @@ void process_request(int cod_op, int cliente_fd) {
 
 	uint32_t id;
 	id = suscribir_mensaje(cod_op,buffer,cliente_fd);
-	op_code codigo_operacion = APPEARED_POKEMON;
-	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+//	op_code codigo_operacion = APPEARED_POKEMON;
+//	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+//
+//	char* linea_split = "PIKACHU,2,2";
+//	mensaje -> tipo_mensaje = codigo_operacion;
+//	mensaje -> parametros = string_split(linea_split,",");
+//	puts(mensaje->parametros[0]);
+//
+//	enviar_mensaje(mensaje,cliente_fd);
 
-	char* linea_split = "PIKACHU,2,2";
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = string_split(linea_split,",");
-	puts(mensaje->parametros[0]);
-
-	enviar_mensaje(mensaje,cliente_fd);
-	puts("envia mensaje");
 	//reenviar id
 }
 
@@ -100,33 +101,40 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 //	t_position_and_name* catch_pokemon;
 //	t_caught_pokemon* caught_pokemon;
 //	t_get_pokemon* get_pokemon;
-
+	puts("llego algo");
 	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
+	mensaje->buffer = malloc(sizeof(t_buffer));
 	mensaje->buffer = buffer;
 	mensaje->tipo_mensaje = cod_op;
 	mensaje->id = unique_message_id++;
 	mensaje->suscriptor = cliente_fd;
-
+	puts("Despues del t_mensaje_broker");
 	switch (cod_op) {
 	case NEW_POKEMON:
 		ejecutar_new_pokemon(mensaje);
 		break;
 	case APPEARED_POKEMON:
+		puts("appeared");
 		ejecutar_appeared_pokemon(mensaje);
 		break;
 	case CATCH_POKEMON:
+		puts("catch");
 		ejecutar_catch_pokemon(mensaje);
 		break;
 	case CAUGHT_POKEMON:
+		puts("caugh");
 		ejecutar_caught_pokemon(mensaje);
 		break;
 	case GET_POKEMON:
+		puts("GETPOKEMON");
 		ejecutar_get_pokemon(mensaje);
 		break;
 	case LOCALIZED_POKEMON:
+		puts("localized");
 		ejecutar_localized_pokemon(mensaje);
 		break;
 	case SUSCRIPCION:
+		puts("suscripcion");
 		ejecutar_suscripcion(mensaje);
 		break;
 	case 0:
@@ -210,10 +218,11 @@ void ejecutar_caught_pokemon(t_mensaje_broker* mensaje){
 }
 
 void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
+	puts("get pokemonnn");
 	t_get_pokemon* get_pokemon;
 	get_pokemon = deserializar_get_pokemon(mensaje->buffer);
+	puts("despues serializar");
 	list_add(GET_POKEMON_QUEUE,get_pokemon);
-
 }
 
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
@@ -230,6 +239,7 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 	mensaje_suscripcion = deserializar_suscripcion(buffer);
 	cola = mensaje_suscripcion->cola;
 	int suscriptor = mensaje->suscriptor;
+
 	switch (cola) {
 		case NEW_POKEMON:
 			ejecutar_new_pokemon_suscripcion(suscriptor);
@@ -247,6 +257,7 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 			ejecutar_get_pokemon_suscripcion(suscriptor);
 			break;
 		case LOCALIZED_POKEMON:
+			puts("LOCALIZED POKEMON SUSCRIPCION");
 			ejecutar_localized_pokemon_suscripcion(suscriptor);
 			break;
 		case 0:
@@ -292,9 +303,11 @@ void ejecutar_get_pokemon_suscripcion(int suscriptor){
 }
 
 void ejecutar_localized_pokemon_suscripcion(int suscriptor){
-	char* log_localized_pokemon_suscriptor= "";
-	sprintf(log_localized_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
-	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
-	log_info(logger,log_localized_pokemon_suscriptor);
+
+//	char* log_localized_pokemon_suscriptor = malloc(sizeof(char*));
+//
+//	sprintf(log_localized_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
+//	//list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,&suscriptor);//Ver si va el & o no
+//	log_info(logger,log_localized_pokemon_suscriptor);
 }
 
