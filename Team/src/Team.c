@@ -10,10 +10,6 @@
 
 #include "Team.h"
 
-
-
-
-
 int main(void) {
 
 	iniciarTeam();
