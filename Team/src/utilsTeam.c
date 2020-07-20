@@ -787,9 +787,10 @@ void get_pokemon(char*especie, int socket_broker){
 	op_code codigo_operacion = GET_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {especie};
+	char* linea_split = malloc(sizeof(char*));
+	sprintf(linea_split, "%s,%d,%d", especie, 0, 0);
 	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = linea_split;
+	mensaje -> parametros = string_split(linea_split, ",");
 	enviar_mensaje(mensaje, socket_broker);
 }
 
@@ -919,7 +920,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){
 	op_code codigo_operacion = CATCH_POKEMON;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split = malloc(sizeof(t_pokemon)); //ver si funciona
+	char* linea_split = malloc(sizeof(char*));
 	sprintf(linea_split, "%s,%d,%d", (*entrenador)->pokemonACapturar->especie,(*entrenador)->pokemonACapturar->coordx, (*entrenador)->pokemonACapturar->coordy);
 
 	mensaje -> tipo_mensaje = codigo_operacion;
