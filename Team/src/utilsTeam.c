@@ -4,6 +4,7 @@ t_list* objetivoGlobal;
 pthread_mutex_t objetivo;
 pthread_mutex_t requeridos;
 pthread_mutex_t mutex_ready;
+sem_t conexiones;
 t_list* pokemonsRequeridos;
 t_list* pokemonsDeRepuesto;
 t_list* especiesNecesarias;
@@ -23,6 +24,7 @@ void iniciarTeam(){
 	pthread_mutex_init(&requeridos, NULL);
 	pthread_mutex_init(&mutex_ready, NULL);
 	pthread_mutex_init(&mutex_ejecutar, NULL);
+	sem_init(&conexiones, 0,0);
 	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
 	estado[1] = "NEW";
@@ -52,9 +54,12 @@ void iniciarTeam(){
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 
-	pthread_t conexionGameboy;
-	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
-	pthread_join(conexionGameboy, NULL);
+	pthread_t conexionBroker;
+	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
+	pthread_join(conexionBroker, NULL);
+//	pthread_t conexionGameboy;
+//	pthread_create(&conexionGameboy, NULL, (void*)connect_gameboy, NULL);
+//	pthread_join(conexionGameboy, NULL);
 //	pthread_t appeared_pokemon_thread;
 //	pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_join(appeared_pokemon_thread, NULL);
@@ -65,7 +70,7 @@ void iniciarTeam(){
 //	pthread_t caught_pokemon_thread;
 //	pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //	pthread_detach(caught_pokemon_thread);
-	//mandar get pokemon de los pokemons de especiesNecesarias
+
 
 //	pthread_t hiloEntrenador[entrenadores->elements_count];
 //	t_link_element * aux = entrenadores->head;
@@ -759,9 +764,10 @@ void connect_appeared(){
 
 //		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 			liberar_conexion(socket_broker);
-			//singal semaforo de hilo que crea conexiones
-			return;
+			sem_post(&conexiones);
+			pthread_exit(NULL);
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 
@@ -806,11 +812,11 @@ void connect_localized_pokemon(){
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
 
-	void _get_pokemon(void* especie){
-		return get_pokemon(especie, socket_broker);
-	}
-
-	list_iterate(especiesNecesarias, (void*)get_pokemon); //poner if es la primera vez que lo ejecuta
+//	void _get_pokemon(void* especie){
+//		return get_pokemon(especie, socket_broker);
+//	}
+//
+//	list_iterate(especiesNecesarias, (void*)get_pokemon); //poner if es la primera vez que lo ejecuta
 
 	int size = 0;
 	t_localized_pokemon* localized_pokemon;
@@ -823,9 +829,10 @@ void connect_localized_pokemon(){
 
 //		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 			liberar_conexion(socket_broker);
-			//singal semaforo de hilo que crea conexiones
-			return;
+			sem_post(&conexiones);
+			pthread_exit(NULL);
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 
@@ -878,9 +885,10 @@ void connect_caught_pokemon(){
 
 	//		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
 			if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+				log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 				liberar_conexion(socket_broker);
-				//singal semaforo de hilo que crea conexiones
-				return;
+				sem_post(&conexiones);
+				pthread_exit(NULL);
 			}
 			void* buffer = recibir_mensaje(socket_broker,&size);
 			if(cod_op == CAUGHT_POKEMON){
@@ -901,17 +909,19 @@ int iniciar_cliente_team(char* ip, char* puerto){
 	direccion_servidor.sin_family = AF_INET;
 	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
 	direccion_servidor.sin_port = htons(atoi(puerto));
-	int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
+	//int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	int cliente = socket(AF_INET, SOCK_STREAM, 0);
 
-	while(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
 		log_info(logger, "No se pudo realizar la conexion");
-		sleep(tiempoReconexion);
-		log_info(logger, "Inicio Reintento de Conexion");
-	}
+		liberar_conexion(cliente);
+		sem_post(&conexiones);
+		pthread_exit(NULL);
+	}else{
 
 	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
 	return cliente;
+	}
 }
 
 
@@ -947,3 +957,42 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){
 	free(mensaje);
 
 }
+
+void crearConexiones(){
+	int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
+	pthread_t appeared_pokemon_thread;
+	pthread_t localized_pokemon_thread;
+	pthread_t caught_pokemon_thread;
+	while(!entrenadoresTienenElInventarioLleno()){
+		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+		pthread_detach(appeared_pokemon_thread);
+		pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
+		pthread_detach(localized_pokemon_thread);
+		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+		pthread_detach(caught_pokemon_thread);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
+		sleep(tiempoReconexion);
+		log_info(logger, "Inicio Reintento de todas las conexiones");
+
+	}
+	sem_destroy(&conexiones);
+	return;
+}
+
+bool entrenadoresTienenElInventarioLleno(){
+	bool _tieneInventarioLlenoOEstaEnExit(void* entrenador){
+		return tieneInventarioLlenoOEstaEnExit(entrenador);
+	}
+	return list_all_satisfy(entrenadores, (void*)_tieneInventarioLlenoOEstaEnExit);
+}
+
+
+bool tieneInventarioLlenoOEstaEnExit(t_entrenador* entrenador){
+	return (puedeEstarEnDeadlock(entrenador) || entrenador->estado == EXIT);
+	}
+
+
+
+

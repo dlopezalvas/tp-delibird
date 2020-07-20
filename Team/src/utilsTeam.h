@@ -122,6 +122,9 @@ void connect_gameboy();
 int iniciar_cliente_team(char* ip, char* puerto);
 void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador);
 void get_pokemon(char*especie, int socket_broker);
+bool tieneInventarioLlenoOEstaEnExit(t_entrenador* entrenador);
+bool entrenadoresTienenElInventarioLleno();
+void crearConexiones();
 
 
 #endif /* UTILSTEAM_H_ */

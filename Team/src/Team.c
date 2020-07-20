@@ -95,6 +95,8 @@ int main(void) {
 
 //*************************FIN Prueba necesita pokemon***********************/
 
+
+
 //	deteccionDeadlock();
 //	if(puedeEstarEnDeadlock(entrenadores->head->data)) puts("puede estar en deadlock");
 //	if(cumpleObjetivoGlobal()) puts("cumple objetivo global");
