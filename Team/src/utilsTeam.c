@@ -6,6 +6,7 @@ t_list* pokemonsDeRepuesto;
 t_list* especiesNecesarias;
 t_list* ready;
 
+
 pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar;
 sem_t conexiones, sem_deteccionDeadlock, sem_ready, sem_ejecutar;
 
@@ -141,6 +142,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	entrenador->pokemonACapturar = NULL;
 	entrenador->intercambio = NULL;
 	entrenador->CiclosCPU = 0;
+	entrenador->catch_id = 0;
 	pthread_mutex_init(&(entrenador->mutex), NULL);
 	pthread_mutex_lock(&(entrenador->mutex));
 
@@ -853,39 +855,49 @@ void connect_localized_pokemon(){
 
 void connect_caught_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
-		t_mensaje* mensaje = malloc(sizeof(t_mensaje));
+	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-		char* linea_split[1] = {"CAUGHT_POKEMON"};
-		mensaje -> tipo_mensaje = codigo_operacion;
-		mensaje -> parametros = linea_split;
+	char* linea_split[1] = {"CAUGHT_POKEMON"};
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = linea_split;
 
-		int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
-		enviar_mensaje(mensaje, socket_broker);
-		puts("envia mensaje");
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+	enviar_mensaje(mensaje, socket_broker);
+	puts("envia mensaje");
 
-		int size = 0;
-		t_caught_pokemon* caught_pokemon;
+	int size = 0;
+	t_caught_pokemon* caught;
 
-		int cod_op;
+	bool _tieneMismoIDCatch(void* entrenador){
+		return tienemismoIdCatch(entrenador, caught->correlation_id);
+	}
+	int cod_op;
 
-		while(!(cumpleObjetivoGlobal())){
+	while(!(cumpleObjetivoGlobal())){
 
-	//		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == -1)	cod_op = -1;
-			if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
-				log_info(logger,"Se ha perdido la conexion con el proceso Broker");
-				liberar_conexion(socket_broker);
-				sem_post(&conexiones);
-				pthread_exit(NULL);
-			}
-			void* buffer = recibir_mensaje(socket_broker,&size);
-			if(cod_op == CAUGHT_POKEMON){
-				puts("recibe mensaje");
-				caught_pokemon = deserializar_caught_pokemon(buffer);
-				//if() correlation id esta en mi lista de id de catch pokemon;
-				//caught_pokemon(); usar capturo_pokemon
+		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
+			liberar_conexion(socket_broker);
+			sem_post(&conexiones);
+			pthread_exit(NULL);
+		}
+		void* buffer = recibir_mensaje(socket_broker,&size);
+		if(cod_op == CAUGHT_POKEMON){
+			puts("recibe mensaje");
+			caught = deserializar_caught_pokemon(buffer);
+			if(list_any_satisfy(entrenadores, (void*)_tieneMismoIDCatch)){
+				log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->id);
+				//caught_pokemon(); //usar capturo_pokemon
 			}
 		}
+	}
 }
+
+
+bool tienemismoIdCatch(t_entrenador* entrenador, uint32_t correlation_id){
+	return entrenador->catch_id == correlation_id;
+}
+
 void connect_gameboy(){
 	socketEscucha(config_get_string_value(config, "IP_TEAM"), config_get_string_value(config, "PUERTO_TEAM"));
 }
@@ -896,7 +908,6 @@ int iniciar_cliente_team(char* ip, char* puerto){
 	direccion_servidor.sin_family = AF_INET;
 	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
 	direccion_servidor.sin_port = htons(atoi(puerto));
-	//int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	int cliente = socket(AF_INET, SOCK_STREAM, 0);
 
 	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
@@ -912,7 +923,7 @@ int iniciar_cliente_team(char* ip, char* puerto){
 }
 
 
-void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){
+void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 
 	struct sockaddr_in direccion_servidor;
 	op_code codigo_operacion = CATCH_POKEMON;
@@ -941,9 +952,9 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){
 			liberar_conexion(socket_broker);
 			pthread_mutex_unlock(&((*entrenador)->mutex));
 		}
-		//guardar id en entrenador
-		liberar_conexion(socket_broker); //hay que liberar si no se pudo cnectar?
-		//bloquear al hilo
+		(*entrenador)->catch_id = ID;
+		liberar_conexion(socket_broker);
+		pthread_mutex_lock(&(*entrenador)->mutex);
 	}
 	log_info(logger, "Atrapar %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
 	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
@@ -990,5 +1001,7 @@ bool tieneInventarioLlenoOEstaEnExit(t_entrenador* entrenador){
 	}
 
 
-
+void caught_pokemon(){
+	return;
+}
 

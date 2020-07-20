@@ -60,6 +60,7 @@ typedef struct t_entrenador
 	t_list* pokemonsNoNecesarios; // lista string
 	int CiclosCPU;
 	pthread_mutex_t mutex;
+	uint32_t catch_id;
 } t_entrenador;
 
 typedef struct t_intercambio{
@@ -125,6 +126,6 @@ void get_pokemon(char*especie, int socket_broker);
 bool tieneInventarioLlenoOEstaEnExit(t_entrenador* entrenador);
 bool entrenadoresTienenElInventarioLleno();
 void crearConexiones();
-
+bool tienemismoIdCatch(t_entrenador* entrenador, uint32_t correlation_id);
 
 #endif /* UTILSTEAM_H_ */
