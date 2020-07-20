@@ -281,7 +281,15 @@ void process_request(int cod_op, int cliente_fd){
 		break;
 	case LOCALIZED_POKEMON:
 		localized_pokemon = deserializar_localized_pokemon(buffer);
-		log_info(logger, "Mensaje Localized"); //agregar parametros
+		char* mensaje =string_new();
+		string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized_pokemon->id, localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
+		coordenadas_pokemon* coord;
+		for(int i = 0; i<localized_pokemon->cantidad; i++){
+			coord = list_get(localized_pokemon->listaCoordenadas, i);
+			string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
+		}
+		string_append_with_format(&mensaje, " correlation id: %d", localized_pokemon->correlation_id);
+		log_info(logger, mensaje);
 	}
 
 }
