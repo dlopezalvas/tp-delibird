@@ -146,6 +146,11 @@ void socketEscucha(char*ip, char* puerto){
 	}
 }
 
+void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log){
+	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
+	log_info(logger,mensaje_log);
+}
+
 void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 	t_new_pokemon* new_pokemon;
 	new_pokemon = deserializar_new_pokemon(mensaje->buffer);
@@ -154,7 +159,7 @@ void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 	new_pokemon->id = mensaje_id;
 	list_add(NEW_POKEMON_QUEUE,new_pokemon);
 	int cliente_a_enviar;
-	cliente_a_enviar = mensaje->suscriptor;
+//	cliente_a_enviar = mensaje->suscriptor;
 	op_code codigo_operacion = APPEARED_POKEMON;
 	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 
@@ -165,23 +170,32 @@ void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 	uint32_t cantidad;
 
 	nombre = new_pokemon->nombre.nombre;
-	coordenadas = new_pokemon->nombre.nombre;
+	char* coordenadas_x = new_pokemon->coordenadas.pos_x;
+	char* coordenadas_y = new_pokemon->coordenadas.pos_y;
 
-	sprintf(linea_split, "%s,%s,%s,%d", nombre ,coordenadas, mensaje_id);
+	sprintf(linea_split, "%s,%s,%s,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
 	mensaje_enviar -> tipo_mensaje = codigo_operacion;
 	mensaje_enviar -> parametros = string_split(linea_split,",");
 	//
 
 	//envia y loguea mensaje
-	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
+	char* log_envio_new_pokemon;
+		sprintf(log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,cliente_a_enviar);
+
+	void _enviar_mensaje_broker(void* pokemon){
+		return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,log_envio_new_pokemon);
+	}
+	list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+
+
 }
 
 void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje){
 	t_position_and_name* appeared_pokemon;
 	appeared_pokemon = deserializar_position_and_name(mensaje->buffer);
 	list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
-
 }
+
 //	t_position_and_name* catch_pokemon;
 //	t_caught_pokemon* caught_pokemon;
 //	t_get_pokemon* get_pokemon;
