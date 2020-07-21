@@ -82,9 +82,8 @@ void serve_client(int* socket)
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
-	puts(string_itoa(cod_op));
-//	uint32_t id;
-//	id = suscribir_mensaje(cod_op,buffer,cliente_fd);
+	uint32_t id;
+	id = suscribir_mensaje(cod_op,buffer,cliente_fd);
 //	op_code codigo_operacion = APPEARED_POKEMON;
 //	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 //
@@ -232,7 +231,13 @@ void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
 	t_localized_pokemon* localized_pokemon;
 	localized_pokemon = deserializar_localized_pokemon(mensaje->buffer);
+//
+//	uint32_t mensaje_id;
+//	mensaje_id = mensaje->id;
+//	localized_pokemon->id = mensaje_id;
+
 	list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
+
 }
 
 void ejecutar_suscripcion(t_mensaje_broker* mensaje){
