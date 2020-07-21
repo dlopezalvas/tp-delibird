@@ -58,9 +58,9 @@ void iniciarTeam(){
 	pthread_t conexionBroker;
 	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
 	pthread_join(conexionBroker, NULL);
-	pthread_t thread_deadlock;
-	pthread_create(&thread_deadlock, NULL, (void*)deteccionDeadlock, NULL);
-	pthread_detach(thread_deadlock);
+//	pthread_t thread_deadlock;
+//	pthread_create(&thread_deadlock, NULL, (void*)deteccionDeadlock, NULL);
+//	pthread_detach(thread_deadlock);
 
 //	pthread_t hiloEntrenador[entrenadores->elements_count];
 //	t_link_element * aux = entrenadores->head;
@@ -780,13 +780,16 @@ void connect_appeared(){
 }
 void get_pokemon(char*especie, int socket_broker){
 	op_code codigo_operacion = GET_POKEMON;
+	puts(especie);
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-
-	char* linea_split = malloc(sizeof(char*));
-	sprintf(linea_split, "%s,%d,%d", especie, 0, 0);
+	char* linea_split = string_new();
+	string_append_with_format(&linea_split, "%s,%s", especie, "0");
+	puts(linea_split);
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split, ",");
-	enviar_mensaje(mensaje, socket_broker);
+	puts("antes enviar");
+	enviar_mensaje(mensaje, (socket_broker));
+	puts("despues enviar");
 }
 
 void connect_localized_pokemon(){
@@ -801,11 +804,12 @@ void connect_localized_pokemon(){
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
 
+
 	void _get_pokemon(void* especie){
 		return get_pokemon(especie, socket_broker);
 	}
 
-	list_iterate(especiesNecesarias, (void*)get_pokemon); //poner if es la primera vez que lo ejecuta
+	list_iterate(especiesNecesarias, (void*)_get_pokemon); //poner if es la primera vez que lo ejecuta
 
 	int size = 0;
 	t_localized_pokemon* localized_pokemon;
@@ -971,14 +975,14 @@ void crearConexiones(){
 	pthread_t localized_pokemon_thread;
 	pthread_t caught_pokemon_thread;
 	while(!entrenadoresTienenElInventarioLleno()){
-		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-		pthread_detach(appeared_pokemon_thread);
+//		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//		pthread_detach(appeared_pokemon_thread);
 		pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
 		pthread_detach(localized_pokemon_thread);
-		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
-		pthread_detach(caught_pokemon_thread);
-		sem_wait(&conexiones);
-		sem_wait(&conexiones);
+//		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
+//		pthread_detach(caught_pokemon_thread);
+//		sem_wait(&conexiones);
+//		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
 		log_info(logger, "Inicio Reintento de todas las conexiones");
