@@ -235,11 +235,12 @@ void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
 
 	mensaje_enviar -> tipo_mensaje = GET_POKEMON;
 	mensaje_enviar -> parametros = string_split(linea_split, ",");
-
+	puts("antes de enviar");
 	void _enviar_mensaje_broker(void* cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
 	list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+	puts("despues de enviar");
 }
 
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
