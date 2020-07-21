@@ -108,4 +108,7 @@ void connect_new_pokemon();
 void crear_conexiones();
 void socket_gameboy();
 
+char* obtener_posiciones(t_get_pokemon* pokemon);
+void get_pokemon(void* buffer);
+
 #endif /* UTILS_H_ */

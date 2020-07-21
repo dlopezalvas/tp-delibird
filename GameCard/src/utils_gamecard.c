@@ -118,6 +118,79 @@ void capturar_pokemon(t_position_and_name* pokemon){
 	}
 }
 
+void get_pokemon(void* buffer){
+	puts("get_pokemon");
+	t_get_pokemon* pokemon = deserializar_get_pokemon(buffer);
+
+	puts(pokemon->nombre.nombre);
+	char* path_pokemon = string_new();
+	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
+
+	t_mensaje* localized_pokemon = malloc(sizeof(t_mensaje));
+	localized_pokemon->tipo_mensaje = LOCALIZED_POKEMON;
+	char* parametros = string_new();
+
+	if(existe_pokemon(path_pokemon)){
+		parametros = obtener_posiciones(pokemon);
+	}else{
+		puts("informar error por logs???");
+	}
+}
+
+char* obtener_posiciones(t_get_pokemon* pokemon){
+	char* path_pokemon = string_new();
+	char* parametros = string_new();
+
+	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
+
+	puts(path_pokemon);
+
+	t_config* config_pokemon = config_create(path_pokemon);
+
+
+	if(!archivo_abierto(config_pokemon)){
+
+		abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+
+
+		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
+
+		puts(blocks[0]);
+
+		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
+
+		char** datos = leer_archivo(blocks, tamanio_total);
+
+		t_list* lista_datos = transformar_a_lista(datos);
+
+		int cantidad_posiciones = list_size(lista_datos); //la cantidad de posiciones en las que hay al menos 1 pokemon
+
+		string_append_with_format(&parametros, "%s,%d", pokemon->nombre.nombre, cantidad_posiciones);
+
+		char* coordenadas;
+		char** aux_coord_cantidad;
+		char** aux_coord;
+
+		for(int i = 0; i<cantidad_posiciones; i++){ //+1 porque cantidad cuenta desde 1
+			coordenadas = list_get(lista_datos, i);
+			aux_coord_cantidad = string_split(coordenadas, "=");
+			aux_coord = string_split(aux_coord_cantidad[0], "-");
+
+			string_append_with_format(&parametros, ",%s,%s", aux_coord[0], aux_coord[1]);
+
+		}
+
+		config_set_value(config_pokemon, OPEN, NO);
+		config_save_in_file(config_pokemon, path_pokemon);
+		return parametros;
+
+		//destruir lista y esas cosas (?
+
+	}else{
+		puts("reintentar");
+	}
+}
+
 void crear_pokemon(t_new_pokemon* pokemon){
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
@@ -575,9 +648,9 @@ int cantidad_bloques(char** blocks){
 }
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
-	int index_sem_metadata = index_pokemon(nombre_pokemon);
+//	int index_sem_metadata = index_pokemon(nombre_pokemon);
 
-	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
+	//pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
 	//pthread_mutex_lock(semaforo_pokemon);
 
@@ -695,6 +768,7 @@ void process_request(int cod_op, int cliente_fd) {
 			puts("catch pokemon");
 			break;
 		case GET_POKEMON:
+			get_pokemon(buffer);
 			puts("get pokemon");
 			break;
 		case 0:
