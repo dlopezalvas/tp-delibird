@@ -49,3 +49,9 @@
 [INFO] 22:28:21:846 GAMEBOY/(14709:14709): Se ha suscripto a la cola GET_POKEMON
 [INFO] 22:28:25:72 GAMEBOY/(14709:14711): Mensaje Get_pokemon Pikachu
 [INFO] 22:28:25:73 GAMEBOY/(14709:14711): Mensaje Get_pokemon Charmander
+[INFO] 22:32:24:929 GAMEBOY/(14792:14792): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:32:38:292 GAMEBOY/(14804:14804): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:32:45:238 GAMEBOY/(14804:14806): Mensaje Get_pokemon Pikachu
+[INFO] 22:32:45:238 GAMEBOY/(14804:14806): Mensaje Get_pokemon Pikachu
+[INFO] 22:32:45:239 GAMEBOY/(14804:14806): Mensaje Get_pokemon Charmander
+[INFO] 22:32:45:239 GAMEBOY/(14804:14806): Mensaje Get_pokemon Charmander

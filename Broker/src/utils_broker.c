@@ -245,12 +245,30 @@ void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
 	t_localized_pokemon* localized_pokemon;
 	localized_pokemon = deserializar_localized_pokemon(mensaje->buffer);
-//
-//	uint32_t mensaje_id;
-//	mensaje_id = mensaje->id;
-//	localized_pokemon->id = mensaje_id;
+	uint32_t mensaje_id;
+	mensaje_id = mensaje->id;
+	localized_pokemon->id = mensaje_id;
 
 	list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
+	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+
+	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+	char* linea_split = string_new();
+	string_append_with_format(&linea_split, "%d,%d", localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
+	coordenadas_pokemon* coord;
+	for(int i = 0; i<localized_pokemon->cantidad; i++){
+		coord = list_get(localized_pokemon->listaCoordenadas, i);
+		string_append_with_format(&linea_split, ",%d,%d", coord->pos_x, coord->pos_y);
+	}
+	string_append_with_format(&linea_split, "%d,%d", localized_pokemon->id,localized_pokemon->correlation_id);
+
+	mensaje_enviar -> tipo_mensaje = LOCALIZED_POKEMON;
+	mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+	void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+	list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 
 }
 
