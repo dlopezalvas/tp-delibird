@@ -42,3 +42,10 @@
 [INFO] 23:31:01:871 GAMEBOY/(10475:10485): Mensaje 10 localized_pokemon Pikachu 2 1 2 3 4 correlation id: 11
 [INFO] 23:40:59:72 GAMEBOY/(10922:10922): Se ha suscripto a la cola appeared_pokemon
 [INFO] 23:40:59:72 GAMEBOY/(10922:10929): Mensaje 10 localized_pokemon Pikachu 2 1 2 3 4 correlation id: 11
+[INFO] 22:21:07:252 GAMEBOY/(14230:14230): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:21:59:685 GAMEBOY/(14230:14230): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:25:08:615 GAMEBOY/(14561:14561): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:27:17:243 GAMEBOY/(14643:14643): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:28:21:846 GAMEBOY/(14709:14709): Se ha suscripto a la cola GET_POKEMON
+[INFO] 22:28:25:72 GAMEBOY/(14709:14711): Mensaje Get_pokemon Pikachu
+[INFO] 22:28:25:73 GAMEBOY/(14709:14711): Mensaje Get_pokemon Charmander

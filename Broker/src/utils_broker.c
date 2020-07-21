@@ -157,8 +157,8 @@ void socketEscucha(char*ip, char* puerto){
 	}
 }
 
-void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log){
-	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
+void enviar_mensaje_broker(int* cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log){
+	enviar_mensaje(mensaje_enviar,*cliente_a_enviar);
 	log_info(logger,mensaje_log);
 }
 
@@ -169,8 +169,6 @@ void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 	mensaje_id = mensaje->id;
 	new_pokemon->id = mensaje_id;
 	list_add(NEW_POKEMON_QUEUE,new_pokemon);
-	int cliente_a_enviar;
-//	cliente_a_enviar = mensaje->suscriptor;
 	op_code codigo_operacion = APPEARED_POKEMON;
 	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 
@@ -188,10 +186,10 @@ void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 	//
 
 	//envia y loguea mensaje
-	char* log_envio_new_pokemon;
-	sprintf(log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,cliente_a_enviar);
+	char* log_envio_new_pokemon = string_new();
+	string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 
-	void _enviar_mensaje_broker(void* pokemon){
+	void _enviar_mensaje_broker(void* cliente_a_enviar){
 		return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,log_envio_new_pokemon);
 	}
 	list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -229,11 +227,19 @@ void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
 	get_pokemon->id = mensaje_id;
 	//TODO: Log
 	list_add(GET_POKEMON_QUEUE,get_pokemon);
-	puts("antes del send");
-	puts(string_itoa(mensaje->suscriptor));
-	puts(string_itoa(mensaje->id));
 	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-	puts("despues del send");
+
+	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+	char* linea_split = string_new();
+	string_append_with_format(&linea_split, "%s,%d", get_pokemon->nombre.nombre, mensaje_id);
+
+	mensaje_enviar -> tipo_mensaje = GET_POKEMON;
+	mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+	void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+	list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 }
 
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){

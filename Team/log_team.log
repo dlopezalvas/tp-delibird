@@ -98,3 +98,40 @@
 [INFO] 22:11:35:849 TEAM/(13786:13788): Se ha perdido la conexion con el proceso Broker
 [INFO] 22:11:35:850 TEAM/(13786:13789): Se ha perdido la conexion con el proceso Broker
 [INFO] 22:11:35:850 TEAM/(13786:13790): Se ha perdido la conexion con el proceso Broker
+[INFO] 22:20:47:559 TEAM/(14362:14366): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:20:47:559 TEAM/(14362:14365): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:20:47:559 TEAM/(14362:14364): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:22:02:945 TEAM/(14386:14390): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:22:02:945 TEAM/(14386:14389): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:22:02:947 TEAM/(14386:14388): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:25:15:761 TEAM/(14566:14570): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:25:15:761 TEAM/(14566:14569): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:25:15:763 TEAM/(14566:14568): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:27:25:286 TEAM/(14646:14650): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:27:25:286 TEAM/(14646:14649): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:27:25:288 TEAM/(14646:14648): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:27:25:728 TEAM/(14646:14649): Se ha perdido la conexion con el proceso Broker
+[INFO] 22:27:25:728 TEAM/(14646:14648): Se ha perdido la conexion con el proceso Broker
+[INFO] 22:27:25:728 TEAM/(14646:14650): Se ha perdido la conexion con el proceso Broker
+[INFO] 22:27:35:728 TEAM/(14646:14647): Inicio Reintento de todas las conexiones
+[INFO] 22:27:35:728 TEAM/(14646:14658): No se pudo realizar la conexion
+[INFO] 22:27:35:729 TEAM/(14646:14657): No se pudo realizar la conexion
+[INFO] 22:27:35:729 TEAM/(14646:14656): No se pudo realizar la conexion
+[INFO] 22:27:45:729 TEAM/(14646:14647): Inicio Reintento de todas las conexiones
+[INFO] 22:27:45:729 TEAM/(14646:14663): No se pudo realizar la conexion
+[INFO] 22:27:45:729 TEAM/(14646:14662): No se pudo realizar la conexion
+[INFO] 22:27:45:729 TEAM/(14646:14661): No se pudo realizar la conexion
+[INFO] 22:27:55:730 TEAM/(14646:14647): Inicio Reintento de todas las conexiones
+[INFO] 22:27:55:730 TEAM/(14646:14670): No se pudo realizar la conexion
+[INFO] 22:27:55:730 TEAM/(14646:14669): No se pudo realizar la conexion
+[INFO] 22:27:55:730 TEAM/(14646:14668): No se pudo realizar la conexion
+[INFO] 22:28:05:731 TEAM/(14646:14647): Inicio Reintento de todas las conexiones
+[INFO] 22:28:05:731 TEAM/(14646:14707): No se pudo realizar la conexion
+[INFO] 22:28:05:731 TEAM/(14646:14706): No se pudo realizar la conexion
+[INFO] 22:28:05:731 TEAM/(14646:14705): No se pudo realizar la conexion
+[INFO] 22:28:25:71 TEAM/(14712:14716): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:28:25:72 TEAM/(14712:14715): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:28:25:73 TEAM/(14712:14714): Se ha establecido una conexion con el proceso Broker
+[INFO] 22:29:01:363 TEAM/(14712:14714): Se ha perdido la conexion con el proceso Broker
+[INFO] 22:29:01:363 TEAM/(14712:14715): Se ha perdido la conexion con el proceso Broker
+[INFO] 22:29:01:363 TEAM/(14712:14716): Se ha perdido la conexion con el proceso Broker

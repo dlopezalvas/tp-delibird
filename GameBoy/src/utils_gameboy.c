@@ -277,7 +277,7 @@ void process_request(int cod_op, int cliente_fd){
 		break;
 	case GET_POKEMON:
 		get_pokemon = deserializar_get_pokemon(buffer);
-		log_info(logger, "Mensaje Get_pokemon %s", get_pokemon->nombre);
+		log_info(logger, "Mensaje Get_pokemon %s", get_pokemon->nombre.nombre);
 		break;
 	case LOCALIZED_POKEMON:
 		localized_pokemon = deserializar_localized_pokemon(buffer);

@@ -79,7 +79,7 @@ void serve_client(int* socket);
 void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
-void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log);
+void enviar_mensaje_broker(int* cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log);
 void ejecutar_new_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje);
 void ejecutar_catch_pokemon(t_mensaje_broker* mensaje);
