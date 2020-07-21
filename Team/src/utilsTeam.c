@@ -843,7 +843,9 @@ void connect_appeared(){
 			appeared = deserializar_position_and_name(buffer);
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
 				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
-				appeared_pokemon(appeared) ; //hacer dentro de un hilo?
+				//appeared_pokemon(appeared) ; //hacer dentro de un hilo?
+				queue_push(colaAppearedPokemon,appeared);
+				sem_post(&semAppeared);
 			}
 			puts(appeared->nombre.nombre);
 			puts("deserializo");
@@ -1056,18 +1058,18 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 
 void crearConexiones(){
 	int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
-//	pthread_t appeared_pokemon_thread;
+	pthread_t appeared_pokemon_thread;
 	pthread_t localized_pokemon_thread;
-//	pthread_t caught_pokemon_thread;
+	pthread_t caught_pokemon_thread;
 	while(!entrenadoresTienenElInventarioLleno()){
-//		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//		pthread_detach(appeared_pokemon_thread);
+		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+		pthread_detach(appeared_pokemon_thread);
 		pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
 		pthread_detach(localized_pokemon_thread);
-//		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
-//		pthread_detach(caught_pokemon_thread);
-//		sem_wait(&conexiones);
-//		sem_wait(&conexiones);
+		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
+		pthread_detach(caught_pokemon_thread);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
 		log_info(logger, "Inicio Reintento de todas las conexiones");

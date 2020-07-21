@@ -16,6 +16,9 @@
 #include<stdbool.h>
 #include<../CommonsMCLDG/utils.h>
 #include<../CommonsMCLDG/socket.h>
+#include<semaphore.h>
+#include<pthread.h>
+#include <commons/collections/queue.h>
 
 
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
@@ -50,6 +53,17 @@ t_list* GET_POKEMON_QUEUE_SUSCRIPT;
 t_list* LOCALIZED_POKEMON_QUEUE_SUSCRIPT;
 uint32_t unique_message_id;
 
+t_queue* NEW_POKEMON_COLA;
+t_queue* APPEARED_POKEMON_COLA;
+t_queue* CATCH_POKEMON_COLA;
+t_queue* CAUGHT_POKEMON_COLA;
+t_queue* GET_POKEMON_COLA;
+t_queue* LOCALIZED_POKEMON_COLA;
+t_queue* SUSCRIPCION_COLA;
+
+
+sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem;
+
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
 
@@ -80,19 +94,18 @@ void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
 void enviar_mensaje_broker(int* cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log);
-void ejecutar_new_pokemon(t_mensaje_broker* mensaje);
-void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje);
-void ejecutar_catch_pokemon(t_mensaje_broker* mensaje);
-void ejecutar_caught_pokemon(t_mensaje_broker* mensaje);
-void ejecutar_get_pokemon(t_mensaje_broker* mensaje);
-void ejecutar_localized_pokemon(t_mensaje_broker* mensaje);
-void ejecutar_suscripcion(t_mensaje_broker* mensaje);
+void ejecutar_new_pokemon();
+void ejecutar_appeared_pokemon();
+void ejecutar_catch_pokemon();
+void ejecutar_caught_pokemon();
+void ejecutar_get_pokemon();
+void ejecutar_localized_pokemon();
+void ejecutar_suscripcion();
 void ejecutar_new_pokemon_suscripcion(int suscriptor);
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor);
 void ejecutar_catch_pokemon_suscripcion(int suscriptor);
 void ejecutar_caught_pokemon_suscripcion(int suscriptor);
 void ejecutar_get_pokemon_suscripcion(int suscriptor);
 void ejecutar_localized_pokemon_suscripcion(int suscriptor);
-void ejecutar_suscripcion_suscripcion(int suscriptor);
 
 #endif /* UTILS_BROKER_H_ */

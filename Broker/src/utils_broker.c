@@ -4,6 +4,7 @@
 extern t_list* multihilos;
 
 
+
 int proceso_valido(char*procesos_validos,char* proceso){
 
 	char* s = strstr(procesos_validos,proceso);
@@ -28,12 +29,21 @@ void crear_queues(void){
 	CATCH_POKEMON_QUEUE = list_create();
 	CAUGHT_POKEMON_QUEUE = list_create();
 	GET_POKEMON_QUEUE = list_create();
+	LOCALIZED_POKEMON_QUEUE = list_create();
 	NEW_POKEMON_QUEUE_SUSCRIPT = list_create();
 	APPEARED_POKEMON_QUEUE_SUSCRIPT = list_create();
 	CATCH_POKEMON_QUEUE_SUSCRIPT = list_create();
 	CAUGHT_POKEMON_QUEUE_SUSCRIPT = list_create();
 	GET_POKEMON_QUEUE_SUSCRIPT = list_create();
 	LOCALIZED_POKEMON_QUEUE_SUSCRIPT = list_create();
+	NEW_POKEMON_COLA = queue_create();
+	APPEARED_POKEMON_COLA = queue_create();
+	CATCH_POKEMON_COLA = queue_create();
+	CAUGHT_POKEMON_COLA = queue_create();
+	GET_POKEMON_COLA = queue_create();
+	LOCALIZED_POKEMON_COLA = queue_create();
+	SUSCRIPCION_COLA = queue_create();
+
 }
 
 void terminar_queues(void){
@@ -114,31 +124,45 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 	puts("Despues del t_mensaje_broker");
 	switch (cod_op) {
 	case NEW_POKEMON:
-		ejecutar_new_pokemon(mensaje);
+		//ejecutar_new_pokemon(mensaje);
+		queue_push(NEW_POKEMON_COLA,&mensaje);
+		sem_post(&new_pokemon_sem);
 		break;
 	case APPEARED_POKEMON:
 		puts("appeared");
-		ejecutar_appeared_pokemon(mensaje);
+		//ejecutar_appeared_pokemon(mensaje);
+		queue_push(APPEARED_POKEMON_COLA,&mensaje);
+		sem_post(&appeared_pokemon_sem);
 		break;
 	case CATCH_POKEMON:
 		puts("catch");
-		ejecutar_catch_pokemon(mensaje);
+		//ejecutar_catch_pokemon(mensaje);
+		queue_push(CATCH_POKEMON_COLA,&mensaje);
+		sem_post(&catch_pokemon_sem);
 		break;
 	case CAUGHT_POKEMON:
 		puts("caugh");
-		ejecutar_caught_pokemon(mensaje);
+		//ejecutar_caught_pokemon(mensaje);
+		queue_push(CAUGHT_POKEMON_COLA,&mensaje);
+		sem_post(&caught_pokemon_sem);
 		break;
 	case GET_POKEMON:
 		puts("GETPOKEMON");
-		ejecutar_get_pokemon(mensaje);
+		//ejecutar_get_pokemon(mensaje);
+		queue_push(GET_POKEMON_COLA,&mensaje);
+		sem_post(&get_pokemon_sem);
 		break;
 	case LOCALIZED_POKEMON:
 		puts("localized");
-		ejecutar_localized_pokemon(mensaje);
+		//ejecutar_localized_pokemon(mensaje);
+		queue_push(LOCALIZED_POKEMON_COLA,&mensaje);
+		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
 		puts("suscripcion");
-		ejecutar_suscripcion(mensaje);
+		//ejecutar_suscripcion(mensaje);
+		queue_push(SUSCRIPCION_COLA,&mensaje);
+		sem_post(&suscripcion_sem);
 		break;
 	case 0:
 		pthread_exit(NULL);
@@ -162,174 +186,219 @@ void enviar_mensaje_broker(int* cliente_a_enviar,t_mensaje* mensaje_enviar,char*
 	log_info(logger,mensaje_log);
 }
 
-void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
-	t_new_pokemon* new_pokemon;
-	new_pokemon = deserializar_new_pokemon(mensaje->buffer);
-	uint32_t mensaje_id;
-	mensaje_id = mensaje->id;
-	new_pokemon->id = mensaje_id;
-	list_add(NEW_POKEMON_QUEUE,new_pokemon);
-	op_code codigo_operacion = APPEARED_POKEMON;
-	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+void ejecutar_new_pokemon(){
 
-	//arma mensaje para enviar
-	char* linea_split = "";
-	char* nombre;
+	while(1){
 
-	nombre = new_pokemon->nombre.nombre;
-	int coordenadas_x = new_pokemon->coordenadas.pos_x;
-	int coordenadas_y = new_pokemon->coordenadas.pos_y;
+		sem_wait(&new_pokemon_sem);
+		t_mensaje_broker* mensaje = queue_pop(NEW_POKEMON_COLA);
 
-	sprintf(linea_split, "%s,%d,%d,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
-	mensaje_enviar -> tipo_mensaje = codigo_operacion;
-	mensaje_enviar -> parametros = string_split(linea_split,",");
-	//
+		t_new_pokemon* new_pokemon;
+		new_pokemon = deserializar_new_pokemon(mensaje->buffer);
+		uint32_t mensaje_id;
+		mensaje_id = mensaje->id;
+		new_pokemon->id = mensaje_id;
+		list_add(NEW_POKEMON_QUEUE,new_pokemon);
+		op_code codigo_operacion = APPEARED_POKEMON;
+		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 
-	//envia y loguea mensaje
-	char* log_envio_new_pokemon = string_new();
-	string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
+		//arma mensaje para enviar
+		char* linea_split = "";
+		char* nombre;
 
-	void _enviar_mensaje_broker(void* cliente_a_enviar){
-		return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,log_envio_new_pokemon);
+		nombre = new_pokemon->nombre.nombre;
+		int coordenadas_x = new_pokemon->coordenadas.pos_x;
+		int coordenadas_y = new_pokemon->coordenadas.pos_y;
+
+		sprintf(linea_split, "%s,%d,%d,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
+		mensaje_enviar -> tipo_mensaje = codigo_operacion;
+		mensaje_enviar -> parametros = string_split(linea_split,",");
+		//
+
+		//envia y loguea mensaje
+		char* log_envio_new_pokemon = string_new();
+		string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
+
+		void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,log_envio_new_pokemon);
+		}
+		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 	}
-	list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 }
 
-void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje){
-	t_position_and_name* appeared_pokemon;
-	appeared_pokemon = deserializar_position_and_name(mensaje->buffer);
-	uint32_t mensaje_id;
-	mensaje_id = mensaje->id;
-	appeared_pokemon->id = mensaje_id;
+void ejecutar_appeared_pokemon(){
 
-	list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+	while(1){
 
-	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-	char* linea_split = string_new();
+		sem_wait(&appeared_pokemon_sem);
+		t_mensaje_broker* mensaje = queue_pop(APPEARED_POKEMON_COLA);
 
-	string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", appeared_pokemon->nombre.nombre,appeared_pokemon->coordenadas.pos_x,appeared_pokemon->coordenadas.pos_y, appeared_pokemon->id,appeared_pokemon->correlation_id);
-	mensaje_enviar -> tipo_mensaje = CATCH_POKEMON;
-	mensaje_enviar -> parametros = string_split(linea_split, ",");
+		t_position_and_name* appeared_pokemon;
+		appeared_pokemon = deserializar_position_and_name(mensaje->buffer);
+		uint32_t mensaje_id;
+		mensaje_id = mensaje->id;
+		appeared_pokemon->id = mensaje_id;
 
-	void _enviar_mensaje_broker(void* cliente_a_enviar){
+		list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+
+		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+		char* linea_split = string_new();
+
+		string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", appeared_pokemon->nombre.nombre,appeared_pokemon->coordenadas.pos_x,appeared_pokemon->coordenadas.pos_y, appeared_pokemon->id,appeared_pokemon->correlation_id);
+		mensaje_enviar -> tipo_mensaje = CATCH_POKEMON;
+		mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+		void _enviar_mensaje_broker(void* cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
-	list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-}
-
-//	t_position_and_name* catch_pokemon;
-//	t_caught_pokemon* caught_pokemon;
-//	t_get_pokemon* get_pokemon;
-void ejecutar_catch_pokemon(t_mensaje_broker* mensaje){
-	t_position_and_name* catch_pokemon;
-	catch_pokemon = deserializar_position_and_name(mensaje->buffer);
-	uint32_t mensaje_id;
-	mensaje_id = mensaje->id;
-	catch_pokemon->id = mensaje_id;
-	list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
-
-	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-	char* linea_split = string_new();
-
-	string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", catch_pokemon->nombre.nombre,catch_pokemon->coordenadas.pos_x,catch_pokemon->coordenadas.pos_y, catch_pokemon->id,catch_pokemon->correlation_id);
-	mensaje_enviar -> tipo_mensaje = APPEARED_POKEMON;
-	mensaje_enviar -> parametros = string_split(linea_split, ",");
-
-	void _enviar_mensaje_broker(void* cliente_a_enviar){
-		return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 	}
-	list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 }
 
-void ejecutar_caught_pokemon(t_mensaje_broker* mensaje){
-	t_caught_pokemon* caught_pokemon;
-	caught_pokemon = deserializar_caught_pokemon(mensaje->buffer);
 
-	uint32_t mensaje_id;
-	mensaje_id = mensaje->id;
-	caught_pokemon->id = mensaje_id;
-	list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
-	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-	char* linea_split = string_new();
-	string_append_with_format(&linea_split, "%d,%d,%d", caught_pokemon->caught,caught_pokemon->id, caught_pokemon->correlation_id);
+void ejecutar_catch_pokemon(){
 
-	mensaje_enviar -> tipo_mensaje = CAUGHT_POKEMON;
-	mensaje_enviar -> parametros = string_split(linea_split, ",");
+	while(1){
 
-	void _enviar_mensaje_broker(void* cliente_a_enviar){
+		sem_wait(&catch_pokemon_sem);
+		t_mensaje_broker* mensaje = queue_pop(CATCH_POKEMON_COLA);
+
+		t_position_and_name* catch_pokemon;
+		catch_pokemon = deserializar_position_and_name(mensaje->buffer);
+		uint32_t mensaje_id;
+		mensaje_id = mensaje->id;
+		catch_pokemon->id = mensaje_id;
+		list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
+
+		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+		char* linea_split = string_new();
+
+		string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", catch_pokemon->nombre.nombre,catch_pokemon->coordenadas.pos_x,catch_pokemon->coordenadas.pos_y, catch_pokemon->id,catch_pokemon->correlation_id);
+		mensaje_enviar -> tipo_mensaje = APPEARED_POKEMON;
+		mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+		void _enviar_mensaje_broker(void* cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
-	list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
-}
-
-void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
-	puts("get pokemonnn");
-	t_get_pokemon* get_pokemon;
-	get_pokemon = deserializar_get_pokemon(mensaje->buffer);
-	uint32_t mensaje_id;
-	mensaje_id = mensaje->id;
-	get_pokemon->id = mensaje_id;
-	//TODO: Log
-	list_add(GET_POKEMON_QUEUE,get_pokemon);
-	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-
-	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-	char* linea_split = string_new();
-	string_append_with_format(&linea_split, "%s,%d", get_pokemon->nombre.nombre, mensaje_id);
-
-	mensaje_enviar -> tipo_mensaje = GET_POKEMON;
-	mensaje_enviar -> parametros = string_split(linea_split, ",");
-	puts("antes de enviar");
-	void _enviar_mensaje_broker(void* cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
-		}
-	list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
-	puts("despues de enviar");
-}
-
-void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
-	t_localized_pokemon* localized_pokemon;
-	localized_pokemon = deserializar_localized_pokemon(mensaje->buffer);
-	uint32_t mensaje_id;
-	mensaje_id = mensaje->id;
-	localized_pokemon->id = mensaje_id;
-
-	list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
-	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-
-	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-	char* linea_split = string_new();
-	string_append_with_format(&linea_split, "%s,%d", localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
-	coordenadas_pokemon* coord;
-	for(int i = 0; i<localized_pokemon->cantidad; i++){
-		coord = list_get(localized_pokemon->listaCoordenadas, i);
-		string_append_with_format(&linea_split, ",%d,%d", coord->pos_x, coord->pos_y);
+		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 	}
-	string_append_with_format(&linea_split, "%d,%d", localized_pokemon->id,localized_pokemon->correlation_id);
-
-	mensaje_enviar -> tipo_mensaje = LOCALIZED_POKEMON;
-	mensaje_enviar -> parametros = string_split(linea_split, ",");
-
-	void _enviar_mensaje_broker(void* cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
-		}
-	list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
-
 }
 
-void ejecutar_suscripcion(t_mensaje_broker* mensaje){
-	op_code cola;
-	void* buffer = mensaje->buffer;
+void ejecutar_caught_pokemon(){
 
-	t_suscripcion* mensaje_suscripcion;
-	mensaje_suscripcion = deserializar_suscripcion(buffer);
-	cola = mensaje_suscripcion->cola;
-	int suscriptor = mensaje->suscriptor;
+	while(1){
 
-	switch (cola) {
+		sem_wait(&caught_pokemon_sem);
+		t_mensaje_broker* mensaje = queue_pop(CAUGHT_POKEMON_COLA);
+
+		t_caught_pokemon* caught_pokemon;
+		caught_pokemon = deserializar_caught_pokemon(mensaje->buffer);
+
+		uint32_t mensaje_id;
+		mensaje_id = mensaje->id;
+		caught_pokemon->id = mensaje_id;
+		list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
+		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+		char* linea_split = string_new();
+		string_append_with_format(&linea_split, "%d,%d,%d", caught_pokemon->caught,caught_pokemon->id, caught_pokemon->correlation_id);
+
+		mensaje_enviar -> tipo_mensaje = CAUGHT_POKEMON;
+		mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+		void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+		list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+	}
+}
+
+void ejecutar_get_pokemon(){
+
+	while(1){
+
+		sem_wait(&get_pokemon_sem);
+		t_mensaje_broker* mensaje = queue_pop(GET_POKEMON_COLA);
+
+		puts("get pokemonnn");
+		t_get_pokemon* get_pokemon;
+		get_pokemon = deserializar_get_pokemon(mensaje->buffer);
+		uint32_t mensaje_id;
+		mensaje_id = mensaje->id;
+		get_pokemon->id = mensaje_id;
+		//TODO: Log
+		list_add(GET_POKEMON_QUEUE,get_pokemon);
+		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+
+		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+		char* linea_split = string_new();
+		string_append_with_format(&linea_split, "%s,%d", get_pokemon->nombre.nombre, mensaje_id);
+
+		mensaje_enviar -> tipo_mensaje = GET_POKEMON;
+		mensaje_enviar -> parametros = string_split(linea_split, ",");
+		puts("antes de enviar");
+		void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+		list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		puts("despues de enviar");
+	}
+}
+
+void ejecutar_localized_pokemon(){
+
+	while(1){
+
+		sem_wait(&localized_pokemon_sem);
+		t_mensaje_broker* mensaje = queue_pop(LOCALIZED_POKEMON_COLA);
+
+		t_localized_pokemon* localized_pokemon;
+		localized_pokemon = deserializar_localized_pokemon(mensaje->buffer);
+		uint32_t mensaje_id;
+		mensaje_id = mensaje->id;
+		localized_pokemon->id = mensaje_id;
+
+		list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
+		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+
+		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+		char* linea_split = string_new();
+		string_append_with_format(&linea_split, "%s,%d", localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
+		coordenadas_pokemon* coord;
+		for(int i = 0; i<localized_pokemon->cantidad; i++){
+			coord = list_get(localized_pokemon->listaCoordenadas, i);
+			string_append_with_format(&linea_split, ",%d,%d", coord->pos_x, coord->pos_y);
+		}
+		string_append_with_format(&linea_split, "%d,%d", localized_pokemon->id,localized_pokemon->correlation_id);
+
+		mensaje_enviar -> tipo_mensaje = LOCALIZED_POKEMON;
+		mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+		void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+	}
+}
+
+void ejecutar_suscripcion(){
+
+	while(1){
+
+		sem_wait(&suscripcion_sem);
+		t_mensaje_broker* mensaje = queue_pop(SUSCRIPCION_COLA);
+
+		op_code cola;
+		void* buffer = mensaje->buffer;
+
+		t_suscripcion* mensaje_suscripcion;
+		mensaje_suscripcion = deserializar_suscripcion(buffer);
+		cola = mensaje_suscripcion->cola;
+		int suscriptor = mensaje->suscriptor;
+
+		switch (cola) {
 		case NEW_POKEMON:
 			ejecutar_new_pokemon_suscripcion(suscriptor);
 			break;
@@ -354,6 +423,7 @@ void ejecutar_suscripcion(t_mensaje_broker* mensaje){
 		case -1:
 			pthread_exit(NULL);
 		}
+	}
 }
 
 void ejecutar_new_pokemon_suscripcion(int suscriptor){
