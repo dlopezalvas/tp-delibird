@@ -254,7 +254,7 @@ void ejecutar_caught_pokemon(t_mensaje_broker* mensaje){
 	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 	char* linea_split = string_new();
-	string_append_with_format(&linea_split, "%s,%d,%d", caught_pokemon->caught,caught_pokemon->id, caught_pokemon->correlation_id);
+	string_append_with_format(&linea_split, "%d,%d,%d", caught_pokemon->caught,caught_pokemon->id, caught_pokemon->correlation_id);
 
 	mensaje_enviar -> tipo_mensaje = CAUGHT_POKEMON;
 	mensaje_enviar -> parametros = string_split(linea_split, ",");
@@ -302,7 +302,7 @@ void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){
 
 	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 	char* linea_split = string_new();
-	string_append_with_format(&linea_split, "%d,%d", localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
+	string_append_with_format(&linea_split, "%s,%d", localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
 	coordenadas_pokemon* coord;
 	for(int i = 0; i<localized_pokemon->cantidad; i++){
 		coord = list_get(localized_pokemon->listaCoordenadas, i);
