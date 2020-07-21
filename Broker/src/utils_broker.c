@@ -82,8 +82,8 @@ void serve_client(int* socket)
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
-	uint32_t id;
-	id = suscribir_mensaje(cod_op,buffer,cliente_fd);
+
+	suscribir_mensaje(cod_op,buffer,cliente_fd);
 //	op_code codigo_operacion = APPEARED_POKEMON;
 //	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 //
@@ -198,7 +198,24 @@ void ejecutar_new_pokemon(t_mensaje_broker* mensaje){
 void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje){
 	t_position_and_name* appeared_pokemon;
 	appeared_pokemon = deserializar_position_and_name(mensaje->buffer);
+	uint32_t mensaje_id;
+	mensaje_id = mensaje->id;
+	appeared_pokemon->id = mensaje_id;
+
 	list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+
+	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+	char* linea_split = string_new();
+
+	string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", appeared_pokemon->nombre.nombre,appeared_pokemon->coordenadas.pos_x,appeared_pokemon->coordenadas.pos_y, appeared_pokemon->id,appeared_pokemon->correlation_id);
+	mensaje_enviar -> tipo_mensaje = CATCH_POKEMON;
+	mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+	void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+	list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 }
 
 //	t_position_and_name* catch_pokemon;
@@ -207,15 +224,45 @@ void ejecutar_appeared_pokemon(t_mensaje_broker* mensaje){
 void ejecutar_catch_pokemon(t_mensaje_broker* mensaje){
 	t_position_and_name* catch_pokemon;
 	catch_pokemon = deserializar_position_and_name(mensaje->buffer);
+	uint32_t mensaje_id;
+	mensaje_id = mensaje->id;
+	catch_pokemon->id = mensaje_id;
 	list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
 
+	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+	char* linea_split = string_new();
+
+	string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", catch_pokemon->nombre.nombre,catch_pokemon->coordenadas.pos_x,catch_pokemon->coordenadas.pos_y, catch_pokemon->id,catch_pokemon->correlation_id);
+	mensaje_enviar -> tipo_mensaje = APPEARED_POKEMON;
+	mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+	void _enviar_mensaje_broker(void* cliente_a_enviar){
+		return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+	}
+	list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 }
 
 void ejecutar_caught_pokemon(t_mensaje_broker* mensaje){
 	t_caught_pokemon* caught_pokemon;
 	caught_pokemon = deserializar_caught_pokemon(mensaje->buffer);
-	list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
 
+	uint32_t mensaje_id;
+	mensaje_id = mensaje->id;
+	caught_pokemon->id = mensaje_id;
+	list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
+	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+	t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+	char* linea_split = string_new();
+	string_append_with_format(&linea_split, "%s,%d,%d", caught_pokemon->caught,caught_pokemon->id, caught_pokemon->correlation_id);
+
+	mensaje_enviar -> tipo_mensaje = CAUGHT_POKEMON;
+	mensaje_enviar -> parametros = string_split(linea_split, ",");
+
+	void _enviar_mensaje_broker(void* cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
+		}
+	list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 }
 
 void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
