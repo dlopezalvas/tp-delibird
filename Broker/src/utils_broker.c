@@ -224,8 +224,16 @@ void ejecutar_get_pokemon(t_mensaje_broker* mensaje){
 	puts("get pokemonnn");
 	t_get_pokemon* get_pokemon;
 	get_pokemon = deserializar_get_pokemon(mensaje->buffer);
-	puts("despues serializar");
+	uint32_t mensaje_id;
+	mensaje_id = mensaje->id;
+	get_pokemon->id = mensaje_id;
+	//TODO: Log
 	list_add(GET_POKEMON_QUEUE,get_pokemon);
+	puts("antes del send");
+	puts(string_itoa(mensaje->suscriptor));
+	puts(string_itoa(mensaje->id));
+	send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+	puts("despues del send");
 }
 
 void ejecutar_localized_pokemon(t_mensaje_broker* mensaje){

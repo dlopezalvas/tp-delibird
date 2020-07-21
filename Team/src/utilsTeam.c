@@ -789,7 +789,9 @@ void get_pokemon(char*especie, int socket_broker){
 	mensaje -> parametros = string_split(linea_split, ",");
 	puts("antes enviar");
 	enviar_mensaje(mensaje, (socket_broker));
-	puts("despues enviar");
+	uint32_t id;
+	recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
+	puts(string_itoa(id));
 }
 
 void connect_localized_pokemon(){
@@ -810,7 +812,6 @@ void connect_localized_pokemon(){
 	}
 
 	list_iterate(especiesNecesarias, (void*)_get_pokemon); //poner if es la primera vez que lo ejecuta
-
 	int size = 0;
 	t_localized_pokemon* localized_pokemon;
 	bool _mismaEspecie(char* especie1){
@@ -975,14 +976,14 @@ void crearConexiones(){
 	pthread_t localized_pokemon_thread;
 	pthread_t caught_pokemon_thread;
 	while(!entrenadoresTienenElInventarioLleno()){
-//		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//		pthread_detach(appeared_pokemon_thread);
+		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+		pthread_detach(appeared_pokemon_thread);
 		pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
 		pthread_detach(localized_pokemon_thread);
-//		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
-//		pthread_detach(caught_pokemon_thread);
-//		sem_wait(&conexiones);
-//		sem_wait(&conexiones);
+		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
+		pthread_detach(caught_pokemon_thread);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
 		log_info(logger, "Inicio Reintento de todas las conexiones");

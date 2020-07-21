@@ -4,3 +4,21 @@
 [INFO] 19:12:17:398 BROKER/(12717:12717): probando log 1 2 3
 [INFO] 19:18:56:91 BROKER/(13078:13078): probando log 1 2 3
 [INFO] 19:36:53:949 BROKER/(30231:30231): probando log 1 2 3
+[INFO] 21:55:51:933 BROKER/(12955:12959): Se suscribio el proceso, 5 ,a la cola LOCALIZED_POKEMON
+[INFO] 21:56:10:618 BROKER/(12993:12997): Se suscribio el proceso, 5 ,a la cola LOCALIZED_POKEMON
+[INFO] 21:57:08:458 BROKER/(13046:13050): Se suscribio el proceso, 5 ,a la cola LOCALIZED_POKEMON
+[INFO] 21:57:51:818 BROKER/(13098:13104): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 21:57:51:819 BROKER/(13098:13105): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 21:58:27:3 BROKER/(13113:13119): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 21:58:27:6 BROKER/(13113:13119): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 21:58:39:678 BROKER/(13113:13127): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 21:58:39:679 BROKER/(13113:13128): Se suscribio el proceso, 11 ,a la cola APPEAREAD_POKEMON
+[INFO] 22:04:31:448 BROKER/(13385:13391): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 22:04:31:449 BROKER/(13385:13392): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 22:07:32:933 BROKER/(13556:13562): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 22:07:32:936 BROKER/(13556:13563): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 22:08:24:136 BROKER/(13623:13629): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 22:10:15:74 BROKER/(13734:13740): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 22:10:15:75 BROKER/(13734:13741): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 22:11:09:895 BROKER/(13785:13791): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 22:11:09:897 BROKER/(13785:13792): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
