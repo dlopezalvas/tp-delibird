@@ -128,7 +128,7 @@ void ejecutaEntrenadores();
 //Verifica si el estado de un entrenado es NEW o BLOCK
 bool estadoNewOBlock(t_entrenador* entrenador);
 //Ejecuta la reaccion a appeared_pokemon
-void appeared_pokemon(t_position_and_name* pokemonNuevo);
+void appeared_pokemon();
 
 //conexion Gameboy
 void connect_gameboy();

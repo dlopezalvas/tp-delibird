@@ -4,11 +4,12 @@ t_list* objetivoGlobal;
 t_list* pokemonsRequeridos;
 t_list* pokemonsDeRepuesto;
 t_list* especiesNecesarias;
+t_list* IDs_get_pokemon;
 t_list* ready;
-
+t_queue* colaAppearedPokemon;
 
 pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar;
-sem_t conexiones, sem_deteccionDeadlock, sem_ready, sem_ejecutar;
+sem_t conexiones, sem_deteccionDeadlock, sem_ready, sem_ejecutar, semAppeared;
 
 t_config* config;
 t_log* logger;
@@ -28,6 +29,7 @@ void iniciarTeam(){
 	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
 	sem_init(&sem_deteccionDeadlock, 0, 0);
+	sem_init(&semAppeared,0,0);
 	estado[1] = "NEW";
 	estado[2] = "READY";
 	estado[3] ="EXEC";
@@ -40,7 +42,9 @@ void iniciarTeam(){
 	especiesNecesarias = list_create();
 	pokemonsRequeridos = list_create();
 	pokemonsDeRepuesto = list_create();
+	IDs_get_pokemon = list_create();
 	ready = list_create();
+	colaAppearedPokemon = queue_create();
 
 	ciclosCPUGlobal = 0;
 
@@ -55,9 +59,17 @@ void iniciarTeam(){
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 
-	pthread_t conexionBroker;
-	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
-	pthread_join(conexionBroker, NULL);
+//	pthread_t conexionBroker;
+//	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
+//	pthread_join(conexionBroker, NULL);
+
+	pthread_t recibirAppearedPokemon;
+	pthread_create(&recibirAppearedPokemon, NULL, (void*)appeared_pokemon, NULL);
+//	pthread_join(recibirAppearedPokemon, NULL);
+
+	pthread_t conexionGameBoy;
+	pthread_create(&conexionGameBoy, NULL, (void*)connect_gameboy, NULL);
+	pthread_join(conexionGameBoy, NULL);
 //	pthread_t thread_deadlock;
 //	pthread_create(&thread_deadlock, NULL, (void*)deteccionDeadlock, NULL);
 //	pthread_detach(thread_deadlock);
@@ -554,39 +566,46 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 //}
 
 
-void appeared_pokemon(t_position_and_name* appeared){
-	t_pokemon* pokemonNuevo = malloc(sizeof(t_pokemon));
-	pokemonNuevo->coordx = appeared->coordenadas.pos_x;
-	pokemonNuevo->coordy = appeared->coordenadas.pos_y;
-//	pokemonNuevo->especie = malloc(appeared->nombre.largo_nombre);
-	pokemonNuevo->especie =	appeared->nombre.nombre;
-	pokemonNuevo->planificado = false;
-	bool _mismaEspecie(char* especie){
-				return mismaEspecie(especie, pokemonNuevo->especie);
-						}
-	bool _mismaPokemon(t_pokemon* pokemon){
-				return mismaEspecie(pokemon->especie, pokemonNuevo->especie);
-			}
+void appeared_pokemon(){
 
-	if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie))
-		list_remove_by_condition(especiesNecesarias, (void*)_mismaEspecie); //para marcar que ya nos llego un appeared de esta especie
+	while(!(cumpleObjetivoGlobal())){
 
-	pthread_mutex_lock(&objetivo);
-	int necesarios = list_count_satisfying(objetivoGlobal, (void*)_mismaEspecie);
-	pthread_mutex_unlock(&objetivo);
-	pthread_mutex_lock(&requeridos);
-	int pokemonsACapturar = list_count_satisfying(pokemonsRequeridos, (void*)_mismaPokemon);
-	pthread_mutex_unlock(&requeridos);
-	if(necesarios>pokemonsACapturar){
+		sem_wait(&semAppeared);
+		t_position_and_name* appeared = queue_pop(colaAppearedPokemon);
+		t_pokemon* pokemonNuevo = malloc(sizeof(t_pokemon));
+		pokemonNuevo->coordx = appeared->coordenadas.pos_x;
+		pokemonNuevo->coordy = appeared->coordenadas.pos_y;
+	//	pokemonNuevo->especie = malloc(appeared->nombre.largo_nombre);
+		pokemonNuevo->especie =	appeared->nombre.nombre;
+		pokemonNuevo->planificado = false;
+		bool _mismaEspecie(char* especie){
+					return mismaEspecie(especie, pokemonNuevo->especie);
+							}
+		bool _mismaPokemon(t_pokemon* pokemon){
+					return mismaEspecie(pokemon->especie, pokemonNuevo->especie);
+				}
+
+		if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie))
+			list_remove_by_condition(especiesNecesarias, (void*)_mismaEspecie); //para marcar que ya nos llego un appeared de esta especie
+
+		pthread_mutex_lock(&objetivo);
+		int necesarios = list_count_satisfying(objetivoGlobal, (void*)_mismaEspecie);
+		pthread_mutex_unlock(&objetivo);
 		pthread_mutex_lock(&requeridos);
-		list_add(pokemonsRequeridos, pokemonNuevo);
+		int pokemonsACapturar = list_count_satisfying(pokemonsRequeridos, (void*)_mismaPokemon);
 		pthread_mutex_unlock(&requeridos);
-		sem_post(&sem_ready);
-		puts("appeared pokemon");
-	}else{
-		if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
-	}
+		if(necesarios>pokemonsACapturar){
+			pthread_mutex_lock(&requeridos);
+			list_add(pokemonsRequeridos, pokemonNuevo);
+			pthread_mutex_unlock(&requeridos);
+			sem_post(&sem_ready);
+			puts("appeared pokemon");
+		}else{
+			if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
+		}
 
+		printf("%d", pokemonsRequeridos->elements_count);
+	}
 }
 
 void process_request(int cod_op, int cliente_fd) { //funciona
@@ -601,6 +620,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			return mismaEspecie(especie1, appeared->nombre.nombre);
 		}
 
+	t_localized_pokemon* localized;
+	t_caught_pokemon* caught;
+
 
 		switch (cod_op) {
 		case APPEARED_POKEMON:
@@ -610,10 +632,55 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			puts(string_itoa(appeared->id));
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
 				log_info(logger, "%d Mensaje Appeared_pokemon %s %d %d", appeared->id, appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
-				appeared_pokemon(appeared) ; //hacer dentro de un hilo
+				//appeared_pokemon(appeared) ; //hacer dentro de un hilo
+				queue_push(colaAppearedPokemon,appeared);
+				sem_post(&semAppeared);
 			}
 
+
 			break;
+
+		case LOCALIZED_POKEMON:
+
+			puts("recibe mensaje");
+			localized = deserializar_localized_pokemon(buffer);
+			bool mismoIdMensaje(int* ID){
+						return  (localized->correlation_id == *ID);
+					}
+			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
+				char* mensaje = string_new();
+				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized->id, localized->nombre.nombre, localized->cantidad);
+				coordenadas_pokemon* coord;
+				for(int i = 0; i<localized->cantidad; i++){
+					coord = list_get(localized->listaCoordenadas, i);
+					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
+				}
+				string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
+				log_info(logger, mensaje);
+				//localized_pokemon(localized_pokemon) ; //hacer dentro de un hilo? eliminar de lista especieNecesarias
+				//agregar a lista de appeared y signal hilo appeared_pokemon
+			}
+			puts(localized->nombre.nombre);
+			puts("deserializo");
+
+			break;
+
+		case CAUGHT_POKEMON:
+			caught = deserializar_caught_pokemon(buffer);
+
+			bool _tieneMismoIDCatch(void* entrenador){
+					return tienemismoIdCatch(entrenador, caught->correlation_id);
+				}
+
+				if(list_any_satisfy(entrenadores, (void*)_tieneMismoIDCatch)){
+					log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->id);
+					//caught_pokemon(); //usar capturo_pokemon
+				}
+
+		break;
+
+
+
 //		case 0:
 //			//pthread_exit(NULL);
 //		case -1:
@@ -806,7 +873,7 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 }
 
 void connect_localized_pokemon(){
-	t_list* IDs_get_pokemon;
+
 	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
@@ -822,7 +889,7 @@ void connect_localized_pokemon(){
 	void _get_pokemon(void* especie){
 		return get_pokemon(especie, socket_broker, IDs_get_pokemon);
 	}
-	IDs_get_pokemon = list_create();
+
 	list_iterate(especiesNecesarias, (void*)_get_pokemon); //poner if es la primera vez que lo ejecuta??
 	int size = 0;
 	t_localized_pokemon* localized_pokemon;
@@ -841,7 +908,7 @@ void connect_localized_pokemon(){
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
-			list_destroy(IDs_get_pokemon);
+
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 
