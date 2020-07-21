@@ -59,9 +59,9 @@ void iniciarTeam(){
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 
-//	pthread_t conexionBroker;
-//	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
-//	pthread_join(conexionBroker, NULL);
+	pthread_t conexionBroker;
+	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
+	pthread_join(conexionBroker, NULL);
 
 	pthread_t recibirAppearedPokemon;
 	pthread_create(&recibirAppearedPokemon, NULL, (void*)appeared_pokemon, NULL);
@@ -1058,18 +1058,18 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 
 void crearConexiones(){
 	int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
-	pthread_t appeared_pokemon_thread;
+	//pthread_t appeared_pokemon_thread;
 	pthread_t localized_pokemon_thread;
-	pthread_t caught_pokemon_thread;
+	//pthread_t caught_pokemon_thread;
 	while(!entrenadoresTienenElInventarioLleno()){
-		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-		pthread_detach(appeared_pokemon_thread);
+//		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+//		pthread_detach(appeared_pokemon_thread);
 		pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
 		pthread_detach(localized_pokemon_thread);
-		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
-		pthread_detach(caught_pokemon_thread);
-		sem_wait(&conexiones);
-		sem_wait(&conexiones);
+//		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
+//		pthread_detach(caught_pokemon_thread);
+//		sem_wait(&conexiones);
+//		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
 		log_info(logger, "Inicio Reintento de todas las conexiones");

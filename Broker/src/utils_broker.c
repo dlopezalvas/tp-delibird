@@ -114,7 +114,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 //	t_position_and_name* catch_pokemon;
 //	t_caught_pokemon* caught_pokemon;
 //	t_get_pokemon* get_pokemon;
-	puts("llego algo");
+	puts(string_itoa(cod_op));
 	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
 	mensaje->buffer = malloc(sizeof(t_buffer));
 	mensaje->buffer = buffer;
@@ -125,43 +125,43 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 	switch (cod_op) {
 	case NEW_POKEMON:
 		//ejecutar_new_pokemon(mensaje);
-		queue_push(NEW_POKEMON_COLA,&mensaje);
+		queue_push(NEW_POKEMON_COLA,mensaje);
 		sem_post(&new_pokemon_sem);
 		break;
 	case APPEARED_POKEMON:
 		puts("appeared");
 		//ejecutar_appeared_pokemon(mensaje);
-		queue_push(APPEARED_POKEMON_COLA,&mensaje);
+		queue_push(APPEARED_POKEMON_COLA,mensaje);
 		sem_post(&appeared_pokemon_sem);
 		break;
 	case CATCH_POKEMON:
 		puts("catch");
 		//ejecutar_catch_pokemon(mensaje);
-		queue_push(CATCH_POKEMON_COLA,&mensaje);
+		queue_push(CATCH_POKEMON_COLA,mensaje);
 		sem_post(&catch_pokemon_sem);
 		break;
 	case CAUGHT_POKEMON:
 		puts("caugh");
 		//ejecutar_caught_pokemon(mensaje);
-		queue_push(CAUGHT_POKEMON_COLA,&mensaje);
+		queue_push(CAUGHT_POKEMON_COLA,mensaje);
 		sem_post(&caught_pokemon_sem);
 		break;
 	case GET_POKEMON:
 		puts("GETPOKEMON");
 		//ejecutar_get_pokemon(mensaje);
-		queue_push(GET_POKEMON_COLA,&mensaje);
+		queue_push(GET_POKEMON_COLA,mensaje);
 		sem_post(&get_pokemon_sem);
 		break;
 	case LOCALIZED_POKEMON:
 		puts("localized");
 		//ejecutar_localized_pokemon(mensaje);
-		queue_push(LOCALIZED_POKEMON_COLA,&mensaje);
+		queue_push(LOCALIZED_POKEMON_COLA,mensaje);
 		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
 		puts("suscripcion");
 		//ejecutar_suscripcion(mensaje);
-		queue_push(SUSCRIPCION_COLA,&mensaje);
+		queue_push(SUSCRIPCION_COLA,mensaje);
 		sem_post(&suscripcion_sem);
 		break;
 	case 0:
@@ -394,6 +394,11 @@ void ejecutar_suscripcion(){
 		void* buffer = mensaje->buffer;
 
 		t_suscripcion* mensaje_suscripcion;
+
+		puts("suscripcion mensaje 1");
+
+		puts(string_itoa(mensaje->suscriptor));
+
 		mensaje_suscripcion = deserializar_suscripcion(buffer);
 		cola = mensaje_suscripcion->cola;
 		int suscriptor = mensaje->suscriptor;

@@ -783,14 +783,14 @@ void crear_conexiones(){
 	pthread_t catch_pokemon_thread;
 	pthread_t get_pokemon_thread;
 	while(1){
-		pthread_create(&new_pokemon_thread,NULL,(void*)connect_new_pokemon,NULL);
-		pthread_detach(new_pokemon_thread);
-		pthread_create(&catch_pokemon_thread,NULL,(void*)connect_catch_pokemon,NULL);
-		pthread_detach(catch_pokemon_thread);
+//		pthread_create(&new_pokemon_thread,NULL,(void*)connect_new_pokemon,NULL);
+//		pthread_detach(new_pokemon_thread);
+//		pthread_create(&catch_pokemon_thread,NULL,(void*)connect_catch_pokemon,NULL);
+//		pthread_detach(catch_pokemon_thread);
 		pthread_create(&get_pokemon_thread,NULL,(void*)connect_get_pokemon,NULL);
 		pthread_detach(get_pokemon_thread);
-		sem_wait(&conexiones);
-		sem_wait(&conexiones);
+//		sem_wait(&conexiones);
+//		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
 		log_info(logger_gamecard, "Inicio Reintento de todas las conexiones");

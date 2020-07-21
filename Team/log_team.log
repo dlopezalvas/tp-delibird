@@ -212,3 +212,19 @@
 [INFO] 19:25:59:704 TEAM/(15341:15346): 0 Mensaje Appeared_pokemon pikachu 1 2
 [INFO] 19:26:09:229 TEAM/(15341:15347): 0 Mensaje Appeared_pokemon pikachu 1 3
 [INFO] 19:26:24:644 TEAM/(15341:15348): 0 Mensaje Appeared_pokemon charmander 2 3
+[INFO] 20:32:58:404 TEAM/(17881:17884): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:32:58:404 TEAM/(17881:17883): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:32:58:404 TEAM/(17881:17885): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:36:33:772 TEAM/(18000:18002): No se pudo realizar la conexion
+[INFO] 20:36:43:773 TEAM/(18000:18001): Inicio Reintento de todas las conexiones
+[INFO] 20:36:43:773 TEAM/(18000:18020): No se pudo realizar la conexion
+[INFO] 20:36:53:5 TEAM/(18030:18032): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:38:57:16 TEAM/(18116:18118): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:41:14:25 TEAM/(18228:18230): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:43:23:175 TEAM/(18322:18324): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:43:40:983 TEAM/(18337:18339): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:45:42:797 TEAM/(18421:18423): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:50:12:7 TEAM/(18421:18423): Se ha perdido la conexion con el proceso Broker
+[INFO] 20:50:36:261 TEAM/(18533:18535): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:53:02:535 TEAM/(18614:18616): Se ha establecido una conexion con el proceso Broker
+[INFO] 20:54:21:882 TEAM/(18614:18616): Se ha perdido la conexion con el proceso Broker
