@@ -64,8 +64,7 @@ void crear_bitmap(char* punto_montaje){
 
 	char* path_bitarray = string_new();
 
-	string_append(&path_bitarray, punto_montaje);
-	string_append(&path_bitarray,"/Metadata/Bitmap.bin");
+	string_append_with_format(&path_bitarray, "%s/Metadata/Bitmap.bin", punto_montaje);
 
 	int blocks = metadata_fs->blocks/8;
 
@@ -92,16 +91,12 @@ void crear_bitmap(char* punto_montaje){
 	//free(path_bitarray);
 }
 
-//journaling, checkeo con el log, si falla a la mitad que se pueda deshacer los pasos
-
 void agregar_pokemon_mapa(t_buffer* buffer){
 
 	t_new_pokemon* pokemon = deserializar_new_pokemon(buffer);
 
 	char* path_pokemon = string_new();
-	string_append(&path_pokemon, pto_montaje);
-	string_append(&path_pokemon, "/Files/");
-	string_append(&path_pokemon, pokemon->nombre.nombre);
+	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 
 	if(existe_pokemon(path_pokemon)){
 		actualizar_nuevo_pokemon(pokemon);
@@ -114,10 +109,7 @@ void agregar_pokemon_mapa(t_buffer* buffer){
 void capturar_pokemon(t_position_and_name* pokemon){
 
 	char* path_pokemon = string_new();
-	string_append(&path_pokemon, pto_montaje);
-	string_append(&path_pokemon, "/Files/");
-	string_append(&path_pokemon, pokemon->nombre.nombre);
-
+	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 	if(existe_pokemon(path_pokemon)){
 		puts("existe"); //TODO
 	}else{
@@ -127,9 +119,7 @@ void capturar_pokemon(t_position_and_name* pokemon){
 
 void crear_pokemon(t_new_pokemon* pokemon){
 	char* path_pokemon = string_new();
-	string_append(&path_pokemon, pto_montaje);
-	string_append(&path_pokemon, "/Files/");
-	string_append(&path_pokemon, pokemon->nombre.nombre);
+	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 
 	mkdir(path_pokemon, 0777); //creo el directorio
 
@@ -146,30 +136,29 @@ void crear_pokemon(t_new_pokemon* pokemon){
 		perror("No coinciden los semaforos con la cantidad de pokemones");
 	}
 
-	pthread_mutex_t pokemon_mtx;
+	pthread_mutex_t* pokemon_mtx;
 
-	pthread_mutex_init(&pokemon_mtx, NULL);
+	int asdf = pthread_mutex_init(pokemon_mtx, NULL);
 
-	list_add(sem_metadatas, &pokemon_mtx);
+	puts(string_itoa(asdf));
+
+	list_add(sem_metadatas, pokemon_mtx);
 	list_add(pokemones, pokemon->nombre.nombre);
 
-	pthread_mutex_unlock(&lista_metadatas_mtx);
 	pthread_mutex_unlock(&pokemones_mtx);
+	pthread_mutex_unlock(&lista_metadatas_mtx);
 
-	pthread_mutex_lock(&pokemon_mtx); //cambia en la lista tambien?
+
+	pthread_mutex_lock(pokemon_mtx); //cambia en la lista tambien?
 
 	fprintf(metadata, "DIRECTORY=N\n"); //no lo escribe esto???????
 	fprintf(metadata, "OPEN=Y\n"); //lo marco como abierto
 	fclose(metadata);
 
-	pthread_mutex_unlock(&pokemon_mtx);
+	pthread_mutex_unlock(pokemon_mtx);
 
 	char* datos = string_new();
-	string_append(&datos, string_itoa(pokemon->coordenadas.pos_x));
-	string_append(&datos, "-");
-	string_append(&datos, string_itoa(pokemon->coordenadas.pos_y));
-	string_append(&datos, "=");
-	string_append(&datos, string_itoa(pokemon->cantidad));
+	string_append_with_format(&datos, "%d-%d=%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y, pokemon->cantidad);
 
 	int tamanio = strlen(datos);
 
@@ -210,9 +199,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	}
 
 
-	config_set_value(config_aux, OPEN, NO);
-
-	config_save_in_file(config_aux, path_pokemon);
+	cerrar_archivo(config_aux, path_pokemon, pokemon->nombre.nombre);
 
 	config_destroy(config_aux);
 
@@ -223,10 +210,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	char* path_pokemon = string_new();
-	string_append(&path_pokemon, pto_montaje);
-	string_append(&path_pokemon, "/Files/");
-	string_append(&path_pokemon, pokemon->nombre.nombre);
-	string_append(&path_pokemon, "/Metadata.bin");
+	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
 	t_config* config_pokemon = config_create(path_pokemon);
 
@@ -246,9 +230,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		char* posicion = string_new();
 
-		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_x));
-		string_append(&posicion, "-");
-		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_y));
+		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
 
 		if(config_has_property(config_datos, posicion)){
 			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + 1); //a la cantidad que ya hay, le sumo el nuevo pokemon
@@ -259,8 +241,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 				i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
 			}
 
-			string_append(&posicion, "=");
-			string_append(&posicion, nueva_cantidad_posicion);
+			string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
 
 			list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
 
@@ -273,9 +254,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		config_set_value(config_pokemon, SIZE, tamanio_nuevo);
 
-		config_set_value(config_pokemon, OPEN, NO);
-
-		config_save_in_file(config_pokemon, path_pokemon);
+		cerrar_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
 		config_destroy(config_pokemon);
 
@@ -294,12 +273,15 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 void actualizar_quitar_pokemon(t_position_and_name* pokemon){
 
 	char* path_pokemon = string_new();
-	string_append(&path_pokemon, pto_montaje);
-	string_append(&path_pokemon, "/Files/");
-	string_append(&path_pokemon, pokemon->nombre.nombre);
-	string_append(&path_pokemon, "/Metadata.bin");
+	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
+	int index_sem_metadata = index_pokemon(pokemon->nombre.nombre);
+
+	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
+
+	pthread_mutex_lock(semaforo_pokemon);
 	t_config* config_pokemon = config_create(path_pokemon);
+	pthread_mutex_unlock(semaforo_pokemon);
 
 	if(!archivo_abierto(config_pokemon)){
 
@@ -317,9 +299,7 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon){
 
 		char* posicion = string_new();
 
-		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_x));
-		string_append(&posicion, "-");
-		string_append(&posicion, string_itoa(pokemon->coordenadas.pos_y));
+		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
 
 		if(config_has_property(config_datos, posicion)){
 
@@ -334,8 +314,7 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon){
 			if(nueva_cantidad_posicion == 0){
 				list_remove(lista_datos, i);
 			}else{
-				string_append(&posicion, "=");
-				string_append(&posicion, nueva_cantidad_posicion);
+				string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
 
 				list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
 			}
@@ -381,23 +360,27 @@ int guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 	char* datos = transformar_a_dato(lista_datos, tamanio_nuevo);
 
 	char** bloques = config_get_array_value(config_pokemon, BLOCKS);
+	char* bloques_guardar[cantidad_bloques_actuales];
 
 	if(cantidad_bloques_antes <= cantidad_bloques_actuales){ //si tienen el mismo tamanio, solo vuelvo a copiar los datos en los mismos bloques
 		int i;
 
 		for(i = 0; i < cantidad_bloques_antes; i++){
 			escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
+			bloques_guardar[i] = bloques[i];
 		}
 
 		if(cantidad_bloques_antes < cantidad_bloques_actuales){ //si es mayor tamanio tengo que pedir mas bloques
-			int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
 
+			int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
 			char** bloques_nuevos = buscar_bloques_libres(bloques_a_pedir); //falta verificar ver error si no hay disponibles
 
 			int j;
 
-			for(j = 0; j < bloques_a_pedir;i++){
+			for(j = 0; j < bloques_a_pedir;j++){
+				puts(string_itoa(j));
 				escribir_bloque(&offset, datos, bloques_nuevos[j], &tamanio_nuevo);
+				//bloques_guardar[j+i] = bloques_nuevos[j];
 			}
 
 			liberar_vector(bloques_nuevos);
@@ -406,7 +389,8 @@ int guardar_archivo(t_list* lista_datos, t_config* config_pokemon){
 	}else{ //tengo que borrar bloques
 		puts("borrar");
 	}
-
+	puts("tamanio");
+	puts(string_itoa(offset));
 	liberar_vector(bloques);
 	free(datos);
 
@@ -445,10 +429,7 @@ int bloque_libre(){
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
 
 		char* path_blocks = string_new();
-		string_append(&path_blocks, pto_montaje);
-		string_append(&path_blocks, "/Blocks/");
-		string_append(&path_blocks, bloque);
-		string_append(&path_blocks, ".bin");
+		string_append_with_format(&path_blocks, "%s/Blocks/%s.bin", pto_montaje, bloque);
 
 		int tamanio_a_escribir = minimo_entre(metadata_fs->block_size, *tamanio); //si es mayor o igual al block_size escribo el bloque entero, si es menor escribo los bytes que quedan por escribir
 
@@ -479,8 +460,7 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio){
 	int i;
 
 	for (i=0; i < cantidad_lineas; i++){
-		string_append(&datos, list_get(lista_datos, i));
-		string_append(&datos, "\n");
+		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
 	}
 
 	string_append(&datos, list_get(lista_datos, i)); //ultima linea
@@ -539,8 +519,7 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 
 	char* path_blocks = string_new();
 
-	string_append(&path_blocks, pto_montaje);
-	string_append(&path_blocks, "/Blocks/");
+	string_append_with_format(&path_blocks, "%s/Blocks/", pto_montaje);
 
 	int i;
 
@@ -554,9 +533,7 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 
 		//armo el path de cada bloque que voy a leer
 		char* bloque_especifico = string_new();
-		string_append(&bloque_especifico, path_blocks);
-		string_append(&bloque_especifico, blocks[i]);
-		string_append(&bloque_especifico, ".bin");
+		string_append_with_format(&bloque_especifico, "%s%s.bin", path_blocks, blocks[i]);
 
 		FILE* bloque = fopen(bloque_especifico, "r");
 
@@ -598,9 +575,21 @@ void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_po
 
 	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
+	pthread_mutex_lock(semaforo_pokemon);
+	config_set_value(config_archivo, OPEN, YES);
+	config_save_in_file(config_archivo, path_pokemon);
+	pthread_mutex_unlock(semaforo_pokemon);
+
+}
+
+void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
+
+	int index_sem_metadata = index_pokemon(nombre_pokemon);
+
+	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
 	//pthread_mutex_lock(semaforo_pokemon);
-	config_set_value(config_archivo, OPEN, YES);
+	config_set_value(config_archivo, OPEN, NO);
 	config_save_in_file(config_archivo, path_pokemon);
 	//pthread_mutex_unlock(semaforo_pokemon);
 
@@ -618,21 +607,22 @@ int index_pokemon(char* nombre){
 		pokemon = list_get(pokemones, index);
 	}
 	if(!string_equals_ignore_case(pokemon, nombre)){
-		pthread_mutex_t pokemon_mtx;
+		pthread_mutex_t* pokemon_mtx;
 
-		pthread_mutex_init(&pokemon_mtx, NULL);
+		int a = pthread_mutex_init(pokemon_mtx, NULL);
 
-		list_add(sem_metadatas, &pokemon_mtx);
+		list_add(sem_metadatas, pokemon_mtx);
 		list_add(pokemones, nombre);
 		index++;
 	}
-	pthread_mutex_unlock(&lista_metadatas_mtx);
 	pthread_mutex_unlock(&pokemones_mtx);
+	pthread_mutex_unlock(&lista_metadatas_mtx);
 
 	return index;
 }
 
 bool archivo_abierto(t_config* config_archivo){
+
 
 	char* archivo_open = config_get_string_value(config_archivo, OPEN);
 	bool esta_abierto = string_equals_ignore_case(YES, archivo_open);
@@ -681,6 +671,7 @@ void socket_escucha(char*IP, char* Puerto){
 	}
 
 }
+
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
@@ -820,7 +811,7 @@ void connect_get_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {"NEW_POKEMON"};
+	char* linea_split[1] = {"GET_POKEMON"};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
@@ -831,22 +822,23 @@ void connect_get_pokemon(){
 
 	int size = 0;
 	t_get_pokemon* get_pokemon;
-	int cod_op;
+
 
 	while(1){
-
-		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+		int cod_op;
+		if(recv(socket_broker, &cod_op, sizeof(op_code), MSG_WAITALL) == 0){
 			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
 		}
+		puts(string_itoa(cod_op));
 		void* buffer = recibir_mensaje(socket_broker,&size);
-		pthread_t solicitud_mensaje;
+		//pthread_t solicitud_mensaje;
 
 		if(cod_op == GET_POKEMON){
 
-			list_add(mensajes, &solicitud_mensaje);
+			//list_add(mensajes, &solicitud_mensaje);
 			puts("get_pokemon");
 
 //			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
@@ -874,16 +866,15 @@ int iniciar_cliente_gamecard(char* ip, char* puerto){
 		liberar_conexion(cliente);
 		sem_post(&conexiones);
 		pthread_exit(NULL);
-	}else{
+	}
 
 	log_info(logger_gamecard,"Se ha establecido una conexion con el proceso Broker");
 	return cliente;
-	}
 }
 
 void socket_gameboy(){
 
-	socketEscucha(config_get_string_value(config, "IP_GAMECARD"), config_get_string_value(config, "PUERTO_GAMECARD"));
+	socket_escucha(config_get_string_value(config, "IP_GAMECARD"), config_get_string_value(config, "PUERTO_GAMECARD"));
 
 }
 

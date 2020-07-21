@@ -78,6 +78,7 @@ bool archivo_abierto(t_config* config_archivo);
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
+void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
 int index_pokemon(char* nombre);
 char** leer_archivo(char** blocks, int tamanio_total);
 int cantidad_bloques(char** blocks);
@@ -105,5 +106,6 @@ void connect_get_pokemon();
 void connect_catch_pokemon();
 void connect_new_pokemon();
 void crear_conexiones();
+void socket_gameboy();
 
 #endif /* UTILS_H_ */
