@@ -82,7 +82,7 @@ void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_p
 int index_pokemon(char* nombre);
 char** leer_archivo(char** blocks, int tamanio_total);
 int cantidad_bloques(char** blocks);
-int guardar_archivo(t_list* lista_datos, t_config* config_pokemon);
+void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon);
 
 t_config* transformar_a_config(char** datos);
 t_list* transformar_a_lista(char** lineas);
