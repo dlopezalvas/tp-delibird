@@ -99,7 +99,6 @@ void new_pokemon(t_buffer* buffer){
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 
 	if(existe_pokemon(path_pokemon)){
-		puts("actualizo");
 		actualizar_nuevo_pokemon(pokemon);
 	}else{
 		crear_pokemon(pokemon);
@@ -113,12 +112,31 @@ void catch_pokemon(void* buffer){
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
+
+	t_mensaje* caught_pokemon = malloc(sizeof(t_mensaje));
+	caught_pokemon->tipo_mensaje = CAUGHT_POKEMON;
+	char* parametros = string_new();
+
+	int resultado = 0; //si ocurre algun error el resultado será 0, si no se cambiará cuando actualice el pokemon
+
 	if(existe_pokemon(path_pokemon)){
-		puts("existe"); //TODO
-		actualizar_quitar_pokemon(pokemon);
+		actualizar_quitar_pokemon(pokemon, &resultado);
 	}else{
 		puts("informar error por logs???");
 	}
+
+	string_append_with_format(&parametros, "%d,0,%d", resultado, pokemon->id);
+
+	caught_pokemon->parametros = string_split(parametros, ",");
+
+	puts(parametros);
+	int socket_broker = iniciar_cliente(config_get_string_value(config, IP_BROKER), config_get_string_value(config, PUERTO_BROKER));
+	if(socket_broker == -1){
+		puts("no se pudo contectar, error en log?");
+	}else{
+		enviar_mensaje(caught_pokemon, socket_broker);
+	}
+
 }
 
 void get_pokemon(void* buffer){
@@ -357,7 +375,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	}
 }
 
-void actualizar_quitar_pokemon(t_position_and_name* pokemon){
+void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
@@ -406,6 +424,8 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon){
 
 				list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
 			}
+
+			*resultado = 1;
 
 		}else{
 			puts("otro error que ni idea si va en log o que :(");
