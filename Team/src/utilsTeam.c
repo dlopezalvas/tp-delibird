@@ -70,15 +70,21 @@ void iniciarTeam(){
 
 	pthread_t conexionBroker;
 	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
-	pthread_join(conexionBroker, NULL);
+//	pthread_join(conexionBroker, NULL);
 
 	pthread_t recibirAppearedPokemon;
 	pthread_create(&recibirAppearedPokemon, NULL, (void*)appeared_pokemon, NULL);
-//	pthread_join(recibirAppearedPokemon, NULL);
 
-	pthread_t conexionGameBoy;
-	pthread_create(&conexionGameBoy, NULL, (void*)connect_gameboy, NULL);
-	pthread_join(conexionGameBoy, NULL);
+	pthread_t recibirLocalizedPokemon;
+	pthread_create(&recibirLocalizedPokemon, NULL, (void*)localized_pokemon, NULL);
+
+	pthread_t recibirCaughtPokemon;
+	pthread_create(&recibirCaughtPokemon, NULL, (void*)caught_pokemon, NULL);
+	pthread_join(recibirCaughtPokemon, NULL);
+
+//	pthread_t conexionGameBoy;
+//	pthread_create(&conexionGameBoy, NULL, (void*)connect_gameboy, NULL);
+//	pthread_join(conexionGameBoy, NULL);
 //	pthread_t thread_deadlock;
 //	pthread_create(&thread_deadlock, NULL, (void*)deteccionDeadlock, NULL);
 //	pthread_detach(thread_deadlock);
@@ -839,7 +845,7 @@ void connect_localized_pokemon(){
 
 	while(!(cumpleObjetivoGlobal())){
 
-		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+		if(recv(socket_broker, &cod_op, sizeof(cod_op), MSG_WAITALL) == 0){
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
@@ -847,7 +853,8 @@ void connect_localized_pokemon(){
 
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
-
+		puts("codigo operacion");
+		puts(string_itoa(cod_op));
 		if(cod_op == LOCALIZED_POKEMON){
 
 			puts("recibe mensaje");
@@ -997,9 +1004,9 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 
 void crearConexiones(){
 	int tiempoReconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
-	//pthread_t appeared_pokemon_thread;
+	pthread_t appeared_pokemon_thread;
 	pthread_t localized_pokemon_thread;
-	//pthread_t caught_pokemon_thread;
+	pthread_t caught_pokemon_thread;
 	while(!entrenadoresTienenElInventarioLleno()){
 //		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
 //		pthread_detach(appeared_pokemon_thread);
@@ -1082,6 +1089,7 @@ void localized_pokemon(){
 
 	while(!(cumpleObjetivoGlobal())){
 		sem_wait(&semLocalized);
+		puts("llego localized");
 		pthread_mutex_lock(&mutex_cola_localized_pokemon);
 		localized = queue_pop(colaLocalizedPokemon);
 		pthread_mutex_unlock(&mutex_cola_localized_pokemon);

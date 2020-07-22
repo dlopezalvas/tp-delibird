@@ -180,9 +180,11 @@ bool entrenadoresTienenElInventarioLleno();
 void crearConexiones();
 //Verifica si un entrenador mando un mensaje catch con el ID que recibe por parametro
 bool tienemismoIdCatch(t_entrenador* entrenador, uint32_t correlation_id);
-//Reacion al mesaje caught pokemon
+//Reaccion al mensaje caught pokemon
 void caught_pokemon();
 
 void llenarAppearedPokemon(coordenadas_pokemon* coord,t_localized_pokemon* localized, t_position_and_name* appeared);
+//Reaccion al mensaje localized pokemon
+void localized_pokemon();
 
 #endif /* UTILSTEAM_H_ */
