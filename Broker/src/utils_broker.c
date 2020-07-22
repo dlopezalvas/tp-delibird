@@ -273,6 +273,8 @@ void ejecutar_new_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,log_envio_new_pokemon);
 		}
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		free(mensaje->buffer);
+		free(mensaje);
 	}
 }
 
@@ -307,6 +309,8 @@ void ejecutar_appeared_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
 		list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+		free(mensaje->buffer);
+		free(mensaje);
 	}
 }
 
@@ -342,6 +346,8 @@ void ejecutar_catch_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
 		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		free(mensaje->buffer);
+		free(mensaje);
 	}
 }
 
@@ -375,6 +381,8 @@ void ejecutar_caught_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
 		list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		free(mensaje->buffer);
+		free(mensaje);
 	}
 }
 
@@ -411,6 +419,8 @@ void ejecutar_get_pokemon(){
 		}
 		list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		puts("despues de enviar");
+		free(mensaje->buffer);
+		free(mensaje);
 	}
 }
 
@@ -450,6 +460,8 @@ void ejecutar_localized_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
 		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		free(mensaje->buffer);
+		free(mensaje);
 	}
 }
 
