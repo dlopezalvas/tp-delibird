@@ -69,7 +69,7 @@ void crear_tall_grass(t_config* config);
 //void crear_metadata(char* path_metadata);
 void crear_bitmap(char* path);
 
-void actualizar_quitar_pokemon(t_position_and_name* pokemon);
+void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado);
 
 bool existe_pokemon(char* path_pokemon);
 void new_pokemon(t_buffer* buffer);
