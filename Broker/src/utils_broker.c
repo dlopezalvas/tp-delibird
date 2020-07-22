@@ -43,7 +43,26 @@ void crear_queues(void){
 	GET_POKEMON_COLA = queue_create();
 	LOCALIZED_POKEMON_COLA = queue_create();
 	SUSCRIPCION_COLA = queue_create();
-
+	pthread_mutex_init(&new_pokemon_mutex,NULL);
+	pthread_mutex_init(&appeared_pokemon_mutex,NULL);
+	pthread_mutex_init(&catch_pokemon_mutex,NULL);
+	pthread_mutex_init(&caught_pokemon_mutex,NULL);
+	pthread_mutex_init(&localized_pokemon_mutex,NULL);
+	pthread_mutex_init(&get_pokemon_mutex,NULL);
+	pthread_mutex_init(&suscripcion_mutex,NULL);
+	pthread_mutex_init(&new_pokemon_queue_mutex,NULL);
+	pthread_mutex_init(&appeared_pokemon_queue_mutex,NULL);
+	pthread_mutex_init(&catch_pokemon_queue_mutex,NULL);
+	pthread_mutex_init(&caught_pokemon_queue_mutex,NULL);
+	pthread_mutex_init(&localized_pokemon_queue_mutex,NULL);
+	pthread_mutex_init(&get_pokemon_queue_mutex,NULL);
+	pthread_mutex_init(&suscripcion_new_queue_mutex,NULL);
+	pthread_mutex_init(&suscripcion_get_queue_mutex,NULL);
+	pthread_mutex_init(&suscripcion_caught_queue_mutex,NULL);
+	pthread_mutex_init(&suscripcion_localized_queue_mutex,NULL);
+	pthread_mutex_init(&suscripcion_catch_queue_mutex,NULL);
+	pthread_mutex_init(&suscripcion_appeared_queue_mutex,NULL);
+	pthread_mutex_init(&multhilos_mutex,NULL);
 }
 
 void terminar_queues(void){
@@ -69,7 +88,9 @@ void esperar_cliente(int servidor){
 
 	pthread_t hilo;
 
+	pthread_mutex_lock(multhilos_mutex);
 	list_add(multihilos, &hilo);
+	pthread_mutex_unlock(multhilos_mutex);
 
 //	puts(string_itoa(multihilos->elements_count));
 
@@ -125,43 +146,57 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 	switch (cod_op) {
 	case NEW_POKEMON:
 		//ejecutar_new_pokemon(mensaje);
+		pthread_mutex_lock(&new_pokemon_mutex);
 		queue_push(NEW_POKEMON_COLA,mensaje);
+		pthread_mutex_unlock(&new_pokemon_mutex);
 		sem_post(&new_pokemon_sem);
 		break;
 	case APPEARED_POKEMON:
 		puts("appeared");
 		//ejecutar_appeared_pokemon(mensaje);
+		pthread_mutex_lock(&appeared_pokemon_mutex);
 		queue_push(APPEARED_POKEMON_COLA,mensaje);
+		pthread_mutex_unlock(&appeared_pokemon_mutex);
 		sem_post(&appeared_pokemon_sem);
 		break;
 	case CATCH_POKEMON:
 		puts("catch");
 		//ejecutar_catch_pokemon(mensaje);
+		pthread_mutex_lock(&catch_pokemon_mutex);
 		queue_push(CATCH_POKEMON_COLA,mensaje);
+		pthread_mutex_unlock(&catch_pokemon_mutex);
 		sem_post(&catch_pokemon_sem);
 		break;
 	case CAUGHT_POKEMON:
 		puts("caugh");
 		//ejecutar_caught_pokemon(mensaje);
+		pthread_mutex_lock(&caught_pokemon_mutex);
 		queue_push(CAUGHT_POKEMON_COLA,mensaje);
+		pthread_mutex_unlock(&caught_pokemon_mutex);
 		sem_post(&caught_pokemon_sem);
 		break;
 	case GET_POKEMON:
 		puts("GETPOKEMON");
 		//ejecutar_get_pokemon(mensaje);
+		pthread_mutex_lock(&get_pokemon_mutex);
 		queue_push(GET_POKEMON_COLA,mensaje);
+		pthread_mutex_unlock(&get_pokemon_mutex);
 		sem_post(&get_pokemon_sem);
 		break;
 	case LOCALIZED_POKEMON:
 		puts("localized");
 		//ejecutar_localized_pokemon(mensaje);
+		pthread_mutex_lock(&localized_pokemon_mutex);
 		queue_push(LOCALIZED_POKEMON_COLA,mensaje);
+		pthread_mutex_unlock(&localized_pokemon_mutex);
 		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
 //		puts("suscripcion");
 		//ejecutar_suscripcion(mensaje);
+		pthread_mutex_lock(&suscripcion_mutex);
 		queue_push(SUSCRIPCION_COLA,mensaje);
+		pthread_mutex_unlock(&suscripcion_mutex);
 		sem_post(&suscripcion_sem);
 		break;
 	case 0:
@@ -192,14 +227,20 @@ void ejecutar_new_pokemon(){
 	while(1){
 
 		sem_wait(&new_pokemon_sem);
+		pthread_mutex_lock(&new_pokemon_mutex);
 		t_mensaje_broker* mensaje = queue_pop(NEW_POKEMON_COLA);
+		pthread_mutex_unlock(&new_pokemon_mutex);
 
 		t_new_pokemon* new_pokemon;
 		new_pokemon = deserializar_new_pokemon(mensaje->buffer);
 		uint32_t mensaje_id;
 		mensaje_id = mensaje->id;
 		new_pokemon->id = mensaje_id;
+
+		pthread_mutex_lock(&new_pokemon_queue_mutex);
 		list_add(NEW_POKEMON_QUEUE,new_pokemon);
+		pthread_mutex_unlock(&new_pokemon_queue_mutex);
+
 		op_code codigo_operacion = APPEARED_POKEMON;
 		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 
@@ -232,7 +273,9 @@ void ejecutar_appeared_pokemon(){
 	while(1){
 
 		sem_wait(&appeared_pokemon_sem);
+		pthread_mutex_lock(&appeared_pokemon_mutex);
 		t_mensaje_broker* mensaje = queue_pop(APPEARED_POKEMON_COLA);
+		pthread_mutex_unlock(&appeared_pokemon_mutex);
 
 		t_position_and_name* appeared_pokemon;
 		appeared_pokemon = deserializar_position_and_name(mensaje->buffer);
@@ -240,7 +283,9 @@ void ejecutar_appeared_pokemon(){
 		mensaje_id = mensaje->id;
 		appeared_pokemon->id = mensaje_id;
 
+		pthread_mutex_lock(&appeared_pokemon_queue_mutex);
 		list_add(APPEARED_POKEMON_QUEUE,appeared_pokemon);
+		pthread_mutex_unlock(&appeared_pokemon_queue_mutex);
 
 		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
@@ -263,14 +308,19 @@ void ejecutar_catch_pokemon(){
 	while(1){
 
 		sem_wait(&catch_pokemon_sem);
+		pthread_mutex_lock(&catch_pokemon_mutex);
 		t_mensaje_broker* mensaje = queue_pop(CATCH_POKEMON_COLA);
+		pthread_mutex_unlock(&catch_pokemon_mutex);
 
 		t_position_and_name* catch_pokemon;
 		catch_pokemon = deserializar_position_and_name(mensaje->buffer);
 		uint32_t mensaje_id;
 		mensaje_id = mensaje->id;
 		catch_pokemon->id = mensaje_id;
+
+		pthread_mutex_lock(&catch_pokemon_queue_mutex);
 		list_add(CATCH_POKEMON_QUEUE,catch_pokemon);
+		pthread_mutex_unlock(&catch_pokemon_queue_mutex);
 
 		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
@@ -292,7 +342,9 @@ void ejecutar_caught_pokemon(){
 	while(1){
 
 		sem_wait(&caught_pokemon_sem);
+		pthread_mutex_lock(&caught_pokemon_mutex);
 		t_mensaje_broker* mensaje = queue_pop(CAUGHT_POKEMON_COLA);
+		pthread_mutex_unlock(&caught_pokemon_mutex);
 
 		t_caught_pokemon* caught_pokemon;
 		caught_pokemon = deserializar_caught_pokemon(mensaje->buffer);
@@ -300,7 +352,9 @@ void ejecutar_caught_pokemon(){
 		uint32_t mensaje_id;
 		mensaje_id = mensaje->id;
 		caught_pokemon->id = mensaje_id;
+		pthread_mutex_lock(&caught_pokemon_queue_mutex);
 		list_add(CAUGHT_POKEMON_QUEUE,caught_pokemon);
+		pthread_mutex_unlock(&caught_pokemon_queue_mutex);
 		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
 		char* linea_split = string_new();
@@ -321,8 +375,9 @@ void ejecutar_get_pokemon(){
 	while(1){
 
 		sem_wait(&get_pokemon_sem);
+		pthread_mutex_lock(&get_pokemon_mutex);
 		t_mensaje_broker* mensaje = queue_pop(GET_POKEMON_COLA);
-
+		pthread_mutex_unlock(&get_pokemon_mutex);
 //		puts("get pokemonnn");
 		t_get_pokemon* get_pokemon;
 		get_pokemon = deserializar_get_pokemon(mensaje->buffer);
@@ -330,7 +385,9 @@ void ejecutar_get_pokemon(){
 		mensaje_id = mensaje->id;
 		get_pokemon->id = mensaje_id;
 		//TODO: Log
+		pthread_mutex_lock(&get_pokemon_queue_mutex);
 		list_add(GET_POKEMON_QUEUE,get_pokemon);
+		pthread_mutex_unlock(&get_pokemon_queue_mutex);
 		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 
 		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
@@ -354,15 +411,18 @@ void ejecutar_localized_pokemon(){
 	while(1){
 
 		sem_wait(&localized_pokemon_sem);
+		pthread_mutex_lock(&localized_pokemon_mutex);
 		t_mensaje_broker* mensaje = queue_pop(LOCALIZED_POKEMON_COLA);
-
+		pthread_mutex_unlock(&localized_pokemon_mutex);
 		t_localized_pokemon* localized_pokemon;
 		localized_pokemon = deserializar_localized_pokemon(mensaje->buffer);
 		uint32_t mensaje_id;
 		mensaje_id = mensaje->id;
 		localized_pokemon->id = mensaje_id;
 
+		pthread_mutex_lock(&localized_pokemon_queue_mutex);
 		list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
+		pthread_mutex_unlock(&localized_pokemon_queue_mutex);
 		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
 
 		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
@@ -390,8 +450,9 @@ void ejecutar_suscripcion(){
 	while(1){
 
 		sem_wait(&suscripcion_sem);
+		pthread_mutex_lock(&suscripcion_mutex);
 		t_mensaje_broker* mensaje = queue_pop(SUSCRIPCION_COLA);
-
+		pthread_mutex_unlock(&suscripcion_mutex);
 		op_code cola;
 		void* buffer = mensaje->buffer;
 
@@ -437,28 +498,38 @@ void ejecutar_suscripcion(){
 void ejecutar_new_pokemon_suscripcion(int suscriptor){
 	char* log_new_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_new_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT",suscriptor);
+	pthread_mutex_lock(&suscripcion_new_queue_mutex);
 	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	pthread_mutex_unlock(&suscripcion_new_queue_mutex);
 	log_info(logger,log_new_pokemon_suscriptor);
 }
 
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor){
 	char* log_appeared_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_appeared_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola APPEAREAD_POKEMON",suscriptor);
+	pthread_mutex_lock(&suscripcion_appeared_queue_mutex);
 	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
 	log_info(logger,log_appeared_pokemon_suscriptor);
 }
 
 void ejecutar_catch_pokemon_suscripcion(int suscriptor){
+
 	char* log_catch_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_catch_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
+	pthread_mutex_lock(&suscripcion_catch_queue_mutex);
 	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
 	log_info(logger,log_catch_pokemon_suscriptor);
 }
 
 void ejecutar_caught_pokemon_suscripcion(int suscriptor){
+
 	char* log_caught_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_caught_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
+	pthread_mutex_lock(&suscripcion_caught_queue_mutex);
 	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
 	log_info(logger,log_caught_pokemon_suscriptor);
 }
 
@@ -467,7 +538,9 @@ void ejecutar_get_pokemon_suscripcion(int suscriptor){
 	puts(string_itoa(suscriptor));
 	char* log_get_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_get_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola GET_POKEMON",suscriptor);
+	pthread_mutex_lock(&suscripcion_get_queue_mutex);
 	list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	pthread_mutex_unlock(&suscripcion_get_queue_mutex);
 	log_info(logger,log_get_pokemon_suscriptor);
 }
 
@@ -475,7 +548,9 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 
 	char* log_localized_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_localized_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
+	pthread_mutex_lock(&suscripcion_localized_queue_mutex);
 	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);//Ver si va el & o no
+	pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
 	log_info(logger,log_localized_pokemon_suscriptor);
 }
 

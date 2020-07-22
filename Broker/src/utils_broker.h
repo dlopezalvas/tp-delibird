@@ -62,7 +62,18 @@ t_queue* LOCALIZED_POKEMON_COLA;
 t_queue* SUSCRIPCION_COLA;
 
 
+
 sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem;
+pthread_mutex_t new_pokemon_mutex,appeared_pokemon_mutex, catch_pokemon_mutex, caught_pokemon_mutex,localized_pokemon_mutex, get_pokemon_mutex, suscripcion_mutex;
+pthread_mutex_t new_pokemon_queue_mutex,appeared_pokemon_queue_mutex, catch_pokemon_queue_mutex, caught_pokemon_queue_mutex,localized_pokemon_queue_mutex, get_pokemon_queue_mutex;
+pthread_mutex_t
+suscripcion_new_queue_mutex,
+suscripcion_get_queue_mutex,
+suscripcion_caught_queue_mutex,
+suscripcion_localized_queue_mutex,
+suscripcion_catch_queue_mutex,
+suscripcion_appeared_queue_mutex,
+multhilos_mutex;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
