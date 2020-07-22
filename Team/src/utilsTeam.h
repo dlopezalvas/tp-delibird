@@ -135,7 +135,7 @@ void appeared_pokemon();
 //conexion Gameboy
 void connect_gameboy();
 void esperar_cliente(int servidor);
-void serve_client(int* socket);
+void serve_client(int socket);
 void socketEscucha(char* ip, char* puerto);
 void process_request(int cod_op, int cliente_fd);
 

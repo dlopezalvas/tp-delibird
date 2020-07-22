@@ -102,10 +102,11 @@ void esperar_cliente(int servidor){
 }
 
 void serve_client(int socket)
-{
+{	int rec;
 	int cod_op;
 	while(1){
-		if(recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL) == -1)
+		rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
+		if(rec == -1 || rec == 0)
 				cod_op = -1;
 		process_request(cod_op, socket);
 	}
@@ -196,7 +197,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
-//		puts("suscripcion");
+		puts("suscripcion");
 		//ejecutar_suscripcion(mensaje);
 		pthread_mutex_lock(&suscripcion_mutex);
 		queue_push(SUSCRIPCION_COLA,mensaje);
@@ -204,8 +205,10 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 		sem_post(&suscripcion_sem);
 		break;
 	case 0:
+		puts("mata al hilo");
 		pthread_exit(NULL);
 	case -1:
+		puts("mata al hilo por -1");
 		pthread_exit(NULL);
 	}
 
@@ -458,8 +461,10 @@ void ejecutar_localized_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
 		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
-		free(mensaje->buffer);
-		free(mensaje);
+//		free(mensaje->buffer);
+//		free(mensaje);
+		puts("codigo mensaje:");
+		puts(string_itoa(mensaje_enviar->tipo_mensaje));
 	}
 }
 

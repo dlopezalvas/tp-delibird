@@ -655,16 +655,17 @@ void esperar_cliente(int servidor){ //funciona
 
 	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
 
-	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
+	pthread_create(&thread,NULL,(void*)serve_client,cliente);
 	pthread_detach(thread);
 }
 
-void serve_client(int* socket) //funciona
+void serve_client(int socket) //funciona
 {
 	int cod_op;
-	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+	int _recv = recv(socket, &cod_op, sizeof(int), MSG_WAITALL);
+	if(_recv == -1 || _recv == 0)
 		cod_op = -1;
-	process_request(cod_op, *socket);
+	process_request(cod_op, socket);
 }
 
 
@@ -788,10 +789,10 @@ void connect_appeared(){
 		return mismaEspecie(especie1, appeared->nombre.nombre);
 	}
 	int cod_op;
-
+	int _recv;
 	while(!(cumpleObjetivoGlobal())){
-
-		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+		_recv = recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL);
+		if(_recv == 0){
 			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 			pthread_mutex_unlock(&log_mutex);
@@ -799,6 +800,11 @@ void connect_appeared(){
 			sem_post(&conexiones);
 			pthread_exit(NULL);
 		}
+		if(_recv == -1){
+			puts("error");
+			pthread_exit(NULL);
+		}
+
 		void* buffer = recibir_mensaje(socket_broker,&size);
 
 		if(cod_op == APPEARED_POKEMON){
@@ -826,6 +832,7 @@ void connect_appeared(){
 //	free(mensaje);
 }
 void get_pokemon(char*especie, int socket_broker, t_list* IDs){
+	int _recv;
 	op_code codigo_operacion = GET_POKEMON;
 	puts(especie);
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
@@ -837,9 +844,11 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 	puts("antes enviar");
 	enviar_mensaje(mensaje, (socket_broker));
 	uint32_t id;
-	recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
-	list_add(IDs, &id);
+	_recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
+	if(_recv == 0 || _recv == -1) puts("error al recibir id get pokemon");
+	else{list_add(IDs, id);
 	puts(string_itoa(id));
+	}
 }
 
 void connect_localized_pokemon(){
@@ -866,21 +875,26 @@ void connect_localized_pokemon(){
 	bool _mismaEspecie(char* especie1){
 		return mismaEspecie(especie1, localized->nombre.nombre);
 	}
-	bool mismoIdMensaje(int* ID){
-			return  (localized->correlation_id == *ID);
+	bool mismoIdMensaje(int ID){
+			return  (localized->correlation_id == ID);
 		}
 	int cod_op;
-
+	int _recv;
 	while(!(cumpleObjetivoGlobal())){
 
-		if(recv(socket_broker, &cod_op, sizeof(cod_op), MSG_WAITALL) == 0){
+		_recv = recv(socket_broker, &cod_op, sizeof(cod_op), MSG_WAITALL);
+		puts("bbbbbbbbb");
+		if(_recv == 0){
 			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
-
+		}
+		if(_recv == -1){
+			puts("error");
+			pthread_exit(NULL);
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		puts("codigo operacion");
@@ -888,25 +902,29 @@ void connect_localized_pokemon(){
 		if(cod_op == LOCALIZED_POKEMON){
 
 			puts("recibe mensaje");
-			localized = deserializar_localized_pokemon(buffer);
-			if(1){//list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
-				char* mensaje = string_new();
-				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized->id, localized->nombre.nombre, localized->cantidad);
-				coordenadas_pokemon* coord;
-				for(int i = 0; i<localized->cantidad; i++){
-					coord = list_get(localized->listaCoordenadas, i);
-					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
-				}
-				string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
-				pthread_mutex_lock(&log_mutex);
-				log_info(logger, mensaje);
-				pthread_mutex_unlock(&log_mutex);
-				pthread_mutex_lock(&mutex_cola_localized_pokemon);
-				queue_push(colaLocalizedPokemon,localized);
-				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
-				sem_post(&semLocalized);
-			}
-			puts(localized->nombre.nombre);
+//			localized = deserializar_localized_pokemon(buffer);
+//			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
+////				printf("cantidad de ids recibidos %d", IDs_get_pokemon->elements_count);
+////				if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie)) puts("es espcie necesaria");
+////				if(list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)) puts("es correlation ID correcto");
+//
+//				char* mensaje = string_new();
+//				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized->id, localized->nombre.nombre, localized->cantidad);
+//				coordenadas_pokemon* coord;
+//				for(int i = 0; i<localized->cantidad; i++){
+//					coord = list_get(localized->listaCoordenadas, i);
+//					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
+//				}
+//				string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
+//				pthread_mutex_lock(&log_mutex);
+//				log_info(logger, mensaje);
+//				pthread_mutex_unlock(&log_mutex);
+//				pthread_mutex_lock(&mutex_cola_localized_pokemon);
+//				queue_push(colaLocalizedPokemon,localized);
+//				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
+//				sem_post(&semLocalized);
+//			}
+//			puts(localized->nombre.nombre);
 			puts("deserializo");
 		}
 	}
@@ -936,16 +954,20 @@ void connect_caught_pokemon(){
 		return tienemismoIdCatch(entrenador, caught->correlation_id);
 	}
 	int cod_op;
-
+	int _recv;
 	while(!(cumpleObjetivoGlobal())){
-
-		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+		_recv = recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL);
+		if(_recv == 0 ){
 			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
 			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
+		}if(_recv == -1){
+			puts("error");
+			pthread_exit(NULL);
+
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		if(cod_op == CAUGHT_POKEMON){
@@ -1014,7 +1036,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	direccion_servidor.sin_port = htons(atoi(puerto));
 
 	int socket_broker = socket(AF_INET, SOCK_STREAM, 0);
-
+	int _recv;
 	if(connect(socket_broker, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
 		pthread_mutex_lock(&log_mutex);
 		log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
@@ -1025,13 +1047,18 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 		return;
 	}else{
 		enviar_mensaje(mensaje, socket_broker);
-		if(recv(socket_broker, &ID, sizeof(uint32_t), MSG_WAITALL) == 0){
+		_recv = recv(socket_broker, &ID, sizeof(uint32_t), MSG_WAITALL);
+		if(_recv == 0){
 			pthread_mutex_lock(&log_mutex);
 			log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
 			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			capturoPokemon(entrenador);
 			pthread_mutex_unlock(&((*entrenador)->mutex));
+			return;
+		}
+		if(_recv == 1){
+			puts("error agregar lo que tenga que hacer aca");
 			return;
 		}
 		(*entrenador)->catch_id = ID;

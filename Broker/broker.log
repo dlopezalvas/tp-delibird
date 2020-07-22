@@ -278,3 +278,891 @@
 [INFO] 14:25:04:724 BROKER/(637:644): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
 [INFO] 14:25:04:724 BROKER/(637:642): 
 [INFO] 14:25:04:724 BROKER/(637:642): 
+[INFO] 14:32:54:806 BROKER/(1318:1325): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:32:54:806 BROKER/(1318:1325): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 14:32:54:806 BROKER/(1318:1325): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 14:32:55:828 BROKER/(1318:1325): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:32:55:828 BROKER/(1318:1325): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:32:55:829 BROKER/(1318:1325): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 14:32:55:829 BROKER/(1318:1324): 
+[INFO] 14:32:55:830 BROKER/(1318:1324): 
+[INFO] 14:32:55:832 BROKER/(1318:1323): 
+[INFO] 14:32:55:832 BROKER/(1318:1323): 
+[INFO] 14:33:30:577 BROKER/(1407:1414): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:33:30:577 BROKER/(1407:1414): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:33:30:577 BROKER/(1407:1414): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 14:33:31:542 BROKER/(1407:1414): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:33:31:543 BROKER/(1407:1414): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:33:31:543 BROKER/(1407:1413): 
+[INFO] 14:33:31:545 BROKER/(1407:1413): 
+[INFO] 14:33:31:546 BROKER/(1407:1414): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 14:33:31:547 BROKER/(1407:1412): 
+[INFO] 14:33:31:548 BROKER/(1407:1412): 
+[INFO] 14:34:52:377 BROKER/(1527:1534): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 14:34:52:377 BROKER/(1527:1534): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:34:52:377 BROKER/(1527:1534): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:34:53:295 BROKER/(1527:1534): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:34:53:296 BROKER/(1527:1534): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:34:53:296 BROKER/(1527:1533): 
+[INFO] 14:34:53:297 BROKER/(1527:1533): 
+[INFO] 14:34:53:298 BROKER/(1527:1532): 
+[INFO] 14:34:53:298 BROKER/(1527:1532): 
+[INFO] 14:34:53:299 BROKER/(1527:1534): Se suscribio el proceso, 13 ,a la cola CATCH_POKEMON
+[INFO] 14:35:21:975 BROKER/(1598:1605): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 14:35:21:976 BROKER/(1598:1605): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:35:21:976 BROKER/(1598:1605): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 14:35:22:872 BROKER/(1598:1605): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:35:22:872 BROKER/(1598:1605): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:35:22:873 BROKER/(1598:1604): 
+[INFO] 14:35:22:873 BROKER/(1598:1605): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 14:35:22:874 BROKER/(1598:1604): 
+[INFO] 14:35:22:874 BROKER/(1598:1603): 
+[INFO] 14:35:22:875 BROKER/(1598:1603): 
+[INFO] 14:36:06:878 BROKER/(1669:1676): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:36:06:878 BROKER/(1669:1676): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:36:06:879 BROKER/(1669:1676): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 14:36:07:711 BROKER/(1669:1676): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 14:36:07:711 BROKER/(1669:1676): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:36:07:712 BROKER/(1669:1676): Se suscribio el proceso, 11 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:36:07:712 BROKER/(1669:1675): 
+[INFO] 14:36:07:712 BROKER/(1669:1674): 
+[INFO] 14:36:07:712 BROKER/(1669:1675): 
+[INFO] 14:36:07:712 BROKER/(1669:1674): 
+[INFO] 14:36:23:372 BROKER/(1701:1708): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:36:23:373 BROKER/(1701:1708): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 14:36:23:373 BROKER/(1701:1708): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:36:24:319 BROKER/(1701:1708): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 14:36:24:319 BROKER/(1701:1708): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:36:24:320 BROKER/(1701:1707): 
+[INFO] 14:36:24:320 BROKER/(1701:1707): 
+[INFO] 14:36:24:320 BROKER/(1701:1708): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:36:24:321 BROKER/(1701:1706): 
+[INFO] 14:36:24:321 BROKER/(1701:1706): 
+[INFO] 14:36:31:791 BROKER/(1732:1739): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:36:31:791 BROKER/(1732:1739): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 14:36:31:791 BROKER/(1732:1739): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:36:32:766 BROKER/(1732:1739): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 14:36:32:766 BROKER/(1732:1739): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:36:32:766 BROKER/(1732:1739): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:36:32:767 BROKER/(1732:1738): 
+[INFO] 14:36:32:769 BROKER/(1732:1738): 
+[INFO] 14:36:32:775 BROKER/(1732:1737): 
+[INFO] 14:36:32:775 BROKER/(1732:1737): 
+[INFO] 14:36:37:632 BROKER/(1762:1769): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:36:37:632 BROKER/(1762:1769): Se suscribio el proceso, 5 ,a la cola CATCH_POKEMON
+[INFO] 14:36:37:638 BROKER/(1762:1769): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 14:36:39:66 BROKER/(1762:1769): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 14:36:39:66 BROKER/(1762:1769): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:36:39:66 BROKER/(1762:1768): 
+[INFO] 14:36:39:66 BROKER/(1762:1769): Se suscribio el proceso, 11 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:36:39:66 BROKER/(1762:1768): 
+[INFO] 14:36:39:67 BROKER/(1762:1767): 
+[INFO] 14:36:39:67 BROKER/(1762:1767): 
+[INFO] 14:36:43:487 BROKER/(1793:1800): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 14:36:43:488 BROKER/(1793:1800): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:36:43:488 BROKER/(1793:1800): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:36:44:541 BROKER/(1793:1800): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:36:44:541 BROKER/(1793:1800): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 14:36:44:542 BROKER/(1793:1800): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:36:44:542 BROKER/(1793:1799): 
+[INFO] 14:36:44:543 BROKER/(1793:1799): 
+[INFO] 14:36:44:544 BROKER/(1793:1798): 
+[INFO] 14:36:44:548 BROKER/(1793:1798): 
+[INFO] 14:36:49:185 BROKER/(1825:1832): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 14:36:49:186 BROKER/(1825:1832): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 14:36:49:186 BROKER/(1825:1832): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 14:36:50:175 BROKER/(1825:1832): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 14:36:50:176 BROKER/(1825:1831): 
+[INFO] 14:36:50:176 BROKER/(1825:1832): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 14:36:50:177 BROKER/(1825:1832): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 14:36:50:177 BROKER/(1825:1830): 
+[INFO] 14:36:50:177 BROKER/(1825:1831): 
+[INFO] 14:36:50:179 BROKER/(1825:1830): 
+[INFO] 15:03:12:949 BROKER/(1979:1986): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:03:12:959 BROKER/(1979:1986): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:03:12:968 BROKER/(1979:1986): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:03:13:663 BROKER/(1979:1986): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:03:13:720 BROKER/(1979:1985): 
+[INFO] 15:03:13:737 BROKER/(1979:1984): 
+[INFO] 15:03:13:784 BROKER/(1979:1986): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:03:13:786 BROKER/(1979:1986): Se suscribio el proceso, 12 ,a la cola CATCH_POKEMON
+[INFO] 15:03:13:789 BROKER/(1979:1985): 
+[INFO] 15:03:13:833 BROKER/(1979:1984): 
+[INFO] 15:08:50:425 BROKER/(2218:2225): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:08:50:447 BROKER/(2218:2225): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:08:50:451 BROKER/(2218:2225): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:08:52:517 BROKER/(2218:2225): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:08:52:519 BROKER/(2218:2225): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:08:52:522 BROKER/(2218:2225): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:08:52:534 BROKER/(2218:2224): 
+[INFO] 15:08:52:538 BROKER/(2218:2224): 
+[INFO] 15:08:52:579 BROKER/(2218:2223): 
+[INFO] 15:08:52:599 BROKER/(2218:2223): 
+[INFO] 15:09:10:72 BROKER/(2250:2257): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:09:10:99 BROKER/(2250:2257): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:09:10:107 BROKER/(2250:2257): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:09:12:242 BROKER/(2250:2257): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:09:12:247 BROKER/(2250:2257): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:09:12:249 BROKER/(2250:2257): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:09:12:262 BROKER/(2250:2256): 
+[INFO] 15:09:12:265 BROKER/(2250:2256): 
+[INFO] 15:09:12:312 BROKER/(2250:2255): 
+[INFO] 15:09:12:314 BROKER/(2250:2255): 
+[INFO] 15:09:31:944 BROKER/(2289:2296): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:09:31:944 BROKER/(2289:2296): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:09:31:946 BROKER/(2289:2296): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:09:38:82 BROKER/(2289:2296): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:09:38:83 BROKER/(2289:2296): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:09:38:83 BROKER/(2289:2296): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:09:38:83 BROKER/(2289:2295): 
+[INFO] 15:09:38:83 BROKER/(2289:2294): 
+[INFO] 15:09:38:83 BROKER/(2289:2295): 
+[INFO] 15:09:38:84 BROKER/(2289:2294): 
+[INFO] 15:12:11:508 BROKER/(2461:2468): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:12:11:520 BROKER/(2461:2468): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:12:11:525 BROKER/(2461:2468): Se suscribio el proceso, 9 ,a la cola GET_POKEMON
+[INFO] 15:12:14:612 BROKER/(2461:2468): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:12:14:661 BROKER/(2461:2468): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:12:14:669 BROKER/(2461:2467): 
+[INFO] 15:12:14:683 BROKER/(2461:2467): 
+[INFO] 15:12:14:722 BROKER/(2461:2466): 
+[INFO] 15:12:14:724 BROKER/(2461:2468): Se suscribio el proceso, 12 ,a la cola CATCH_POKEMON
+[INFO] 15:12:14:743 BROKER/(2461:2466): 
+[INFO] 15:12:51:661 BROKER/(2494:2501): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:12:51:670 BROKER/(2494:2501): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:12:51:677 BROKER/(2494:2501): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:12:52:645 BROKER/(2494:2501): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:12:52:647 BROKER/(2494:2501): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:12:52:651 BROKER/(2494:2501): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:12:52:667 BROKER/(2494:2500): 
+[INFO] 15:12:52:687 BROKER/(2494:2500): 
+[INFO] 15:12:52:722 BROKER/(2494:2499): 
+[INFO] 15:12:52:724 BROKER/(2494:2499): 
+[INFO] 15:13:02:889 BROKER/(2524:2531): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:13:02:918 BROKER/(2524:2531): Se suscribio el proceso, 9 ,a la cola GET_POKEMON
+[INFO] 15:13:02:920 BROKER/(2524:2531): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:13:04:51 BROKER/(2524:2531): Se suscribio el proceso, 8 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:13:04:98 BROKER/(2524:2531): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:13:04:126 BROKER/(2524:2531): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:13:04:150 BROKER/(2524:2530): 
+[INFO] 15:13:04:155 BROKER/(2524:2530): 
+[INFO] 15:13:04:160 BROKER/(2524:2529): 
+[INFO] 15:13:04:185 BROKER/(2524:2529): 
+[INFO] 15:13:11:677 BROKER/(2552:2559): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:13:11:688 BROKER/(2552:2559): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:13:11:703 BROKER/(2552:2559): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:13:12:620 BROKER/(2552:2559): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:13:12:661 BROKER/(2552:2559): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:13:12:689 BROKER/(2552:2558): 
+[INFO] 15:13:12:709 BROKER/(2552:2559): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:13:12:715 BROKER/(2552:2558): 
+[INFO] 15:13:12:730 BROKER/(2552:2557): 
+[INFO] 15:13:12:732 BROKER/(2552:2557): 
+[INFO] 15:13:19:394 BROKER/(2579:2586): Se suscribio el proceso, 5 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:13:19:424 BROKER/(2579:2586): Se suscribio el proceso, 7 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:13:19:426 BROKER/(2579:2586): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:13:20:306 BROKER/(2579:2586): Se suscribio el proceso, 9 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:13:20:336 BROKER/(2579:2586): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 15:13:20:346 BROKER/(2579:2586): Se suscribio el proceso, 11 ,a la cola GET_POKEMON
+[INFO] 15:13:55:422 BROKER/(2606:2613): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:13:55:433 BROKER/(2606:2613): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:13:55:437 BROKER/(2606:2613): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:13:57:691 BROKER/(2606:2613): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:13:57:703 BROKER/(2606:2613): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:13:57:736 BROKER/(2606:2613): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:13:57:760 BROKER/(2606:2612): 
+[INFO] 15:13:57:768 BROKER/(2606:2611): 
+[INFO] 15:13:57:770 BROKER/(2606:2612): 
+[INFO] 15:13:57:792 BROKER/(2606:2611): 
+[INFO] 15:14:07:34 BROKER/(2636:2643): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:14:07:48 BROKER/(2636:2643): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:14:07:50 BROKER/(2636:2643): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:14:08:882 BROKER/(2636:2643): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:14:08:884 BROKER/(2636:2643): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:14:08:895 BROKER/(2636:2643): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:14:08:897 BROKER/(2636:2642): 
+[INFO] 15:14:08:919 BROKER/(2636:2642): 
+[INFO] 15:14:08:949 BROKER/(2636:2641): 
+[INFO] 15:14:08:952 BROKER/(2636:2641): 
+[INFO] 15:14:16:997 BROKER/(2667:2674): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:14:17:9 BROKER/(2667:2674): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:14:17:12 BROKER/(2667:2674): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:14:19:200 BROKER/(2667:2674): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:14:19:217 BROKER/(2667:2674): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:14:19:228 BROKER/(2667:2673): 
+[INFO] 15:14:19:235 BROKER/(2667:2674): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:14:19:258 BROKER/(2667:2673): 
+[INFO] 15:14:19:284 BROKER/(2667:2672): 
+[INFO] 15:14:19:285 BROKER/(2667:2672): 
+[INFO] 15:14:27:712 BROKER/(2699:2706): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:14:27:723 BROKER/(2699:2706): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:14:27:727 BROKER/(2699:2706): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:14:29:949 BROKER/(2699:2706): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:14:29:953 BROKER/(2699:2706): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:14:29:980 BROKER/(2699:2705): 
+[INFO] 15:14:29:983 BROKER/(2699:2706): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:14:30:12 BROKER/(2699:2705): 
+[INFO] 15:14:30:15 BROKER/(2699:2704): 
+[INFO] 15:14:30:32 BROKER/(2699:2704): 
+[INFO] 15:14:38:835 BROKER/(2729:2736): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:14:38:848 BROKER/(2729:2736): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:14:38:851 BROKER/(2729:2736): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:14:41:164 BROKER/(2729:2736): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:14:41:166 BROKER/(2729:2736): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:14:41:168 BROKER/(2729:2736): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:14:41:184 BROKER/(2729:2735): 
+[INFO] 15:14:41:187 BROKER/(2729:2735): 
+[INFO] 15:14:41:228 BROKER/(2729:2734): 
+[INFO] 15:14:41:229 BROKER/(2729:2734): 
+[INFO] 15:14:51:190 BROKER/(2760:2767): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:14:51:201 BROKER/(2760:2767): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:14:51:207 BROKER/(2760:2767): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:14:53:405 BROKER/(2760:2767): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:14:53:419 BROKER/(2760:2767): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:14:53:470 BROKER/(2760:2767): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:14:53:493 BROKER/(2760:2766): 
+[INFO] 15:14:53:501 BROKER/(2760:2766): 
+[INFO] 15:14:53:529 BROKER/(2760:2765): 
+[INFO] 15:14:53:533 BROKER/(2760:2765): 
+[INFO] 15:15:01:317 BROKER/(2790:2797): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:15:01:328 BROKER/(2790:2797): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:15:01:331 BROKER/(2790:2797): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:15:03:366 BROKER/(2790:2797): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:15:03:419 BROKER/(2790:2797): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:15:03:481 BROKER/(2790:2797): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:15:03:482 BROKER/(2790:2796): 
+[INFO] 15:15:03:492 BROKER/(2790:2796): 
+[INFO] 15:15:03:528 BROKER/(2790:2795): 
+[INFO] 15:15:03:530 BROKER/(2790:2795): 
+[INFO] 15:15:13:454 BROKER/(2821:2828): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:15:13:454 BROKER/(2821:2828): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:15:13:454 BROKER/(2821:2828): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:15:17:19 BROKER/(2821:2828): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:15:17:22 BROKER/(2821:2828): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:15:17:25 BROKER/(2821:2828): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:15:17:31 BROKER/(2821:2827): 
+[INFO] 15:15:17:32 BROKER/(2821:2826): 
+[INFO] 15:15:17:35 BROKER/(2821:2827): 
+[INFO] 15:15:17:36 BROKER/(2821:2826): 
+[INFO] 15:16:34:68 BROKER/(2821:2827): 
+[INFO] 15:20:57:774 BROKER/(3136:3143): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:20:57:775 BROKER/(3136:3143): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:20:57:775 BROKER/(3136:3143): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:21:02:142 BROKER/(3136:3143): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:21:02:189 BROKER/(3136:3143): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:21:02:194 BROKER/(3136:3142): 
+[INFO] 15:21:02:194 BROKER/(3136:3141): 
+[INFO] 15:21:02:197 BROKER/(3136:3143): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:21:02:200 BROKER/(3136:3142): 
+[INFO] 15:21:02:200 BROKER/(3136:3141): 
+[INFO] 15:21:49:951 BROKER/(3177:3184): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:21:49:961 BROKER/(3177:3184): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:21:49:963 BROKER/(3177:3184): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:21:52:911 BROKER/(3177:3184): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:21:52:913 BROKER/(3177:3184): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:21:52:927 BROKER/(3177:3184): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:21:52:930 BROKER/(3177:3183): 
+[INFO] 15:21:52:935 BROKER/(3177:3183): 
+[INFO] 15:21:53:3 BROKER/(3177:3182): 
+[INFO] 15:21:53:8 BROKER/(3177:3182): 
+[INFO] 15:23:14:813 BROKER/(3217:3224): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:23:14:824 BROKER/(3217:3224): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:23:14:826 BROKER/(3217:3224): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:23:17:642 BROKER/(3217:3224): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:23:17:660 BROKER/(3217:3224): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:23:17:681 BROKER/(3217:3223): 
+[INFO] 15:23:17:704 BROKER/(3217:3223): 
+[INFO] 15:23:17:709 BROKER/(3217:3224): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:23:17:734 BROKER/(3217:3222): 
+[INFO] 15:23:17:747 BROKER/(3217:3222): 
+[INFO] 15:24:25:432 BROKER/(3259:3271): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:24:25:447 BROKER/(3259:3271): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:24:25:449 BROKER/(3259:3271): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:24:27:850 BROKER/(3259:3271): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:24:27:856 BROKER/(3259:3271): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:24:27:869 BROKER/(3259:3271): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:24:27:876 BROKER/(3259:3270): 
+[INFO] 15:24:27:911 BROKER/(3259:3269): 
+[INFO] 15:24:27:926 BROKER/(3259:3270): 
+[INFO] 15:24:27:930 BROKER/(3259:3269): 
+[INFO] 15:24:37:592 BROKER/(3294:3301): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:24:37:613 BROKER/(3294:3301): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:24:37:627 BROKER/(3294:3301): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:24:40:193 BROKER/(3294:3301): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:24:40:206 BROKER/(3294:3301): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:24:40:207 BROKER/(3294:3301): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 15:24:40:219 BROKER/(3294:3300): 
+[INFO] 15:24:40:228 BROKER/(3294:3300): 
+[INFO] 15:24:40:231 BROKER/(3294:3299): 
+[INFO] 15:24:40:232 BROKER/(3294:3299): 
+[INFO] 15:24:48:379 BROKER/(3324:3331): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:24:48:383 BROKER/(3324:3331): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:24:48:397 BROKER/(3324:3331): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:24:53:253 BROKER/(3324:3331): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:24:53:263 BROKER/(3324:3331): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:24:53:263 BROKER/(3324:3331): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:24:53:265 BROKER/(3324:3330): 
+[INFO] 15:24:53:267 BROKER/(3324:3330): 
+[INFO] 15:24:53:277 BROKER/(3324:3329): 
+[INFO] 15:24:53:278 BROKER/(3324:3329): 
+[INFO] 15:26:43:649 BROKER/(3454:3461): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:26:43:676 BROKER/(3454:3461): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:26:43:691 BROKER/(3454:3461): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:26:46:155 BROKER/(3454:3461): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:26:46:156 BROKER/(3454:3461): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:26:46:163 BROKER/(3454:3460): 
+[INFO] 15:26:46:165 BROKER/(3454:3461): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:26:46:177 BROKER/(3454:3460): 
+[INFO] 15:26:46:180 BROKER/(3454:3459): 
+[INFO] 15:26:46:181 BROKER/(3454:3459): 
+[INFO] 15:27:58:9 BROKER/(3538:3545): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:27:58:26 BROKER/(3538:3545): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:27:58:64 BROKER/(3538:3545): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:27:59:469 BROKER/(3538:3545): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:27:59:473 BROKER/(3538:3545): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:27:59:475 BROKER/(3538:3545): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:27:59:483 BROKER/(3538:3544): 
+[INFO] 15:27:59:487 BROKER/(3538:3544): 
+[INFO] 15:27:59:493 BROKER/(3538:3543): 
+[INFO] 15:27:59:493 BROKER/(3538:3543): 
+[INFO] 15:28:20:27 BROKER/(3572:3579): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:28:20:51 BROKER/(3572:3579): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:28:20:63 BROKER/(3572:3579): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:28:22:182 BROKER/(3572:3579): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:28:22:183 BROKER/(3572:3579): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:28:22:184 BROKER/(3572:3579): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:28:22:195 BROKER/(3572:3578): 
+[INFO] 15:28:22:200 BROKER/(3572:3578): 
+[INFO] 15:28:22:206 BROKER/(3572:3577): 
+[INFO] 15:28:22:207 BROKER/(3572:3577): 
+[INFO] 15:33:11:713 BROKER/(3838:3845): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:33:11:713 BROKER/(3838:3845): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:33:11:716 BROKER/(3838:3845): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:33:15:320 BROKER/(3838:3845): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:33:15:322 BROKER/(3838:3845): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:33:15:325 BROKER/(3838:3845): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:33:15:334 BROKER/(3838:3844): 
+[INFO] 15:33:15:348 BROKER/(3838:3844): 
+[INFO] 15:33:15:351 BROKER/(3838:3843): 
+[INFO] 15:33:15:352 BROKER/(3838:3843): 
+[INFO] 15:37:54:326 BROKER/(4152:4159): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:37:54:350 BROKER/(4152:4159): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:37:54:359 BROKER/(4152:4159): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:37:55:444 BROKER/(4152:4159): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:37:55:447 BROKER/(4152:4159): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:37:55:452 BROKER/(4152:4158): 
+[INFO] 15:37:55:454 BROKER/(4152:4159): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:37:55:459 BROKER/(4152:4158): 
+[INFO] 15:37:55:461 BROKER/(4152:4157): 
+[INFO] 15:37:55:462 BROKER/(4152:4157): 
+[INFO] 15:38:07:365 BROKER/(4182:4189): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:38:07:384 BROKER/(4182:4189): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:38:07:392 BROKER/(4182:4189): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:38:08:214 BROKER/(4182:4189): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:38:08:217 BROKER/(4182:4189): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:38:08:217 BROKER/(4182:4189): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:38:08:224 BROKER/(4182:4188): 
+[INFO] 15:38:08:232 BROKER/(4182:4188): 
+[INFO] 15:38:08:250 BROKER/(4182:4187): 
+[INFO] 15:38:08:251 BROKER/(4182:4187): 
+[INFO] 15:38:14:637 BROKER/(4213:4220): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:38:14:637 BROKER/(4213:4220): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:38:14:646 BROKER/(4213:4220): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:38:15:920 BROKER/(4213:4220): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:38:15:949 BROKER/(4213:4219): 
+[INFO] 15:38:15:953 BROKER/(4213:4219): 
+[INFO] 15:38:15:955 BROKER/(4213:4220): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:38:15:956 BROKER/(4213:4220): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:38:15:964 BROKER/(4213:4218): 
+[INFO] 15:38:15:964 BROKER/(4213:4218): 
+[INFO] 15:38:26:621 BROKER/(4245:4252): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:38:26:621 BROKER/(4245:4252): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:38:26:621 BROKER/(4245:4252): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:38:28:820 BROKER/(4245:4252): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:38:28:821 BROKER/(4245:4252): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:38:28:821 BROKER/(4245:4252): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:38:28:821 BROKER/(4245:4251): 
+[INFO] 15:38:28:821 BROKER/(4245:4251): 
+[INFO] 15:38:28:821 BROKER/(4245:4250): 
+[INFO] 15:38:28:822 BROKER/(4245:4250): 
+[INFO] 15:38:35:934 BROKER/(4275:4282): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:38:35:937 BROKER/(4275:4282): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:38:35:938 BROKER/(4275:4282): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:38:37:852 BROKER/(4275:4282): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:38:37:853 BROKER/(4275:4282): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:38:37:853 BROKER/(4275:4281): 
+[INFO] 15:38:37:853 BROKER/(4275:4282): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:38:37:853 BROKER/(4275:4281): 
+[INFO] 15:38:37:853 BROKER/(4275:4280): 
+[INFO] 15:38:37:854 BROKER/(4275:4280): 
+[INFO] 15:38:56:860 BROKER/(4305:4312): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:38:56:860 BROKER/(4305:4312): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:38:56:861 BROKER/(4305:4312): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:38:58:628 BROKER/(4305:4312): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:38:58:628 BROKER/(4305:4312): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 15:38:58:628 BROKER/(4305:4312): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:38:58:628 BROKER/(4305:4311): 
+[INFO] 15:38:58:629 BROKER/(4305:4310): 
+[INFO] 15:38:58:629 BROKER/(4305:4311): 
+[INFO] 15:38:58:629 BROKER/(4305:4310): 
+[INFO] 15:42:32:618 BROKER/(4401:4408): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:42:32:618 BROKER/(4401:4408): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:42:32:619 BROKER/(4401:4408): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:42:34:981 BROKER/(4401:4408): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:42:34:981 BROKER/(4401:4408): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:42:35:3 BROKER/(4401:4407): 
+[INFO] 15:42:35:3 BROKER/(4401:4406): 
+[INFO] 15:42:35:9 BROKER/(4401:4407): 
+[INFO] 15:42:35:16 BROKER/(4401:4408): Se suscribio el proceso, 12 ,a la cola CATCH_POKEMON
+[INFO] 15:42:35:19 BROKER/(4401:4406): 
+[INFO] 15:43:07:466 BROKER/(4437:4444): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:43:07:485 BROKER/(4437:4444): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:43:07:488 BROKER/(4437:4444): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:43:09:953 BROKER/(4437:4444): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:43:09:982 BROKER/(4437:4443): 
+[INFO] 15:43:09:984 BROKER/(4437:4444): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:43:10:10 BROKER/(4437:4444): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:43:10:13 BROKER/(4437:4443): 
+[INFO] 15:43:10:37 BROKER/(4437:4442): 
+[INFO] 15:43:10:40 BROKER/(4437:4442): 
+[INFO] 15:43:17:721 BROKER/(4477:4484): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:43:17:736 BROKER/(4477:4484): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:43:17:739 BROKER/(4477:4484): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:43:47:74 BROKER/(4477:4484): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:43:47:91 BROKER/(4477:4484): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:43:47:110 BROKER/(4477:4483): 
+[INFO] 15:43:47:140 BROKER/(4477:4484): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:43:47:141 BROKER/(4477:4483): 
+[INFO] 15:43:47:184 BROKER/(4477:4482): 
+[INFO] 15:43:47:186 BROKER/(4477:4482): 
+[INFO] 15:49:48:720 BROKER/(5130:5137): Se suscribio el proceso, 5 ,a la cola CATCH_POKEMON
+[INFO] 15:49:48:748 BROKER/(5130:5137): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:49:48:752 BROKER/(5130:5137): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:49:50:759 BROKER/(5130:5137): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:49:50:781 BROKER/(5130:5137): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:49:50:810 BROKER/(5130:5136): 
+[INFO] 15:49:50:831 BROKER/(5130:5137): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:49:50:853 BROKER/(5130:5136): 
+[INFO] 15:49:50:860 BROKER/(5130:5135): 
+[INFO] 15:49:50:863 BROKER/(5130:5135): 
+[INFO] 15:50:01:972 BROKER/(5160:5167): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 15:50:01:973 BROKER/(5160:5167): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:50:01:973 BROKER/(5160:5167): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:50:04:38 BROKER/(5160:5166): 
+[INFO] 15:50:04:38 BROKER/(5160:5167): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:50:04:38 BROKER/(5160:5166): 
+[INFO] 15:50:04:39 BROKER/(5160:5165): 
+[INFO] 15:50:04:39 BROKER/(5160:5167): Se suscribio el proceso, 12 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:50:04:39 BROKER/(5160:5165): 
+[INFO] 15:50:04:39 BROKER/(5160:5167): Se suscribio el proceso, 13 ,a la cola CATCH_POKEMON
+[INFO] 15:50:11:883 BROKER/(5190:5197): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:50:11:884 BROKER/(5190:5197): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:50:11:884 BROKER/(5190:5197): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:50:13:783 BROKER/(5190:5197): Se suscribio el proceso, 11 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:50:13:783 BROKER/(5190:5197): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 15:50:13:784 BROKER/(5190:5196): 
+[INFO] 15:50:13:784 BROKER/(5190:5197): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:50:13:784 BROKER/(5190:5196): 
+[INFO] 15:50:13:784 BROKER/(5190:5195): 
+[INFO] 15:50:13:784 BROKER/(5190:5195): 
+[INFO] 15:50:20:644 BROKER/(5220:5227): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:50:20:644 BROKER/(5220:5227): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:50:20:644 BROKER/(5220:5227): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:50:22:683 BROKER/(5220:5227): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 15:50:22:683 BROKER/(5220:5227): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:50:22:683 BROKER/(5220:5227): Se suscribio el proceso, 11 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:50:22:684 BROKER/(5220:5226): 
+[INFO] 15:50:22:684 BROKER/(5220:5225): 
+[INFO] 15:50:22:684 BROKER/(5220:5226): 
+[INFO] 15:50:22:685 BROKER/(5220:5225): 
+[INFO] 15:53:16:713 BROKER/(5313:5320): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:53:16:713 BROKER/(5313:5320): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:53:16:714 BROKER/(5313:5320): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:53:18:967 BROKER/(5313:5320): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:53:18:967 BROKER/(5313:5320): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:53:18:967 BROKER/(5313:5320): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:53:18:967 BROKER/(5313:5319): 
+[INFO] 15:53:18:968 BROKER/(5313:5319): 
+[INFO] 15:53:18:968 BROKER/(5313:5318): 
+[INFO] 15:53:23:987 BROKER/(5313:5318): 
+[INFO] 15:53:33:842 BROKER/(5345:5352): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:53:33:842 BROKER/(5345:5352): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 15:53:33:842 BROKER/(5345:5352): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:53:35:766 BROKER/(5345:5352): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:53:35:766 BROKER/(5345:5351): 
+[INFO] 15:53:35:766 BROKER/(5345:5352): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:53:35:766 BROKER/(5345:5352): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:53:35:767 BROKER/(5345:5351): 
+[INFO] 15:53:35:767 BROKER/(5345:5350): 
+[INFO] 15:53:40:768 BROKER/(5345:5350): 
+[INFO] 15:54:20:553 BROKER/(5377:5384): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:54:20:554 BROKER/(5377:5384): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:54:20:554 BROKER/(5377:5384): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:54:22:289 BROKER/(5377:5384): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 15:54:22:289 BROKER/(5377:5383): 
+[INFO] 15:54:22:289 BROKER/(5377:5384): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:54:22:290 BROKER/(5377:5383): 
+[INFO] 15:54:22:290 BROKER/(5377:5384): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:54:22:290 BROKER/(5377:5382): 
+[INFO] 15:54:27:292 BROKER/(5377:5382): 
+[INFO] 15:54:34:152 BROKER/(5409:5416): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:54:34:152 BROKER/(5409:5416): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:54:34:152 BROKER/(5409:5416): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:54:36:577 BROKER/(5409:5416): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:54:36:577 BROKER/(5409:5416): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:54:36:577 BROKER/(5409:5416): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:54:36:577 BROKER/(5409:5415): 
+[INFO] 15:54:36:577 BROKER/(5409:5415): 
+[INFO] 15:54:36:578 BROKER/(5409:5414): 
+[INFO] 15:54:41:579 BROKER/(5409:5414): 
+[INFO] 15:54:56:56 BROKER/(5440:5447): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:54:56:56 BROKER/(5440:5447): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:54:56:56 BROKER/(5440:5447): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:54:59:397 BROKER/(5440:5447): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:54:59:397 BROKER/(5440:5447): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:54:59:397 BROKER/(5440:5446): 
+[INFO] 15:54:59:397 BROKER/(5440:5447): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:54:59:398 BROKER/(5440:5445): 
+[INFO] 15:54:59:398 BROKER/(5440:5446): 
+[INFO] 15:55:04:398 BROKER/(5440:5445): 
+[INFO] 15:58:08:886 BROKER/(5559:5566): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:58:08:887 BROKER/(5559:5566): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:58:08:887 BROKER/(5559:5566): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:58:12:97 BROKER/(5559:5566): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:58:12:97 BROKER/(5559:5566): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:58:12:97 BROKER/(5559:5566): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:58:12:97 BROKER/(5559:5565): 
+[INFO] 15:58:12:98 BROKER/(5559:5565): 
+[INFO] 15:58:12:98 BROKER/(5559:5564): 
+[INFO] 15:58:17:100 BROKER/(5559:5564): 
+[INFO] 15:58:27:254 BROKER/(5591:5598): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 15:58:27:254 BROKER/(5591:5598): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:58:27:254 BROKER/(5591:5598): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:58:29:78 BROKER/(5591:5598): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:58:29:78 BROKER/(5591:5597): 
+[INFO] 15:58:29:78 BROKER/(5591:5598): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:58:29:78 BROKER/(5591:5598): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:58:29:79 BROKER/(5591:5597): 
+[INFO] 15:58:29:79 BROKER/(5591:5596): 
+[INFO] 15:58:34:902 BROKER/(5621:5628): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:58:34:902 BROKER/(5621:5628): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 15:58:34:903 BROKER/(5621:5628): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 15:58:36:762 BROKER/(5621:5628): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:58:36:763 BROKER/(5621:5627): 
+[INFO] 15:58:36:763 BROKER/(5621:5628): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:58:36:763 BROKER/(5621:5628): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 15:58:36:763 BROKER/(5621:5627): 
+[INFO] 15:58:36:763 BROKER/(5621:5626): 
+[INFO] 15:58:41:765 BROKER/(5621:5626): 
+[INFO] 15:58:52:118 BROKER/(5651:5658): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 15:58:52:118 BROKER/(5651:5658): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 15:58:52:118 BROKER/(5651:5658): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 15:58:54:270 BROKER/(5651:5658): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 15:58:54:270 BROKER/(5651:5658): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 15:58:54:270 BROKER/(5651:5658): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 15:58:54:270 BROKER/(5651:5657): 
+[INFO] 15:58:54:271 BROKER/(5651:5656): 
+[INFO] 15:58:54:271 BROKER/(5651:5657): 
+[INFO] 15:58:59:282 BROKER/(5651:5656): 
+[INFO] 16:01:07:275 BROKER/(5781:5788): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:01:07:275 BROKER/(5781:5788): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:01:07:276 BROKER/(5781:5788): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:01:08:268 BROKER/(5781:5788): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:01:08:268 BROKER/(5781:5788): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:01:08:268 BROKER/(5781:5787): 
+[INFO] 16:01:08:268 BROKER/(5781:5788): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:01:08:268 BROKER/(5781:5787): 
+[INFO] 16:01:08:269 BROKER/(5781:5786): 
+[INFO] 16:01:13:272 BROKER/(5781:5786): 
+[INFO] 16:01:18:164 BROKER/(5816:5823): Se suscribio el proceso, 5 ,a la cola CATCH_POKEMON
+[INFO] 16:01:18:164 BROKER/(5816:5823): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:01:18:164 BROKER/(5816:5823): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:01:19:548 BROKER/(5816:5823): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:01:19:548 BROKER/(5816:5823): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:01:19:548 BROKER/(5816:5822): 
+[INFO] 16:01:19:548 BROKER/(5816:5821): 
+[INFO] 16:01:19:548 BROKER/(5816:5822): 
+[INFO] 16:01:19:549 BROKER/(5816:5823): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:01:24:549 BROKER/(5816:5821): 
+[INFO] 16:01:31:203 BROKER/(5853:5860): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:01:31:203 BROKER/(5853:5860): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:01:31:203 BROKER/(5853:5860): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:01:32:75 BROKER/(5853:5860): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:01:32:75 BROKER/(5853:5860): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:01:32:76 BROKER/(5853:5859): 
+[INFO] 16:01:32:76 BROKER/(5853:5859): 
+[INFO] 16:01:32:76 BROKER/(5853:5860): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:01:32:76 BROKER/(5853:5858): 
+[INFO] 16:01:37:76 BROKER/(5853:5858): 
+[INFO] 16:01:41:276 BROKER/(5883:5890): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:01:41:276 BROKER/(5883:5890): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:01:41:276 BROKER/(5883:5890): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:01:42:67 BROKER/(5883:5890): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:01:42:67 BROKER/(5883:5890): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:01:42:67 BROKER/(5883:5890): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:01:42:67 BROKER/(5883:5889): 
+[INFO] 16:01:42:68 BROKER/(5883:5889): 
+[INFO] 16:01:42:68 BROKER/(5883:5888): 
+[INFO] 16:01:47:69 BROKER/(5883:5888): 
+[INFO] 16:01:53:29 BROKER/(5913:5920): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:01:53:29 BROKER/(5913:5920): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:01:53:30 BROKER/(5913:5920): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:01:54:867 BROKER/(5913:5920): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:01:54:867 BROKER/(5913:5920): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:01:54:867 BROKER/(5913:5920): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 16:01:54:868 BROKER/(5913:5919): 
+[INFO] 16:01:54:868 BROKER/(5913:5919): 
+[INFO] 16:01:54:868 BROKER/(5913:5918): 
+[INFO] 16:01:59:869 BROKER/(5913:5918): 
+[INFO] 16:02:05:179 BROKER/(5943:5950): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:02:05:179 BROKER/(5943:5950): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 16:02:05:179 BROKER/(5943:5950): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:02:07:358 BROKER/(5943:5950): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:02:07:358 BROKER/(5943:5950): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:02:07:359 BROKER/(5943:5950): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:02:07:359 BROKER/(5943:5949): 
+[INFO] 16:02:07:360 BROKER/(5943:5949): 
+[INFO] 16:02:07:360 BROKER/(5943:5948): 
+[INFO] 16:02:12:361 BROKER/(5943:5948): 
+[INFO] 16:02:18:218 BROKER/(5978:5985): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:02:18:218 BROKER/(5978:5985): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:02:18:218 BROKER/(5978:5985): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:02:19:938 BROKER/(5978:5985): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:02:19:938 BROKER/(5978:5985): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:02:19:938 BROKER/(5978:5984): 
+[INFO] 16:02:19:938 BROKER/(5978:5984): 
+[INFO] 16:02:19:939 BROKER/(5978:5985): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:02:19:939 BROKER/(5978:5983): 
+[INFO] 16:02:24:943 BROKER/(5978:5983): 
+[INFO] 16:02:41:650 BROKER/(6010:6017): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:02:41:650 BROKER/(6010:6017): Se suscribio el proceso, 5 ,a la cola CATCH_POKEMON
+[INFO] 16:02:41:650 BROKER/(6010:6017): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:02:43:429 BROKER/(6010:6017): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:02:43:429 BROKER/(6010:6017): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:02:43:429 BROKER/(6010:6017): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:02:43:429 BROKER/(6010:6016): 
+[INFO] 16:02:43:429 BROKER/(6010:6016): 
+[INFO] 16:02:43:430 BROKER/(6010:6015): 
+[INFO] 16:03:20:618 BROKER/(6046:6053): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:03:20:619 BROKER/(6046:6053): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:03:20:619 BROKER/(6046:6053): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:03:22:461 BROKER/(6046:6053): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:03:22:462 BROKER/(6046:6053): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:03:22:462 BROKER/(6046:6053): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:03:22:462 BROKER/(6046:6052): 
+[INFO] 16:03:22:463 BROKER/(6046:6051): 
+[INFO] 16:03:22:463 BROKER/(6046:6052): 
+[INFO] 16:03:27:464 BROKER/(6046:6051): 
+[INFO] 16:05:19:465 BROKER/(6176:6183): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:05:19:465 BROKER/(6176:6183): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:05:19:465 BROKER/(6176:6183): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:05:20:576 BROKER/(6176:6183): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:05:20:576 BROKER/(6176:6183): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 16:05:20:576 BROKER/(6176:6183): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:05:20:576 BROKER/(6176:6182): 
+[INFO] 16:05:20:577 BROKER/(6176:6181): 
+[INFO] 16:05:20:577 BROKER/(6176:6182): 
+[INFO] 16:05:20:578 BROKER/(6176:6181): 
+[INFO] 16:06:03:429 BROKER/(6213:6220): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:06:03:459 BROKER/(6213:6220): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:06:03:463 BROKER/(6213:6220): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:06:04:935 BROKER/(6213:6220): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:06:04:938 BROKER/(6213:6220): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:06:04:948 BROKER/(6213:6219): 
+[INFO] 16:06:04:973 BROKER/(6213:6220): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:06:04:976 BROKER/(6213:6219): 
+[INFO] 16:06:05:7 BROKER/(6213:6218): 
+[INFO] 16:06:05:9 BROKER/(6213:6218): 
+[INFO] 16:06:12:789 BROKER/(6244:6251): Se suscribio el proceso, 5 ,a la cola CATCH_POKEMON
+[INFO] 16:06:12:812 BROKER/(6244:6251): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:06:12:829 BROKER/(6244:6251): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:06:14:671 BROKER/(6244:6251): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:06:14:697 BROKER/(6244:6251): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:06:14:701 BROKER/(6244:6250): 
+[INFO] 16:06:14:707 BROKER/(6244:6251): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:06:14:728 BROKER/(6244:6250): 
+[INFO] 16:06:14:755 BROKER/(6244:6249): 
+[INFO] 16:06:14:761 BROKER/(6244:6249): 
+[INFO] 16:06:21:138 BROKER/(6274:6281): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 16:06:21:148 BROKER/(6274:6281): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:06:21:151 BROKER/(6274:6281): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:06:22:671 BROKER/(6274:6281): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:06:22:705 BROKER/(6274:6281): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:06:22:707 BROKER/(6274:6281): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:06:22:740 BROKER/(6274:6280): 
+[INFO] 16:06:22:755 BROKER/(6274:6280): 
+[INFO] 16:06:22:772 BROKER/(6274:6279): 
+[INFO] 16:06:22:774 BROKER/(6274:6279): 
+[INFO] 16:06:29:410 BROKER/(6306:6313): Se suscribio el proceso, 5 ,a la cola CATCH_POKEMON
+[INFO] 16:06:29:444 BROKER/(6306:6313): Se suscribio el proceso, 8 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:06:29:448 BROKER/(6306:6313): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:06:31:69 BROKER/(6306:6313): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:06:31:85 BROKER/(6306:6313): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:06:31:116 BROKER/(6306:6312): 
+[INFO] 16:06:31:133 BROKER/(6306:6313): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:06:31:136 BROKER/(6306:6311): 
+[INFO] 16:06:31:140 BROKER/(6306:6312): 
+[INFO] 16:06:31:156 BROKER/(6306:6311): 
+[INFO] 16:09:09:33 BROKER/(6375:6382): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:09:10:45 BROKER/(6375:6382): Se suscribio el proceso, 9 ,a la cola GET_POKEMON
+[INFO] 16:09:10:47 BROKER/(6375:6382): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:11:00:783 BROKER/(6487:6494): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:00:797 BROKER/(6487:6494): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:11:00:799 BROKER/(6487:6494): Se suscribio el proceso, 9 ,a la cola GET_POKEMON
+[INFO] 16:11:02:589 BROKER/(6487:6494): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:11:02:606 BROKER/(6487:6494): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:02:623 BROKER/(6487:6494): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:02:634 BROKER/(6487:6493): 
+[INFO] 16:11:02:659 BROKER/(6487:6493): 
+[INFO] 16:11:02:668 BROKER/(6487:6492): 
+[INFO] 16:11:02:684 BROKER/(6487:6492): 
+[INFO] 16:11:12:548 BROKER/(6523:6530): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:12:580 BROKER/(6523:6530): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:11:12:583 BROKER/(6523:6530): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:11:14:325 BROKER/(6523:6530): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:14:329 BROKER/(6523:6530): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:11:14:363 BROKER/(6523:6530): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:14:366 BROKER/(6523:6529): 
+[INFO] 16:11:14:382 BROKER/(6523:6529): 
+[INFO] 16:11:14:392 BROKER/(6523:6528): 
+[INFO] 16:11:14:394 BROKER/(6523:6528): 
+[INFO] 16:11:21:134 BROKER/(6553:6560): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:21:161 BROKER/(6553:6560): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:11:21:176 BROKER/(6553:6560): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:11:22:876 BROKER/(6553:6560): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:11:22:899 BROKER/(6553:6560): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:22:920 BROKER/(6553:6560): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:22:947 BROKER/(6553:6559): 
+[INFO] 16:11:22:960 BROKER/(6553:6558): 
+[INFO] 16:11:22:964 BROKER/(6553:6559): 
+[INFO] 16:11:22:978 BROKER/(6553:6558): 
+[INFO] 16:11:29:836 BROKER/(6585:6592): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:29:879 BROKER/(6585:6592): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:11:29:881 BROKER/(6585:6592): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:11:31:504 BROKER/(6585:6592): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:11:31:518 BROKER/(6585:6592): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:31:522 BROKER/(6585:6592): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:31:557 BROKER/(6585:6591): 
+[INFO] 16:11:31:562 BROKER/(6585:6591): 
+[INFO] 16:11:31:575 BROKER/(6585:6590): 
+[INFO] 16:11:31:595 BROKER/(6585:6590): 
+[INFO] 16:11:38:165 BROKER/(6615:6622): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 16:11:38:176 BROKER/(6615:6622): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:38:178 BROKER/(6615:6622): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:11:40:16 BROKER/(6615:6622): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:40:53 BROKER/(6615:6622): Se suscribio el proceso, 8 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:40:71 BROKER/(6615:6621): 
+[INFO] 16:11:40:74 BROKER/(6615:6621): 
+[INFO] 16:11:40:93 BROKER/(6615:6622): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:11:40:101 BROKER/(6615:6620): 
+[INFO] 16:11:40:122 BROKER/(6615:6620): 
+[INFO] 16:11:46:506 BROKER/(6645:6652): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:46:537 BROKER/(6645:6652): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:11:46:541 BROKER/(6645:6652): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:11:48:230 BROKER/(6645:6652): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:48:238 BROKER/(6645:6652): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 16:11:48:241 BROKER/(6645:6652): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:48:270 BROKER/(6645:6651): 
+[INFO] 16:11:48:293 BROKER/(6645:6650): 
+[INFO] 16:11:48:295 BROKER/(6645:6651): 
+[INFO] 16:11:48:303 BROKER/(6645:6650): 
+[INFO] 16:11:55:392 BROKER/(6675:6682): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 16:11:55:402 BROKER/(6675:6682): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:11:55:410 BROKER/(6675:6682): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:11:57:109 BROKER/(6675:6682): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:11:57:133 BROKER/(6675:6682): Se suscribio el proceso, 10 ,a la cola CATCH_POKEMON
+[INFO] 16:11:57:150 BROKER/(6675:6682): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:11:57:180 BROKER/(6675:6681): 
+[INFO] 16:11:57:193 BROKER/(6675:6681): 
+[INFO] 16:11:57:212 BROKER/(6675:6680): 
+[INFO] 16:11:57:215 BROKER/(6675:6680): 
+[INFO] 16:12:02:883 BROKER/(6705:6712): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:02:895 BROKER/(6705:6712): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:12:02:898 BROKER/(6705:6712): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:12:04:595 BROKER/(6705:6712): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:04:614 BROKER/(6705:6712): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:04:618 BROKER/(6705:6712): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:12:04:630 BROKER/(6705:6711): 
+[INFO] 16:12:04:651 BROKER/(6705:6711): 
+[INFO] 16:12:04:681 BROKER/(6705:6710): 
+[INFO] 16:12:04:688 BROKER/(6705:6710): 
+[INFO] 16:12:12:964 BROKER/(6736:6743): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 16:12:12:974 BROKER/(6736:6743): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:12:976 BROKER/(6736:6743): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:12:14:634 BROKER/(6736:6743): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:14:638 BROKER/(6736:6743): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:14:659 BROKER/(6736:6742): 
+[INFO] 16:12:14:677 BROKER/(6736:6743): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:12:14:701 BROKER/(6736:6741): 
+[INFO] 16:12:14:703 BROKER/(6736:6742): 
+[INFO] 16:12:14:704 BROKER/(6736:6741): 
+[INFO] 16:12:19:742 BROKER/(6766:6773): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:19:785 BROKER/(6766:6773): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:12:19:789 BROKER/(6766:6773): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:12:21:325 BROKER/(6766:6773): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:21:328 BROKER/(6766:6773): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:21:344 BROKER/(6766:6773): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:12:21:367 BROKER/(6766:6772): 
+[INFO] 16:12:21:370 BROKER/(6766:6772): 
+[INFO] 16:12:21:396 BROKER/(6766:6771): 
+[INFO] 16:12:21:399 BROKER/(6766:6771): 
+[INFO] 16:12:25:924 BROKER/(6796:6803): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:25:962 BROKER/(6796:6803): Se suscribio el proceso, 7 ,a la cola CATCH_POKEMON
+[INFO] 16:12:25:965 BROKER/(6796:6803): Se suscribio el proceso, 8 ,a la cola GET_POKEMON
+[INFO] 16:12:27:660 BROKER/(6796:6803): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:27:662 BROKER/(6796:6803): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:27:685 BROKER/(6796:6802): 
+[INFO] 16:12:27:712 BROKER/(6796:6803): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:12:27:728 BROKER/(6796:6802): 
+[INFO] 16:12:27:736 BROKER/(6796:6801): 
+[INFO] 16:12:27:739 BROKER/(6796:6801): 
+[INFO] 16:12:32:332 BROKER/(6828:6835): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:32:360 BROKER/(6828:6835): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:12:32:364 BROKER/(6828:6835): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:12:33:947 BROKER/(6828:6835): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:33:982 BROKER/(6828:6834): 
+[INFO] 16:12:33:1 BROKER/(6828:6835): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:33:2 BROKER/(6828:6834): 
+[INFO] 16:12:34:25 BROKER/(6828:6835): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:12:34:33 BROKER/(6828:6833): 
+[INFO] 16:12:34:50 BROKER/(6828:6833): 
+[INFO] 16:12:38:561 BROKER/(6858:6865): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:38:587 BROKER/(6858:6865): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:12:38:590 BROKER/(6858:6865): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:12:40:240 BROKER/(6858:6865): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:12:40:274 BROKER/(6858:6865): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:40:288 BROKER/(6858:6865): Se suscribio el proceso, 11 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:40:298 BROKER/(6858:6864): 
+[INFO] 16:12:40:342 BROKER/(6858:6864): 
+[INFO] 16:12:40:346 BROKER/(6858:6863): 
+[INFO] 16:12:40:357 BROKER/(6858:6863): 
+[INFO] 16:12:45:332 BROKER/(6888:6895): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:45:359 BROKER/(6888:6895): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:12:45:361 BROKER/(6888:6895): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:12:46:801 BROKER/(6888:6895): Se suscribio el proceso, 9 ,a la cola CATCH_POKEMON
+[INFO] 16:12:46:824 BROKER/(6888:6895): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:46:840 BROKER/(6888:6895): Se suscribio el proceso, 11 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:46:868 BROKER/(6888:6894): 
+[INFO] 16:12:46:901 BROKER/(6888:6894): 
+[INFO] 16:12:46:906 BROKER/(6888:6893): 
+[INFO] 16:12:46:908 BROKER/(6888:6893): 
+[INFO] 16:12:52:360 BROKER/(6918:6925): Se suscribio el proceso, 5 ,a la cola GET_POKEMON
+[INFO] 16:12:52:371 BROKER/(6918:6925): Se suscribio el proceso, 7 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:52:373 BROKER/(6918:6925): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:12:54:124 BROKER/(6918:6925): Se suscribio el proceso, 9 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:12:54:128 BROKER/(6918:6925): Se suscribio el proceso, 10 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:12:54:144 BROKER/(6918:6925): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:12:54:167 BROKER/(6918:6924): 
+[INFO] 16:12:54:170 BROKER/(6918:6924): 
+[INFO] 16:12:54:193 BROKER/(6918:6923): 
+[INFO] 16:12:54:196 BROKER/(6918:6923): 
+[INFO] 16:12:59:978 BROKER/(6948:6960): Se suscribio el proceso, 5 ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT
+[INFO] 16:12:59:978 BROKER/(6948:6960): Se suscribio el proceso, 7 ,a la cola GET_POKEMON
+[INFO] 16:12:59:978 BROKER/(6948:6960): Se suscribio el proceso, 8 ,a la cola CATCH_POKEMON
+[INFO] 16:13:01:538 BROKER/(6948:6960): Se suscribio el proceso, 9 ,a la cola APPEAREAD_POKEMON
+[INFO] 16:13:01:538 BROKER/(6948:6960): Se suscribio el proceso, 10 ,a la cola LOCALIZED_POKEMON
+[INFO] 16:13:01:539 BROKER/(6948:6954): 
+[INFO] 16:13:01:539 BROKER/(6948:6960): Se suscribio el proceso, 11 ,a la cola CATCH_POKEMON
+[INFO] 16:13:01:539 BROKER/(6948:6953): 
+[INFO] 16:13:01:539 BROKER/(6948:6954): 
+[INFO] 16:13:01:539 BROKER/(6948:6953): 
