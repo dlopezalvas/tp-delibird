@@ -59,7 +59,7 @@ int iniciar_cliente(char* ip, char* puerto){
 
 	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
 		perror("No se pudo conectar");
-		return 1;
+		return -1;
 	}
 
 	return cliente;
