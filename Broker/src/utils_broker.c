@@ -71,7 +71,7 @@ void esperar_cliente(int servidor){
 
 	list_add(multihilos, &hilo);
 
-	puts(string_itoa(multihilos->elements_count));
+//	puts(string_itoa(multihilos->elements_count));
 
 	pthread_create(&hilo,NULL,(void*)serve_client,&cliente);
 	pthread_detach(hilo);
@@ -80,7 +80,7 @@ void esperar_cliente(int servidor){
 
 void serve_client(int* socket)
 {
-	puts("Se conecto cliente");
+//	puts("Se conecto cliente");
 	int cod_op;
 	while(1){
 		if(recv(*socket, &cod_op, sizeof(op_code), MSG_WAITALL) == -1)
@@ -114,14 +114,14 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 //	t_position_and_name* catch_pokemon;
 //	t_caught_pokemon* caught_pokemon;
 //	t_get_pokemon* get_pokemon;
-	puts(string_itoa(cod_op));
+
 	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
 	mensaje->buffer = malloc(sizeof(t_buffer));
 	mensaje->buffer = buffer;
 	mensaje->tipo_mensaje = cod_op;
 	mensaje->id = unique_message_id++;
 	mensaje->suscriptor = cliente_fd;
-	puts("Despues del t_mensaje_broker");
+//	puts("Despues del t_mensaje_broker");
 	switch (cod_op) {
 	case NEW_POKEMON:
 		//ejecutar_new_pokemon(mensaje);
@@ -159,7 +159,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
-		puts("suscripcion");
+//		puts("suscripcion");
 		//ejecutar_suscripcion(mensaje);
 		queue_push(SUSCRIPCION_COLA,mensaje);
 		sem_post(&suscripcion_sem);
@@ -181,8 +181,9 @@ void socketEscucha(char*ip, char* puerto){
 	}
 }
 
-void enviar_mensaje_broker(int* cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log){
-	enviar_mensaje(mensaje_enviar,*cliente_a_enviar);
+void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log){
+//	puts(string_itoa(cliente_a_enviar));
+	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
 	log_info(logger,mensaje_log);
 }
 
@@ -322,7 +323,7 @@ void ejecutar_get_pokemon(){
 		sem_wait(&get_pokemon_sem);
 		t_mensaje_broker* mensaje = queue_pop(GET_POKEMON_COLA);
 
-		puts("get pokemonnn");
+//		puts("get pokemonnn");
 		t_get_pokemon* get_pokemon;
 		get_pokemon = deserializar_get_pokemon(mensaje->buffer);
 		uint32_t mensaje_id;
@@ -339,6 +340,7 @@ void ejecutar_get_pokemon(){
 		mensaje_enviar -> tipo_mensaje = GET_POKEMON;
 		mensaje_enviar -> parametros = string_split(linea_split, ",");
 		puts("antes de enviar");
+		puts(string_itoa(GET_POKEMON_QUEUE_SUSCRIPT->elements_count));
 		void _enviar_mensaje_broker(void* cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
@@ -371,11 +373,11 @@ void ejecutar_localized_pokemon(){
 			coord = list_get(localized_pokemon->listaCoordenadas, i);
 			string_append_with_format(&linea_split, ",%d,%d", coord->pos_x, coord->pos_y);
 		}
-		string_append_with_format(&linea_split, "%d,%d", localized_pokemon->id,localized_pokemon->correlation_id);
+		string_append_with_format(&linea_split, ",%d,%d", mensaje_id,localized_pokemon->correlation_id);
 
 		mensaje_enviar -> tipo_mensaje = LOCALIZED_POKEMON;
 		mensaje_enviar -> parametros = string_split(linea_split, ",");
-
+		puts(linea_split);
 		void _enviar_mensaje_broker(void* cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,"");
 		}
@@ -395,14 +397,15 @@ void ejecutar_suscripcion(){
 
 		t_suscripcion* mensaje_suscripcion;
 
-		puts("suscripcion mensaje 1");
+//		puts("suscripcion mensaje 1");
 
-		puts(string_itoa(mensaje->suscriptor));
+//		puts(string_itoa(mensaje->suscriptor));
 
 		mensaje_suscripcion = deserializar_suscripcion(buffer);
 		cola = mensaje_suscripcion->cola;
 		int suscriptor = mensaje->suscriptor;
-
+		puts("suscribir_cola");
+		puts(string_itoa(cola));
 		switch (cola) {
 		case NEW_POKEMON:
 			ejecutar_new_pokemon_suscripcion(suscriptor);
@@ -434,35 +437,37 @@ void ejecutar_suscripcion(){
 void ejecutar_new_pokemon_suscripcion(int suscriptor){
 	char* log_new_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_new_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola NEW_POKEMON_QUEUE_SUSCRIPT",suscriptor);
-	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
+	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	log_info(logger,log_new_pokemon_suscriptor);
 }
 
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor){
 	char* log_appeared_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_appeared_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola APPEAREAD_POKEMON",suscriptor);
-	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
+	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	log_info(logger,log_appeared_pokemon_suscriptor);
 }
 
 void ejecutar_catch_pokemon_suscripcion(int suscriptor){
 	char* log_catch_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_catch_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
-	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
+	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	log_info(logger,log_catch_pokemon_suscriptor);
 }
 
 void ejecutar_caught_pokemon_suscripcion(int suscriptor){
 	char* log_caught_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_caught_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
-	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
+	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	log_info(logger,log_caught_pokemon_suscriptor);
 }
 
 void ejecutar_get_pokemon_suscripcion(int suscriptor){
+	puts("Se suscribio al get pokemon el suscriptor");
+	puts(string_itoa(suscriptor));
 	char* log_get_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_get_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola GET_POKEMON",suscriptor);
-	list_add(GET_POKEMON_QUEUE_SUSCRIPT,&suscriptor);
+	list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	log_info(logger,log_get_pokemon_suscriptor);
 }
 
@@ -470,7 +475,7 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 
 	char* log_localized_pokemon_suscriptor = string_new();
 	string_append_with_format(&log_localized_pokemon_suscriptor,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
-	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,&suscriptor);//Ver si va el & o no
+	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);//Ver si va el & o no
 	log_info(logger,log_localized_pokemon_suscriptor);
 }
 
