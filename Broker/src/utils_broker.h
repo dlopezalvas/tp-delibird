@@ -62,7 +62,6 @@ t_queue* LOCALIZED_POKEMON_COLA;
 t_queue* SUSCRIPCION_COLA;
 
 
-
 sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem;
 pthread_mutex_t new_pokemon_mutex,appeared_pokemon_mutex, catch_pokemon_mutex, caught_pokemon_mutex,localized_pokemon_mutex, get_pokemon_mutex, suscripcion_mutex;
 pthread_mutex_t new_pokemon_queue_mutex,appeared_pokemon_queue_mutex, catch_pokemon_queue_mutex, caught_pokemon_queue_mutex,localized_pokemon_queue_mutex, get_pokemon_queue_mutex;
@@ -102,7 +101,7 @@ void terminar_queues();
 void log_suscribir_mensaje_queue(char*,char*);
 
 void esperar_cliente(int servidor);
-void serve_client(int* socket);
+void serve_client(int socket);
 void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);

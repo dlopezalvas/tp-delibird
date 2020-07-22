@@ -88,7 +88,6 @@ void esperar_cliente(int servidor){
 	unsigned int tam_direccion = sizeof(struct sockaddr_in);
 
 	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
-
 	pthread_t hilo;
 
 	pthread_mutex_lock(&multhilos_mutex);
@@ -97,19 +96,18 @@ void esperar_cliente(int servidor){
 
 //	puts(string_itoa(multihilos->elements_count));
 
-	pthread_create(&hilo,NULL,(void*)serve_client,&cliente);
+	pthread_create(&hilo,NULL,(void*)serve_client,cliente);
 	pthread_detach(hilo);
 
 }
 
-void serve_client(int* socket)
+void serve_client(int socket)
 {
-//	puts("Se conecto cliente");
 	int cod_op;
 	while(1){
-		if(recv(*socket, &cod_op, sizeof(op_code), MSG_WAITALL) == -1)
+		if(recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL) == -1)
 				cod_op = -1;
-		process_request(cod_op, *socket);
+		process_request(cod_op, socket);
 	}
 }
 
@@ -485,8 +483,9 @@ void ejecutar_suscripcion(){
 		mensaje_suscripcion = deserializar_suscripcion(buffer);
 		cola = mensaje_suscripcion->cola;
 		int suscriptor = mensaje->suscriptor;
-		puts("suscribir_cola");
-		puts(string_itoa(cola));
+		printf("El cliente %d se suscribio a la cola %d\n",mensaje->suscriptor ,cola);
+//		puts("suscribir_cola");
+//		puts(string_itoa(cola));
 		switch (cola) {
 		case NEW_POKEMON:
 			ejecutar_new_pokemon_suscripcion(suscriptor);
