@@ -72,10 +72,11 @@ void crear_bitmap(char* path);
 void actualizar_quitar_pokemon(t_position_and_name* pokemon);
 
 bool existe_pokemon(char* path_pokemon);
-void agregar_pokemon_mapa(t_buffer* buffer);
+void new_pokemon(t_buffer* buffer);
 void crear_pokemon(t_new_pokemon* pokemon);
 bool archivo_abierto(t_config* config_archivo);
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
+void catch_pokemon(void* buffer);
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
 void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);

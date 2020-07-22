@@ -91,7 +91,7 @@ void crear_bitmap(char* punto_montaje){
 	//free(path_bitarray);
 }
 
-void agregar_pokemon_mapa(t_buffer* buffer){
+void new_pokemon(t_buffer* buffer){
 
 	t_new_pokemon* pokemon = deserializar_new_pokemon(buffer);
 
@@ -107,12 +107,15 @@ void agregar_pokemon_mapa(t_buffer* buffer){
 
 }
 
-void capturar_pokemon(t_position_and_name* pokemon){
+void catch_pokemon(void* buffer){
+
+	t_position_and_name* pokemon = deserializar_position_and_name(buffer);
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 	if(existe_pokemon(path_pokemon)){
 		puts("existe"); //TODO
+		actualizar_quitar_pokemon(pokemon);
 	}else{
 		puts("informar error por logs???");
 	}
@@ -295,6 +298,8 @@ void crear_pokemon(t_new_pokemon* pokemon){
 }
 
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
+
+
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
@@ -352,80 +357,88 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	}
 }
 
-//void actualizar_quitar_pokemon(t_position_and_name* pokemon){
-//
-//	char* path_pokemon = string_new();
-//	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
-//
+void actualizar_quitar_pokemon(t_position_and_name* pokemon){
+
+	char* path_pokemon = string_new();
+	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
+
 //	int index_sem_metadata = index_pokemon(pokemon->nombre.nombre);
 //
 //	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 //
 //	pthread_mutex_lock(semaforo_pokemon);
-//	t_config* config_pokemon = config_create(path_pokemon);
+	t_config* config_pokemon = config_create(path_pokemon);
 //	pthread_mutex_unlock(semaforo_pokemon);
-//
-//	if(!archivo_abierto(config_pokemon)){
-//
-//		abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
-//
-//		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
-//
-//		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
-//
-//		char** datos = leer_archivo(blocks, tamanio_total);
-//
-//		t_list* lista_datos = transformar_a_lista(datos);
-//
-//		t_config* config_datos = transformar_a_config(datos);
-//
-//		char* posicion = string_new();
-//
-//		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
-//
-//		if(config_has_property(config_datos, posicion)){
-//
-//			int i = 0;
-//
-//			while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
-//				i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
-//			}
-//
-//			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) - 1);
-//
-//			if(nueva_cantidad_posicion == 0){
-//				list_remove(lista_datos, i);
-//			}else{
-//				string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
-//
-//				list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
-//			}
-//
-//		}else{
-//			puts("otro error que ni idea si va en log o que :(");
-//		}
-//
-//		guardar_archivo(lista_datos, config_pokemon, path_pokemon);
-//
+
+	if(!archivo_abierto(config_pokemon)){
+
+		abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+
+		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
+
+		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
+
+		char** datos = leer_archivo(blocks, tamanio_total);
+
+		t_list* lista_datos = transformar_a_lista(datos);
+
+		t_config* config_datos = transformar_a_config(datos);
+
+		char* posicion = string_new();
+
+		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
+
+		if(config_has_property(config_datos, posicion)){
+
+			int i = 0;
+
+			while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
+				i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
+			}
+
+			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) - 1);
+
+			if(string_equals_ignore_case(nueva_cantidad_posicion, "0")){
+				puts(nueva_cantidad_posicion);
+				list_remove(lista_datos, i);
+			}else{
+				string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
+
+				list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
+			}
+
+		}else{
+			puts("otro error que ni idea si va en log o que :(");
+		}
+
+		guardar_archivo(lista_datos, config_pokemon, path_pokemon);
+
 //		liberar_vector(blocks);
 //		liberar_vector(datos);
-//		//list_destroy
-//		config_destroy(config_datos);
-//
-//	}else{
-//		//sleep(config_get_int_value(config_gamecard,TIEMPO_DE_REINTENTO_OPERACION));
-//		//actualizar_nuevo_pokemon(pokemon);
-//		puts("reintentar");
-//	}
-//}
+		//list_destroy
+		config_destroy(config_datos);
+
+	}else{
+		//sleep(config_get_int_value(config_gamecard,TIEMPO_DE_REINTENTO_OPERACION));
+		//actualizar_nuevo_pokemon(pokemon);
+		puts("reintentar");
+	}
+}
 
 void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon){
 
 	//cantidad de bloques = tamanio real en bytes / tamanio de cada bloque redondeado hacia arriba
 
 	int cantidad_bloques_antes = ceil((float)config_get_int_value(config_pokemon, SIZE) / (float)metadata_fs->block_size);
+	int tamanio_nuevo;
 
-	int tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio) - 1; //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
+	if(list_is_empty(lista_datos)){
+		puts("esta vacia");
+		tamanio_nuevo = 0;
+
+	}else{
+		tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio) - 1; //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
+	}
 
 	int cantidad_bloques_actuales = ceil((float)tamanio_nuevo / (float)metadata_fs->block_size);
 
@@ -452,9 +465,6 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 			int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
 			char** bloques_nuevos = buscar_bloques_libres(bloques_a_pedir); //falta verificar ver error si no hay disponibles
 
-			puts(bloques_nuevos[0]);
-			puts(bloques_guardar);
-
 			int j;
 
 			for(j = 0; j < bloques_a_pedir -1;j++){
@@ -467,11 +477,34 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 			//liberar_vector(bloques_nuevos);
 		}
 
-	string_append(&bloques_guardar, "]");
-
 	}else{ //tengo que borrar bloques
 		puts("borrar");
+
+		int bloques_a_borrar = cantidad_bloques_antes - cantidad_bloques_actuales;
+
+		int k;
+		for(k = 0; k < cantidad_bloques_actuales -1; k++){
+			escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
+			string_append_with_format(&bloques_guardar, "%s,", bloques[k]);
+		}
+
+		if(cantidad_bloques_actuales != 0){
+		escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
+		string_append_with_format(&bloques_guardar, "%s", bloques[k]);
+		}
+
+		while(bloques_a_borrar!=0){
+			pthread_mutex_lock(&bitarray_mtx);
+			bitarray_clean_bit(bitarray,atoi(bloques[k]));
+			msync(bitarray, sizeof(bitarray), MS_SYNC);
+			pthread_mutex_unlock(&bitarray_mtx);
+			k++;
+			bloques_a_borrar--;
+		}
+
 	}
+
+	string_append(&bloques_guardar, "]");
 
 	config_set_value(config_pokemon, SIZE, string_itoa(offset));
 
@@ -554,8 +587,9 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio){
 		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
 	}
 
+	if(!list_is_empty(lista_datos)){
 	string_append(&datos, list_get(lista_datos, i)); //ultima linea
-
+	}
 	datos[tamanio] = '\0';
 
 	return datos;
@@ -775,10 +809,11 @@ void process_request(int cod_op, int cliente_fd) {
 		switch (cod_op) {
 		case NEW_POKEMON:
 		//	new_pokemon = deserializar_new_pokemon(buffer);
-			agregar_pokemon_mapa(buffer);
+			new_pokemon(buffer);
 			break;
 		case CATCH_POKEMON:
 			puts("catch pokemon");
+			catch_pokemon(buffer);
 			break;
 		case GET_POKEMON:
 			get_pokemon(buffer);
@@ -843,7 +878,7 @@ void connect_new_pokemon(){
 
 		if(cod_op == NEW_POKEMON){
 //			list_add(mensajes, &solicitud_mensaje);
-//			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
+//			pthread_create(&solicitud_mensaje, NULL, (void*)new_pokemon, buffer);
 //			pthread_detach(solicitud_mensaje);
 
 		}
@@ -888,7 +923,7 @@ void connect_catch_pokemon(){
 			list_add(mensajes, &solicitud_mensaje);
 			puts("catch_pokemon");
 
-//			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
+//			pthread_create(&solicitud_mensaje, NULL, (void*)new_pokemon, buffer);
 
 		}
 	}
@@ -933,7 +968,7 @@ void connect_get_pokemon(){
 			//list_add(mensajes, &solicitud_mensaje);
 			puts("get_pokemon");
 			get_pokemon(buffer);
-//			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
+//			pthread_create(&solicitud_mensaje, NULL, (void*)get_pokemon, buffer);
 
 		}
 	}
