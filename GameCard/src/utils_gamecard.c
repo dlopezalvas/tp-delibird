@@ -119,10 +119,9 @@ void capturar_pokemon(t_position_and_name* pokemon){
 }
 
 void get_pokemon(void* buffer){
-	puts("get_pokemon");
+
 	t_get_pokemon* pokemon = deserializar_get_pokemon(buffer);
 
-	puts(pokemon->nombre.nombre);
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 
@@ -133,8 +132,22 @@ void get_pokemon(void* buffer){
 	if(existe_pokemon(path_pokemon)){
 		parametros = obtener_posiciones(pokemon);
 	}else{
+		string_append_with_format(&parametros, "%s,0", pokemon->nombre.nombre);
 		puts("informar error por logs???");
 	}
+
+	string_append_with_format(&parametros, ",0,%d", pokemon->id);
+
+	localized_pokemon->parametros = string_split(parametros, ",");
+
+	puts(parametros);
+	int socket_broker = iniciar_cliente(config_get_string_value(config, IP_BROKER), config_get_string_value(config, PUERTO_BROKER));
+	if(socket_broker == -1){
+		puts("no se pudo contectar, error en log?");
+	}else{
+		enviar_mensaje(localized_pokemon, socket_broker);
+	}
+
 }
 
 char* obtener_posiciones(t_get_pokemon* pokemon){
@@ -783,14 +796,14 @@ void crear_conexiones(){
 	pthread_t catch_pokemon_thread;
 	pthread_t get_pokemon_thread;
 	while(1){
-//		pthread_create(&new_pokemon_thread,NULL,(void*)connect_new_pokemon,NULL);
-//		pthread_detach(new_pokemon_thread);
-//		pthread_create(&catch_pokemon_thread,NULL,(void*)connect_catch_pokemon,NULL);
-//		pthread_detach(catch_pokemon_thread);
+		pthread_create(&new_pokemon_thread,NULL,(void*)connect_new_pokemon,NULL);
+		pthread_detach(new_pokemon_thread);
+		pthread_create(&catch_pokemon_thread,NULL,(void*)connect_catch_pokemon,NULL);
+		pthread_detach(catch_pokemon_thread);
 		pthread_create(&get_pokemon_thread,NULL,(void*)connect_get_pokemon,NULL);
 		pthread_detach(get_pokemon_thread);
-//		sem_wait(&conexiones);
-//		sem_wait(&conexiones);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
 		log_info(logger_gamecard, "Inicio Reintento de todas las conexiones");
