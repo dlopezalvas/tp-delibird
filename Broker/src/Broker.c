@@ -46,31 +46,31 @@ void iniciar_broker(t_config** config, t_log** logger){
 
 	pthread_t new_pokemon_thread;
 	pthread_create(&new_pokemon_thread, NULL, (void*)ejecutar_new_pokemon, NULL);
-	//pthread_join(new_pokemon_thread, NULL);
+	pthread_detach(new_pokemon_thread);
 
 	pthread_t appeared_pokemon_thread;
 	pthread_create(&appeared_pokemon_thread, NULL, (void*)ejecutar_appeared_pokemon, NULL);
-	//pthread_join(conexionGameBoy, NULL);
+	pthread_detach(appeared_pokemon_thread);
 
 	pthread_t catch_pokemon_thread;
 	pthread_create(&catch_pokemon_thread, NULL, (void*)ejecutar_catch_pokemon, NULL);
-	//pthread_join(conexionGameBoy, NULL);
+	pthread_detach(catch_pokemon_thread);
 
 	pthread_t caught_pokemon_thread;
 	pthread_create(&caught_pokemon_thread, NULL, (void*)ejecutar_caught_pokemon, NULL);
-	//pthread_join(conexionGameBoy, NULL);
+	pthread_detach(caught_pokemon_thread);
 
 	pthread_t localized_pokemon_thread;
 	pthread_create(&localized_pokemon_thread, NULL, (void*)ejecutar_localized_pokemon, NULL);
-	//pthread_join(conexionGameBoy, NULL);
+	pthread_detach(localized_pokemon_thread);
 
 	pthread_t get_pokemon_thread;
 	pthread_create(&get_pokemon_thread, NULL, (void*)ejecutar_get_pokemon, NULL);
-	//pthread_join(conexionGameBoy, NULL);
+	pthread_detach(get_pokemon_thread);
 
 	pthread_t suscripcion_thread;
 	pthread_create(&suscripcion_thread, NULL, (void*)ejecutar_suscripcion, NULL);
-	//pthread_join(suscripcion_thread, NULL);
+	pthread_detach(suscripcion_thread);
 
 	*logger = iniciar_logger(*config);
 	crear_queues();

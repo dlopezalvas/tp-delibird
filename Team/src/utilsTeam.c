@@ -10,7 +10,8 @@ t_queue* colaAppearedPokemon;
 t_queue* colaLocalizedPokemon;
 t_queue* colaCaughtPokemon;
 
-pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar, mutex_cola_appeared_pokemon, mutex_cola_caught_pokemon, mutex_cola_localized_pokemon;
+pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar, mutex_cola_appeared_pokemon, mutex_cola_caught_pokemon, mutex_cola_localized_pokemon,
+log_mutex;
 sem_t conexiones, sem_deteccionDeadlock, sem_ready, sem_ejecutar, semAppeared, semCaught, semLocalized;
 
 t_config* config;
@@ -30,6 +31,7 @@ void iniciarTeam(){
 	pthread_mutex_init(&mutex_cola_appeared_pokemon, NULL);
 	pthread_mutex_init(&mutex_cola_caught_pokemon, NULL);
 	pthread_mutex_init(&mutex_cola_localized_pokemon, NULL);
+	pthread_mutex_init(&log_mutex, NULL);
 	sem_init(&conexiones, 0,0);
 	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
@@ -109,7 +111,9 @@ void agregarEspecie(char* pokemon, t_list* especiesNecesarias){//funciona
 
 void terminarTeam(int conexion)//revisar memoria y probar si funciona
 {
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Cantidad total de ciclos %d, Cantidad de cambios de contexto %d, Cantidad de ciclos CPU", ciclosCPUGlobal, cambiosDeContexto); //agregar variables
+	pthread_mutex_unlock(&log_mutex);
 	void _entrenadorDestroy(void* entrenador){
 			return entrenadorDestroy( entrenador);
 		}
@@ -126,7 +130,9 @@ void terminarTeam(int conexion)//revisar memoria y probar si funciona
 	list_destroy(ready);
 	config_destroy(config);
 	//liberar_conexion(conexion);
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger,"-----------LOG END--------"); //borrar
+	pthread_mutex_unlock(&log_mutex);
 	log_destroy(logger);
 }
 
@@ -210,7 +216,9 @@ void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado, char* razonD
 	if((*entrenador)->estado == EXEC) cambiosDeContexto ++;
 	if(cambioEstadoValido((*entrenador)->estado, nuevoEstado)){
 	(*entrenador)->estado = nuevoEstado;
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Se cambio al entrenador %d a la cola %s porque %s", (*entrenador)->ID, estado[(*entrenador)->estado], razonDeCambio);
+	pthread_mutex_unlock(&log_mutex);
 	}else {
 		printf("Estado invalido");
 	}
@@ -368,7 +376,9 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 		sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
 		ciclosCPUGlobal ++;
 		(*entrenador)->CiclosCPU ++;
+		pthread_mutex_lock(&log_mutex);
 		log_info(logger,"Se ha movido al entrenador %d a la posicion (%d,%d)", (*entrenador)->ID,(*entrenador)->coordx, (*entrenador)->coordy);
+		pthread_mutex_unlock(&log_mutex);
 	}else{
 		if((*entrenador)->coordy != y){
 			if(y < (*entrenador)->coordy)	moverse = -1;
@@ -376,7 +386,9 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 			sleep(config_get_int_value(config,"RETARDO_CICLO_CPU"));
 			(*entrenador)->CiclosCPU ++;
 			ciclosCPUGlobal ++;
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha movido al entrenador %d a la posicion (%d,%d)", (*entrenador)->ID,(*entrenador)->coordx, (*entrenador)->coordy);
+			pthread_mutex_unlock(&log_mutex);
 		}
 	}
 }
@@ -395,7 +407,9 @@ void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	if(!necesitaPokemon((*entrenador), intercambio->pokemonARecibir))
 		list_add((*entrenador)->pokemonsNoNecesarios, intercambio->pokemonARecibir);
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger,"Se ha realizado un intercambio entre el entrenador %d y el entrenador %d", (*entrenador)->ID, intercambio->entrenador->ID);
+	pthread_mutex_unlock(&log_mutex);
 	(*entrenador)->intercambio = NULL;
 
 
@@ -572,7 +586,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 		puts(appeared->nombre.nombre);
 		puts(string_itoa(appeared->id));
 		if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger, "Mensaje %d Appeared_pokemon %s %d %d", appeared->id, appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
+			pthread_mutex_unlock(&log_mutex);
 			pthread_mutex_lock(&mutex_cola_appeared_pokemon);
 			queue_push(colaAppearedPokemon,appeared);
 			pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
@@ -583,7 +599,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 	case CAUGHT_POKEMON:
 		caught = deserializar_caught_pokemon(buffer);
 		if(list_any_satisfy(entrenadores, (void*)_tieneMismoIDCatch)){
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->correlation_id);
+			pthread_mutex_unlock(&log_mutex);
 			//caught_pokemon(); //usar capturo_pokemon
 			pthread_mutex_lock(&mutex_cola_caught_pokemon);
 			queue_push(colaCaughtPokemon,caught);
@@ -609,7 +627,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 				string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
 			}
 			string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger, mensaje);
+			pthread_mutex_unlock(&log_mutex);
 			pthread_mutex_lock(&mutex_cola_localized_pokemon);
 			queue_push(colaLocalizedPokemon,localized);
 			pthread_mutex_unlock(&mutex_cola_localized_pokemon);
@@ -663,7 +683,9 @@ void socketEscucha(char* ip, char* puerto){ //funciona
 void deteccionDeadlock(){ //funciona
 	sem_wait(&sem_deteccionDeadlock); //probar
 	sem_wait(&sem_deteccionDeadlock);
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger,"Se ha iniciado el algoritmo de deteccion de deadlock");
+	pthread_mutex_unlock(&log_mutex);
 	int cantDeadlocks = 0;
 	bool _puedeEstarEnDeadlock(void* entrenador){
 		return puedeEstarEnDeadlock(entrenador);
@@ -727,7 +749,9 @@ void deteccionDeadlock(){ //funciona
 			}
 		}
 	}
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Cantidad de deadlocks Detectados: %d Cantidad de deadlocks Resueltos: %d", cantDeadlocks, cantDeadlocks);
+	pthread_mutex_unlock(&log_mutex);
 }
 
 bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funciona
@@ -768,7 +792,9 @@ void connect_appeared(){
 	while(!(cumpleObjetivoGlobal())){
 
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
@@ -780,7 +806,9 @@ void connect_appeared(){
 			puts("recibe mensaje");
 			appeared = deserializar_position_and_name(buffer);
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
+				pthread_mutex_lock(&log_mutex);
 				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
+				pthread_mutex_unlock(&log_mutex);
 				//appeared_pokemon(appeared) ; //hacer dentro de un hilo?
 				pthread_mutex_lock(&mutex_cola_appeared_pokemon);
 				queue_push(colaAppearedPokemon,appeared);
@@ -846,7 +874,9 @@ void connect_localized_pokemon(){
 	while(!(cumpleObjetivoGlobal())){
 
 		if(recv(socket_broker, &cod_op, sizeof(cod_op), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
@@ -859,7 +889,7 @@ void connect_localized_pokemon(){
 
 			puts("recibe mensaje");
 			localized = deserializar_localized_pokemon(buffer);
-			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
+			if(1){//list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
 				char* mensaje = string_new();
 				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized->id, localized->nombre.nombre, localized->cantidad);
 				coordenadas_pokemon* coord;
@@ -868,7 +898,9 @@ void connect_localized_pokemon(){
 					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
 				}
 				string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
+				pthread_mutex_lock(&log_mutex);
 				log_info(logger, mensaje);
+				pthread_mutex_unlock(&log_mutex);
 				pthread_mutex_lock(&mutex_cola_localized_pokemon);
 				queue_push(colaLocalizedPokemon,localized);
 				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
@@ -908,7 +940,9 @@ void connect_caught_pokemon(){
 	while(!(cumpleObjetivoGlobal())){
 
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
@@ -918,7 +952,9 @@ void connect_caught_pokemon(){
 			puts("recibe mensaje");
 			caught = deserializar_caught_pokemon(buffer);
 			if(list_any_satisfy(entrenadores, (void*)_tieneMismoIDCatch)){
+				pthread_mutex_lock(&log_mutex);
 				log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->id);
+				pthread_mutex_unlock(&log_mutex);
 				pthread_mutex_lock(&mutex_cola_caught_pokemon);
 				queue_push(colaCaughtPokemon,caught);
 				pthread_mutex_unlock(&mutex_cola_caught_pokemon);
@@ -946,13 +982,16 @@ int iniciar_cliente_team(char* ip, char* puerto){
 	int cliente = socket(AF_INET, SOCK_STREAM, 0);
 
 	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		pthread_mutex_lock(&log_mutex);
 		log_info(logger, "No se pudo realizar la conexion");
+		pthread_mutex_unlock(&log_mutex);
 		liberar_conexion(cliente);
 		sem_post(&conexiones);
 		pthread_exit(NULL);
 	}else{
-
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger,"Se ha establecido una conexion con el proceso Broker");
+	pthread_mutex_unlock(&log_mutex);
 	return cliente;
 	}
 }
@@ -977,7 +1016,9 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	int socket_broker = socket(AF_INET, SOCK_STREAM, 0);
 
 	if(connect(socket_broker, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		pthread_mutex_lock(&log_mutex);
 		log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
+		pthread_mutex_unlock(&log_mutex);
 		capturoPokemon(entrenador);
 		liberar_conexion(socket_broker);
 		pthread_mutex_unlock(&((*entrenador)->mutex));
@@ -985,7 +1026,9 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	}else{
 		enviar_mensaje(mensaje, socket_broker);
 		if(recv(socket_broker, &ID, sizeof(uint32_t), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mutex);
 			log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
+			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			capturoPokemon(entrenador);
 			pthread_mutex_unlock(&((*entrenador)->mutex));
@@ -994,7 +1037,9 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 		(*entrenador)->catch_id = ID;
 		liberar_conexion(socket_broker);
 	}
+	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Atrapar %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
+	pthread_mutex_unlock(&log_mutex);
 	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
 	(*entrenador)->CiclosCPU ++;
 	ciclosCPUGlobal ++;
@@ -1008,18 +1053,19 @@ void crearConexiones(){
 	pthread_t localized_pokemon_thread;
 	pthread_t caught_pokemon_thread;
 	while(!entrenadoresTienenElInventarioLleno()){
-//		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
-//		pthread_detach(appeared_pokemon_thread);
+		pthread_create(&appeared_pokemon_thread,NULL,(void*)connect_appeared,NULL);
+		pthread_detach(appeared_pokemon_thread);
 		pthread_create(&localized_pokemon_thread,NULL,(void*)connect_localized_pokemon,NULL);
 		pthread_detach(localized_pokemon_thread);
-//		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
-//		pthread_detach(caught_pokemon_thread);
-//		sem_wait(&conexiones);
-//		sem_wait(&conexiones);
+		pthread_create(&caught_pokemon_thread,NULL,(void*)connect_caught_pokemon,NULL);
+		pthread_detach(caught_pokemon_thread);
+		sem_wait(&conexiones);
+		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
+		pthread_mutex_lock(&log_mutex);
 		log_info(logger, "Inicio Reintento de todas las conexiones");
-
+		pthread_mutex_unlock(&log_mutex);
 	}
 	sem_destroy(&conexiones);
 	return;

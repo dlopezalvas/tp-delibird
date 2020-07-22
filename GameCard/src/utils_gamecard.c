@@ -913,7 +913,7 @@ void connect_get_pokemon(){
 	puts("envia mensaje");
 
 	int size = 0;
-	t_get_pokemon* get_pokemon;
+//	t_get_pokemon* get_pokemon;
 
 
 	while(1){
@@ -932,7 +932,7 @@ void connect_get_pokemon(){
 
 			//list_add(mensajes, &solicitud_mensaje);
 			puts("get_pokemon");
-
+			get_pokemon(buffer);
 //			pthread_create(&solicitud_mensaje, NULL, (void*)agregar_pokemon_mapa, buffer);
 
 		}
