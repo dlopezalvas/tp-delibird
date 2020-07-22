@@ -35,6 +35,7 @@
 #define SIZE "SIZE"
 #define NUEVO_TAMANIO "NUEVO_TAMANIO"
 #define TIEMPO_DE_REINTENTO_OPERACION "TIEMPO_DE_REINTENTO_OPERACION"
+#define TIEMPO_RETARDO_OPERACION "TIEMPO_RETARDO_OPERACION"
 
 typedef struct{
 	uint32_t block_size;
@@ -50,6 +51,8 @@ pthread_mutex_t lista_metadatas_mtx;
 
 t_list* pokemones; //index del pokemon deberia ser el mismo index de su semaforo
 pthread_mutex_t pokemones_mtx;
+
+pthread_mutex_t log_mtx;
 
 char* pto_montaje;
 

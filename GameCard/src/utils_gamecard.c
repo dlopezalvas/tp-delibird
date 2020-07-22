@@ -31,6 +31,8 @@ void crear_tall_grass(t_config* config){
 	pokemones = list_create();
 	pthread_mutex_init(&pokemones_mtx, NULL);
 
+	pthread_mutex_init(&log_mtx, NULL);
+
 	//free(metadata_fs);
 
 }
@@ -98,12 +100,28 @@ void new_pokemon(t_buffer* buffer){
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
 
+
+	t_mensaje* appeared_pokemon = malloc(sizeof(t_mensaje));
+	appeared_pokemon->tipo_mensaje = APPEARED_POKEMON;
+	char* parametros = string_new();
+
 	if(existe_pokemon(path_pokemon)){
 		actualizar_nuevo_pokemon(pokemon);
 	}else{
 		crear_pokemon(pokemon);
 	}
 
+	string_append_with_format(&parametros, "%s,%d,%d,0,%d", pokemon->nombre.nombre, pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y, pokemon->id);
+
+	appeared_pokemon->parametros = string_split(parametros, ",");
+
+	puts(parametros);
+	int socket_broker = iniciar_cliente(config_get_string_value(config, IP_BROKER), config_get_string_value(config, PUERTO_BROKER));
+	if(socket_broker == -1){
+		puts("no se pudo contectar, error en log?");
+	}else{
+		enviar_mensaje(appeared_pokemon, socket_broker);
+	}
 }
 
 void catch_pokemon(void* buffer){
@@ -215,12 +233,15 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 		}
 
 		config_set_value(config_pokemon, OPEN, NO);
+		sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
 		config_save_in_file(config_pokemon, path_pokemon);
 		return parametros;
 
 		//destruir lista y esas cosas (?
 
 	}else{
+		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
+		obtener_posiciones(pokemon);
 		puts("reintentar");
 	}
 }
@@ -369,8 +390,8 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 		config_destroy(config_datos);
 
 	}else{
-		//sleep(config_get_int_value(config_gamecard,TIEMPO_DE_REINTENTO_OPERACION));
-		//actualizar_nuevo_pokemon(pokemon);
+		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
+		actualizar_nuevo_pokemon(pokemon);
 		puts("reintentar");
 	}
 }
@@ -426,12 +447,16 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 			}
 
 			*resultado = 1;
+			guardar_archivo(lista_datos, config_pokemon, path_pokemon);
 
 		}else{
 			puts("otro error que ni idea si va en log o que :(");
-		}
+			config_set_value(config_pokemon, OPEN, NO);
 
-		guardar_archivo(lista_datos, config_pokemon, path_pokemon);
+			sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
+
+			config_save_in_file(config_pokemon, path_pokemon);
+		}
 
 //		liberar_vector(blocks);
 //		liberar_vector(datos);
@@ -439,8 +464,8 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 		config_destroy(config_datos);
 
 	}else{
-		//sleep(config_get_int_value(config_gamecard,TIEMPO_DE_REINTENTO_OPERACION));
-		//actualizar_nuevo_pokemon(pokemon);
+		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
+		actualizar_quitar_pokemon(pokemon, resultado);
 		puts("reintentar");
 	}
 }
@@ -531,6 +556,8 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 	config_set_value(config_pokemon, OPEN, NO);
 
 	config_set_value(config_pokemon, BLOCKS, bloques_guardar);
+
+	sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
 
 	config_save_in_file(config_pokemon, path_pokemon);
 
