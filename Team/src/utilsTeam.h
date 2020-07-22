@@ -103,6 +103,8 @@ bool tieneMenosElementos (t_list* listaChica, t_list* lista );
 bool puedeAtraparPokemon(t_entrenador* entrenador);
 //Se ejecuta cuando el entrenador capturo al pokemon (cuando recibe caught 1 o reaccion por default)
 void capturoPokemon(t_entrenador** entrenador);
+//Se ejecuta cuando el entrenador no capturo al pokemon
+void noCapturoPokemon(t_entrenador** entrenador);
 //Agrega los pokemon que necesita cada entrenador
 void configurarObjetivoGlobal();
 //remueve un pokemon de una lista de char* segun especie
@@ -178,5 +180,9 @@ bool entrenadoresTienenElInventarioLleno();
 void crearConexiones();
 //Verifica si un entrenador mando un mensaje catch con el ID que recibe por parametro
 bool tienemismoIdCatch(t_entrenador* entrenador, uint32_t correlation_id);
+//Reacion al mesaje caught pokemon
+void caught_pokemon();
+
+void llenarAppearedPokemon(coordenadas_pokemon* coord,t_localized_pokemon* localized, t_position_and_name* appeared);
 
 #endif /* UTILSTEAM_H_ */
