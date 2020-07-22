@@ -18,7 +18,9 @@ void log_suscribir_mensaje_queue(char* proceso,char* queue){
 	string_append_with_format(&mensaje_log, "%s", proceso);
 	string_append_with_format(&mensaje_log, "%s", "Se suscribio a la cola: ");
 	string_append_with_format(&mensaje_log, "%s", queue);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,mensaje_log);
+	pthread_mutex_unlock(&logger_mutex);
 	free(mensaje_log);
 }
 
@@ -63,6 +65,7 @@ void crear_queues(void){
 	pthread_mutex_init(&suscripcion_catch_queue_mutex,NULL);
 	pthread_mutex_init(&suscripcion_appeared_queue_mutex,NULL);
 	pthread_mutex_init(&multhilos_mutex,NULL);
+	pthread_mutex_init(&logger_mutex,NULL);
 }
 
 void terminar_queues(void){
@@ -88,9 +91,9 @@ void esperar_cliente(int servidor){
 
 	pthread_t hilo;
 
-	pthread_mutex_lock(multhilos_mutex);
+	pthread_mutex_lock(&multhilos_mutex);
 	list_add(multihilos, &hilo);
-	pthread_mutex_unlock(multhilos_mutex);
+	pthread_mutex_unlock(&multhilos_mutex);
 
 //	puts(string_itoa(multihilos->elements_count));
 
@@ -140,7 +143,10 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 	mensaje->buffer = malloc(sizeof(t_buffer));
 	mensaje->buffer = buffer;
 	mensaje->tipo_mensaje = cod_op;
+	pthread_mutex_lock(&logger_mutex);
 	mensaje->id = unique_message_id++;
+	pthread_mutex_unlock(&logger_mutex);
+
 	mensaje->suscriptor = cliente_fd;
 //	puts("Despues del t_mensaje_broker");
 	switch (cod_op) {
@@ -219,7 +225,9 @@ void socketEscucha(char*ip, char* puerto){
 void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,char* mensaje_log){
 //	puts(string_itoa(cliente_a_enviar));
 	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,mensaje_log);
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 void ejecutar_new_pokemon(){
@@ -501,7 +509,9 @@ void ejecutar_new_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_new_queue_mutex);
 	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	pthread_mutex_unlock(&suscripcion_new_queue_mutex);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_new_pokemon_suscriptor);
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor){
@@ -510,7 +520,9 @@ void ejecutar_appeared_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_appeared_queue_mutex);
 	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_appeared_pokemon_suscriptor);
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 void ejecutar_catch_pokemon_suscripcion(int suscriptor){
@@ -520,7 +532,9 @@ void ejecutar_catch_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_catch_queue_mutex);
 	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_catch_pokemon_suscriptor);
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 void ejecutar_caught_pokemon_suscripcion(int suscriptor){
@@ -530,7 +544,9 @@ void ejecutar_caught_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_caught_queue_mutex);
 	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_caught_pokemon_suscriptor);
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 void ejecutar_get_pokemon_suscripcion(int suscriptor){
@@ -541,7 +557,9 @@ void ejecutar_get_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_get_queue_mutex);
 	list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	pthread_mutex_unlock(&suscripcion_get_queue_mutex);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_get_pokemon_suscriptor);
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 void ejecutar_localized_pokemon_suscripcion(int suscriptor){
@@ -551,6 +569,8 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_localized_queue_mutex);
 	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);//Ver si va el & o no
 	pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_localized_pokemon_suscriptor);
+	pthread_mutex_unlock(&logger_mutex);
 }
 

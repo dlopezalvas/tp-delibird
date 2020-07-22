@@ -73,7 +73,9 @@ suscripcion_caught_queue_mutex,
 suscripcion_localized_queue_mutex,
 suscripcion_catch_queue_mutex,
 suscripcion_appeared_queue_mutex,
-multhilos_mutex;
+multhilos_mutex,
+logger_mutex,
+unique_id_mutex;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
