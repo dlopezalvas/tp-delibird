@@ -369,7 +369,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	t_config* config_aux = config_create(path_pokemon);
 
 	pthread_mutex_lock(&log_mtx);
-	log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_aux, BLOCKS), pokemon->nombre.nombre, string_itoa(tamanio));
+	log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_aux, BLOCKS), pokemon->nombre.nombre, tamanio);
 	pthread_mutex_unlock(&log_mtx);
 
 	config_set_value(config_aux, SIZE, string_itoa(tamanio));
@@ -442,8 +442,10 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 		guardar_archivo(lista_datos, config_pokemon, path_pokemon);
 
 		pthread_mutex_lock(&log_mtx);
-		log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_pokemon, BLOCKS), pokemon->nombre.nombre,config_get_string_value(config_pokemon, SIZE) );
+		log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_pokemon, BLOCKS), pokemon->nombre.nombre,config_get_int_value(config_pokemon, SIZE) );
 		pthread_mutex_unlock(&log_mtx);
+
+		config_destroy(config_pokemon);
 
 	//	cerrar_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
@@ -550,7 +552,6 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 	int tamanio_nuevo;
 
 	if(list_is_empty(lista_datos)){
-		puts("esta vacia");
 		tamanio_nuevo = 0;
 
 	}else{
@@ -564,6 +565,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 	char* datos = transformar_a_dato(lista_datos, tamanio_nuevo);
 
 	char** bloques = config_get_array_value(config_pokemon, BLOCKS);
+
 	char* bloques_guardar = string_new();
 	string_append(&bloques_guardar, "[");
 
@@ -574,11 +576,15 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 			escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
 			string_append_with_format(&bloques_guardar, "%s,", bloques[i]);
 		}
+
+		if(bloques[0] != NULL){
 		escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
 		string_append_with_format(&bloques_guardar, "%s", bloques[i]);
+		}
 
 		if(cantidad_bloques_antes < cantidad_bloques_actuales){ //si es mayor tamanio tengo que pedir mas bloques
-			string_append(&bloques_guardar, ",");
+			if(bloques[0] != NULL) string_append(&bloques_guardar, ",");
+
 			int bloques_a_pedir = cantidad_bloques_actuales - cantidad_bloques_antes;
 			char** bloques_nuevos = buscar_bloques_libres(bloques_a_pedir); //falta verificar ver error si no hay disponibles
 
@@ -595,9 +601,9 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		}
 
 	}else{ //tengo que borrar bloques
-		puts("borrar");
 
 		int bloques_a_borrar = cantidad_bloques_antes - cantidad_bloques_actuales;
+		char* aux_borrar = string_new();
 
 		int k;
 		for(k = 0; k < cantidad_bloques_actuales -1; k++){
@@ -615,6 +621,9 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 			bitarray_clean_bit(bitarray,atoi(bloques[k]));
 			msync(bitarray, sizeof(bitarray), MS_SYNC);
 			pthread_mutex_unlock(&bitarray_mtx);
+
+			string_append_with_format(&aux_borrar,"%s/Blocks/%s.bin", pto_montaje, bloques[k]);
+			remove(aux_borrar);
 			k++;
 			bloques_a_borrar--;
 		}
@@ -632,8 +641,6 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 	sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
 
 	config_save_in_file(config_pokemon, path_pokemon);
-
-	config_destroy(config_pokemon);
 
 	liberar_vector(bloques);
 	free(datos);
@@ -796,15 +803,14 @@ t_config* transformar_a_config(char** lineas){
 //-------------------ABRIR/CERRAR ARCHIVOS------------------//
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
-	int index_sem_metadata = index_pokemon(nombre_pokemon);
 
-	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
+//	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
-	pthread_mutex_lock(semaforo_pokemon);
+//	pthread_mutex_lock(semaforo_pokemon);
 
 	config_set_value(config_archivo, OPEN, YES);
 	config_save_in_file(config_archivo, path_pokemon);
-	pthread_mutex_unlock(semaforo_pokemon);
+//	pthread_mutex_unlock(semaforo_pokemon);
 
 }
 
