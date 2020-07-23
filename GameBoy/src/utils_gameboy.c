@@ -261,35 +261,35 @@ void process_request(int cod_op, int cliente_fd){
 	switch (cod_op) {
 	case NEW_POKEMON:
 		new_pokemon = deserializar_new_pokemon(buffer);
-		log_info(logger, "Mensaje New_pokemon %s %d %d %d", new_pokemon->nombre, new_pokemon->coordenadas.pos_x, new_pokemon->coordenadas.pos_y, new_pokemon->cantidad);
+		log_info(logger, "Llego el mensaje New_pokemon del pokemon: %s en las coordenadas: %d %d con la cantidad de: %d con ID: %d", new_pokemon->nombre, new_pokemon->coordenadas.pos_x, new_pokemon->coordenadas.pos_y, new_pokemon->cantidad, new_pokemon->id);
 		break;
 	case APPEARED_POKEMON:
 		appeared_pokemon = deserializar_position_and_name(buffer);
-		log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared_pokemon->nombre.nombre, appeared_pokemon->coordenadas.pos_x, appeared_pokemon->coordenadas.pos_y);
+		log_info(logger, "Llego el mensaje Appeared_pokemon del pokemon: %s en las coordenadas: %d %d con ID: %d", appeared_pokemon->nombre.nombre, appeared_pokemon->coordenadas.pos_x, appeared_pokemon->coordenadas.pos_y, appeared_pokemon->id);
 		break;
 	case CATCH_POKEMON:
 		catch_pokemon = deserializar_position_and_name(buffer);
-		log_info(logger, "Mensaje Catch_pokemon %s %d %d", catch_pokemon->nombre.nombre, catch_pokemon->coordenadas.pos_x, catch_pokemon->coordenadas.pos_y);
+		log_info(logger, "Llego el mensaje Catch_pokemon del pokemon: %s en las coordenadas: %d %d con ID: %d", catch_pokemon->nombre.nombre, catch_pokemon->coordenadas.pos_x, catch_pokemon->coordenadas.pos_y, catch_pokemon->id);
 		break;
 	case CAUGHT_POKEMON:
 		caught_pokemon = deserializar_caught_pokemon(buffer);
-		log_info(logger, "Mensaje Caught_pokemon %d %d", caught_pokemon->caught, caught_pokemon->id);
+		log_info(logger, "Llego el mensaje Caught_pokemon con el bit de captura en: %d con ID: %d con correlation id: %d", caught_pokemon->caught, caught_pokemon->id, caught_pokemon->correlation_id );
 		break;
 	case GET_POKEMON:
 		get_pokemon = deserializar_get_pokemon(buffer);
-		log_info(logger, "Mensaje Get_pokemon %s", get_pokemon->nombre.nombre);
+		log_info(logger, "Llego el mensaje Get_pokemon del pokemon: %s con ID: %d", get_pokemon->nombre.nombre , get_pokemon->id);
 		break;
 	case LOCALIZED_POKEMON:
 		localized_pokemon = deserializar_localized_pokemon(buffer);
-		char* mensaje =string_new();
-		string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized_pokemon->id, localized_pokemon->nombre.nombre, localized_pokemon->cantidad);
+		char* mensaje_localized_pokemon = string_new();
+		string_append_with_format(&mensaje_localized_pokemon, "Llego el mensaje localized_pokemon del pokemon: %s con la cantidad de: %d con ID: %d ", localized_pokemon->nombre.nombre, localized_pokemon->cantidad, localized_pokemon->id);
 		coordenadas_pokemon* coord;
 		for(int i = 0; i<localized_pokemon->cantidad; i++){
 			coord = list_get(localized_pokemon->listaCoordenadas, i);
-			string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
+			string_append_with_format(&mensaje_localized_pokemon, "en las coordenadas: %d %d", coord->pos_x, coord->pos_y);
 		}
-		string_append_with_format(&mensaje, " correlation id: %d", localized_pokemon->correlation_id);
-		log_info(logger, mensaje);
+		string_append_with_format(&mensaje_localized_pokemon, "con correlation id: %d", localized_pokemon->correlation_id);
+		log_info(logger, mensaje_localized_pokemon);
 	}
 
 }
