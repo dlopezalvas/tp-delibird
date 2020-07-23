@@ -1,6 +1,6 @@
 #include "utils_gamecard.h"
 
-//creacion de archivos y directorios (checkpoint 3)
+//-------------------CREACION DE FS------------------//
 
 void crear_tall_grass(t_config* config){
 	pto_montaje = config_get_string_value(config,PUNTO_MONTAJE_TALLGRASS);
@@ -41,8 +41,6 @@ void crear_tall_grass(t_config* config){
 
 }
 
-//metadata es el inodo
-//
 //void crear_metadata(char* punto_montaje){
 //
 //	char* path_metadata = string_new();
@@ -99,6 +97,8 @@ void crear_bitmap(char* punto_montaje){
 	//free(path_bitarray);
 }
 
+//-------------------ACCIONES DE MENSAJES------------------//
+
 void new_pokemon(t_buffer* buffer){
 
 	t_new_pokemon* pokemon = deserializar_new_pokemon(buffer);
@@ -131,6 +131,17 @@ void new_pokemon(t_buffer* buffer){
 		enviar_mensaje(appeared_pokemon, socket_broker);
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"Se envió el mensaje APPEARED_POKEMON %s de la posicion %d - %d y Correlation-ID: %d",pokemon->nombre.nombre, pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y, pokemon->id );
+		pthread_mutex_unlock(&log_mtx);
+		uint32_t id;
+		int _recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
+		if(_recv == 0 || _recv == -1){
+			pthread_mutex_lock(&log_mtx);
+			log_info(logger_gamecard,"No se recibio un ACK del broker", id);
+			pthread_mutex_unlock(&log_mtx);
+		}
+
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"El mensaje de ID: %d fue recibido por el Broker", id);
 		pthread_mutex_unlock(&log_mtx);
 	}
 }
@@ -170,6 +181,17 @@ void catch_pokemon(void* buffer){
 		enviar_mensaje(caught_pokemon, socket_broker);
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"Se envió el mensaje CAUGHT_POKEMON con resultado: %d y Correlation-ID: %d", resultado, pokemon->id);
+		pthread_mutex_unlock(&log_mtx);
+		uint32_t id;
+		int _recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
+		if(_recv == 0 || _recv == -1){
+			pthread_mutex_lock(&log_mtx);
+			log_info(logger_gamecard,"No se recibio un ACK del broker");
+			pthread_mutex_unlock(&log_mtx);
+		}
+
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"El mensaje de ID: %d fue recibido por el Broker", id);
 		pthread_mutex_unlock(&log_mtx);
 	}
 
@@ -213,7 +235,9 @@ void get_pokemon(void* buffer){
 		uint32_t id;
 		int _recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
 		if(_recv == 0 || _recv == -1){
-			puts("error al recibir ack");
+			pthread_mutex_lock(&log_mtx);
+			log_info(logger_gamecard,"No se recibio un ACK del broker");
+			pthread_mutex_unlock(&log_mtx);
 		}
 
 		pthread_mutex_lock(&log_mtx);
@@ -223,6 +247,8 @@ void get_pokemon(void* buffer){
 
 }
 
+//-------------------QUITAR/AGREGAR/OBTENER POSICIONES------------------//
+
 char* obtener_posiciones(t_get_pokemon* pokemon){
 	char* path_pokemon = string_new();
 	char* parametros = string_new();
@@ -230,7 +256,6 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
 	t_config* config_pokemon = config_create(path_pokemon);
-
 
 	if(!archivo_abierto(config_pokemon)){
 
@@ -519,6 +544,8 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 	}
 }
 
+//-------------------LEER/GUARDAR ARCHIVOS------------------//
+
 void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon){
 
 	//cantidad de bloques = tamanio real en bytes / tamanio de cada bloque redondeado hacia arriba
@@ -617,37 +644,6 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 
 }
 
-char** buscar_bloques_libres(int cantidad){
-	char** bloques = malloc(cantidad);
-
-	for(int i = 0; i < cantidad; i++){
-		int aux = bloque_libre();
-		if(aux == -1){
-			perror("No se encontró bloque libre");
-		}else{
-			bloques[i] = string_itoa(aux);
-		}
-	}
-
-	return bloques;
-}
-
-int bloque_libre(){
-	for(int i = 0; i < metadata_fs->blocks; i++){
-		if(!bitarray_test_bit(bitarray,i)){
-			pthread_mutex_lock(&bitarray_mtx);
-			bitarray_set_bit(bitarray,i);
-			msync(bitarray, sizeof(bitarray), MS_SYNC);
-			pthread_mutex_unlock(&bitarray_mtx);
-			return i;
-		}
-	}
-	pthread_mutex_lock(&log_mtx);
-	log_info(logger_gamecard,"No existen bloques libres");
-	pthread_mutex_unlock(&log_mtx);
-	return -1;
-}
-
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
 
 		char* path_blocks = string_new();
@@ -665,77 +661,6 @@ void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
 
 		fclose(fd_bloque);
 		free(path_blocks);
-}
-
-int minimo_entre (int nro1, int nro2){
-	if (nro1 >= nro2){
-		return nro2;
-	}
-	return nro1;
-}
-
-char* transformar_a_dato(t_list* lista_datos, int tamanio){
-	char* datos = string_new();
-
-	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
-
-	int i;
-
-	for (i=0; i < cantidad_lineas; i++){
-		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
-	}
-
-	if(!list_is_empty(lista_datos)){
-	string_append(&datos, list_get(lista_datos, i)); //ultima linea
-	}
-	datos[tamanio] = '\0';
-
-	return datos;
-}
-
-int calcular_tamanio(int acc, char* linea){ //func para el fold en guardar archivo
-
-	int tamanio_linea = strlen(linea) + 1;
-
-	return acc + tamanio_linea;
-}
-
-bool comienza_con(char* posicion, char* linea){
-
-	char** posicion_cantidad = string_split(linea, "=");
-
-	bool es_la_posicion = string_equals_ignore_case(posicion_cantidad[0], posicion);
-
-	liberar_vector(posicion_cantidad);
-
-	return es_la_posicion;
-}
-
-// Conviene mas con lista o config?????
-t_list* transformar_a_lista(char** lineas){
-	int i = 0;
-	t_list* lista_datos = list_create();
-
-	while(lineas[i]!=NULL){
-		list_add(lista_datos, lineas[i]);
-		i++;
-	}
-
-	return lista_datos;
-}
-
-t_config* transformar_a_config(char** lineas){
-	t_config* config_datos = config_create(pto_montaje);
-
-	int i = 0;
-
-	while(lineas[i]!=NULL){ //por cada "posicion", hay una linea del vector "lineas" (separado por \n)
-		char** key_valor = string_split(lineas[i], "=");
-		config_set_value(config_datos, key_valor[0], key_valor[1]); //separo la posicion de la cantidad (a traves del =)y seteo como key la posicion con su valor cantidad
-		liberar_vector(key_valor);
-		i++;
-	}
-	return config_datos;
 }
 
 char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si su tamanio es mayor a block_size del metadata tall grass, leo esa cantidad, si no leo el tamanio que tiene
@@ -784,6 +709,39 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 	return array_datos;
 }
 
+//-------------------BLOQUES------------------//
+
+char** buscar_bloques_libres(int cantidad){
+	char** bloques = malloc(cantidad);
+
+	for(int i = 0; i < cantidad; i++){
+		int aux = bloque_libre();
+		if(aux == -1){
+			perror("No se encontró bloque libre");
+		}else{
+			bloques[i] = string_itoa(aux);
+		}
+	}
+
+	return bloques;
+}
+
+int bloque_libre(){
+	for(int i = 0; i < metadata_fs->blocks; i++){
+		if(!bitarray_test_bit(bitarray,i)){
+			pthread_mutex_lock(&bitarray_mtx);
+			bitarray_set_bit(bitarray,i);
+			msync(bitarray, sizeof(bitarray), MS_SYNC);
+			pthread_mutex_unlock(&bitarray_mtx);
+			return i;
+		}
+	}
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard,"No existen bloques libres");
+	pthread_mutex_unlock(&log_mtx);
+	return -1;
+}
+
 int cantidad_bloques(char** blocks){
 	int i = 0;
 	while(blocks[i]!=NULL){
@@ -791,6 +749,55 @@ int cantidad_bloques(char** blocks){
 	}
 	return i;
 }
+
+//-------------------TRANSFORMAR DATOS------------------//
+
+char* transformar_a_dato(t_list* lista_datos, int tamanio){
+	char* datos = string_new();
+
+	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
+
+	int i;
+
+	for (i=0; i < cantidad_lineas; i++){
+		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
+	}
+
+	if(!list_is_empty(lista_datos)){
+	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+	}
+	datos[tamanio] = '\0';
+
+	return datos;
+}
+
+t_list* transformar_a_lista(char** lineas){
+	int i = 0;
+	t_list* lista_datos = list_create();
+
+	while(lineas[i]!=NULL){
+		list_add(lista_datos, lineas[i]);
+		i++;
+	}
+
+	return lista_datos;
+}
+
+t_config* transformar_a_config(char** lineas){
+	t_config* config_datos = config_create(pto_montaje);
+
+	int i = 0;
+
+	while(lineas[i]!=NULL){ //por cada "posicion", hay una linea del vector "lineas" (separado por \n)
+		char** key_valor = string_split(lineas[i], "=");
+		config_set_value(config_datos, key_valor[0], key_valor[1]); //separo la posicion de la cantidad (a traves del =)y seteo como key la posicion con su valor cantidad
+		liberar_vector(key_valor);
+		i++;
+	}
+	return config_datos;
+}
+
+//-------------------ABRIR/CERRAR ARCHIVOS------------------//
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
 //	int index_sem_metadata = index_pokemon(nombre_pokemon);
@@ -855,66 +862,8 @@ bool archivo_abierto(t_config* config_archivo){
 	return esta_abierto;
 }
 
-bool existe_pokemon(char* path_pokemon){
+//-------------------CONEXIONES------------------//
 
-	DIR* verificacion = opendir(path_pokemon);
-
-	free(path_pokemon);
-
-	bool existe = !(verificacion == NULL); //si al abrirlo devuelve NULL, el directorio no existe
-
-
-	return existe;
-}
-
-void esperar_cliente(int servidor){
-
-	struct sockaddr_in direccion_cliente;
-
-	unsigned int tam_direccion = sizeof(struct sockaddr_in);
-
-	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
-
-	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
-	pthread_detach(thread);
-}
-
-void serve_client(int* socket)
-{
-	int cod_op;
-	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
-		cod_op = -1;
-	process_request(cod_op, *socket);
-}
-
-void socket_escucha(char*IP, char* Puerto){
-	int servidor = iniciar_servidor(IP,Puerto);
-	while(1){
-		esperar_cliente(servidor);
-	}
-
-}
-
-void process_request(int cod_op, int cliente_fd) {
-	int size = 0;
-	void* buffer = recibir_mensaje(cliente_fd, &size);
-
-		switch (cod_op) {
-		case NEW_POKEMON:
-			new_pokemon(buffer);
-			break;
-		case CATCH_POKEMON:
-			catch_pokemon(buffer);
-			break;
-		case GET_POKEMON:
-			get_pokemon(buffer);
-			break;
-		case 0:
-			pthread_exit(NULL);
-		case -1:
-			pthread_exit(NULL);
-		}
-}
 void crear_conexiones(){
 	int tiempoReconexion = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
 	pthread_t new_pokemon_thread;
@@ -1105,11 +1054,100 @@ int iniciar_cliente_gamecard(char* ip, char* puerto){
 	return cliente;
 }
 
+//-------------------CONEXION GAMEBOY------------------//
+
 void socket_gameboy(){
 
 	socket_escucha(config_get_string_value(config, "IP_GAMECARD"), config_get_string_value(config, "PUERTO_GAMECARD"));
 
 }
 
+void socket_escucha(char*IP, char* Puerto){
+	int servidor = iniciar_servidor(IP,Puerto);
+	while(1){
+		esperar_cliente(servidor);
+	}
+
+}
+
+void esperar_cliente(int servidor){
+
+	struct sockaddr_in direccion_cliente;
+
+	unsigned int tam_direccion = sizeof(struct sockaddr_in);
+
+	int cliente = accept (servidor, (void*) &direccion_cliente, &tam_direccion);
+
+	pthread_create(&thread,NULL,(void*)serve_client,&cliente);
+	pthread_detach(thread);
+}
+
+void serve_client(int* socket)
+{
+	int cod_op;
+	if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+		cod_op = -1;
+	process_request(cod_op, *socket);
+}
+
+void process_request(int cod_op, int cliente_fd) {
+	int size = 0;
+	void* buffer = recibir_mensaje(cliente_fd, &size);
+
+		switch (cod_op) {
+		case NEW_POKEMON:
+			new_pokemon(buffer);
+			break;
+		case CATCH_POKEMON:
+			catch_pokemon(buffer);
+			break;
+		case GET_POKEMON:
+			get_pokemon(buffer);
+			break;
+		case 0:
+			pthread_exit(NULL);
+		case -1:
+			pthread_exit(NULL);
+		}
+}
+
+//-------------------AUXILIARES------------------//
+
+int minimo_entre (int nro1, int nro2){
+	if (nro1 >= nro2){
+		return nro2;
+	}
+	return nro1;
+}
+
+int calcular_tamanio(int acc, char* linea){ //func para el fold en guardar archivo
+
+	int tamanio_linea = strlen(linea) + 1;
+
+	return acc + tamanio_linea;
+}
+
+bool comienza_con(char* posicion, char* linea){
+
+	char** posicion_cantidad = string_split(linea, "=");
+
+	bool es_la_posicion = string_equals_ignore_case(posicion_cantidad[0], posicion);
+
+	liberar_vector(posicion_cantidad);
+
+	return es_la_posicion;
+}
+
+bool existe_pokemon(char* path_pokemon){
+
+	DIR* verificacion = opendir(path_pokemon);
+
+	free(path_pokemon);
+
+	bool existe = !(verificacion == NULL); //si al abrirlo devuelve NULL, el directorio no existe
+
+
+	return existe;
+}
 
 
