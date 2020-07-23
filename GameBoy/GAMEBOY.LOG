@@ -62,3 +62,6 @@
 [INFO] 19:26:24:643 GAMEBOY/(15340:15340): Se ha establecido una conexion con el proceso Team
 [INFO] 19:26:37:159 GAMEBOY/(15340:15340): Se ha establecido una conexion con el proceso Team
 [INFO] 19:26:44:930 GAMEBOY/(15340:15340): Se ha establecido una conexion con el proceso Team
+[INFO] 23:53:16:419 GAMEBOY/(22270:22270): Se ha suscripto a la cola get_pokemon
+[INFO] 23:53:24:126 GAMEBOY/(22270:22521): Llego el mensaje Get_pokemon del pokemon: Pikachu con ID: 3
+[INFO] 23:53:24:127 GAMEBOY/(22270:22521): Llego el mensaje Get_pokemon del pokemon: Charmander con ID: 4
