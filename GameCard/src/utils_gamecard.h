@@ -69,50 +69,48 @@ t_list* mensajes;
 pthread_t gameboy;
 
 void crear_tall_grass(t_config* config);
-//void crear_metadata(char* path_metadata);
-void crear_bitmap(char* path);
+void crear_bitmap(char* punto_montaje);
 
+void new_pokemon(t_buffer* buffer);
+void catch_pokemon(void* buffer);
+void get_pokemon(void* buffer);
+
+char* obtener_posiciones(t_get_pokemon* pokemon);
+void crear_pokemon(t_new_pokemon* pokemon);
+void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado);
 
-bool existe_pokemon(char* path_pokemon);
-void new_pokemon(t_buffer* buffer);
-void crear_pokemon(t_new_pokemon* pokemon);
-bool archivo_abierto(t_config* config_archivo);
-void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
-void catch_pokemon(void* buffer);
+void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon);
+void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio);
+char** leer_archivo(char** blocks, int tamanio_total);
+
+char** buscar_bloques_libres(int cantidad);
+int bloque_libre();
+int cantidad_bloques(char** blocks);
+
+char* transformar_a_dato(t_list* lista_datos, int tamanio);
+t_list* transformar_a_lista(char** lineas);
+t_config* transformar_a_config(char** lineas);
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
 void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
 int index_pokemon(char* nombre);
-char** leer_archivo(char** blocks, int tamanio_total);
-int cantidad_bloques(char** blocks);
-void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon);
+bool archivo_abierto(t_config* config_archivo);
 
-t_config* transformar_a_config(char** datos);
-t_list* transformar_a_lista(char** lineas);
-
-bool comienza_con(char* posicion, char* linea);
-int calcular_tamanio(int acc, char* linea);
-
-char** buscar_bloques_libres(int cantidad);
-int bloque_libre();
-void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio);
-char* transformar_a_dato(t_list* lista_datos, int tamanio);
-int minimo_entre (int nro1, int nro2);
-
-void esperar_cliente(int servidor);
-void serve_client(int* socket);
-void socket_escucha(char*IP, char* Puerto);
-void process_request(int cod_op, int cliente_fd);
-
-int iniciar_cliente_gamecard(char* ip, char* puerto);
+void crear_conexiones();
+void connect_new_pokemon();
 void connect_get_pokemon();
 void connect_catch_pokemon();
-void connect_new_pokemon();
-void crear_conexiones();
+int iniciar_cliente_gamecard(char* ip, char* puerto);
+
 void socket_gameboy();
+void socket_escucha(char*IP, char* Puerto);
+void esperar_cliente(int servidor);
+void serve_client(int* socket);
+void process_request(int cod_op, int cliente_fd);
 
-char* obtener_posiciones(t_get_pokemon* pokemon);
-void get_pokemon(void* buffer);
-
+int minimo_entre (int nro1, int nro2);
+int calcular_tamanio(int acc, char* linea);
+bool comienza_con(char* posicion, char* linea);
+bool existe_pokemon(char* path_pokemon);
 #endif /* UTILS_H_ */
