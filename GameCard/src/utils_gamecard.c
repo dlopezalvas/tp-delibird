@@ -796,15 +796,15 @@ t_config* transformar_a_config(char** lineas){
 //-------------------ABRIR/CERRAR ARCHIVOS------------------//
 
 void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
-//	int index_sem_metadata = index_pokemon(nombre_pokemon);
+	int index_sem_metadata = index_pokemon(nombre_pokemon);
 
-	//pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
+	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
-	//pthread_mutex_lock(semaforo_pokemon);
+	pthread_mutex_lock(semaforo_pokemon);
 
 	config_set_value(config_archivo, OPEN, YES);
 	config_save_in_file(config_archivo, path_pokemon);
-	//pthread_mutex_unlock(semaforo_pokemon);
+	pthread_mutex_unlock(semaforo_pokemon);
 
 }
 
@@ -1107,15 +1107,22 @@ void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
 
+	t_new_pokemon* _new_pokemon = malloc(sizeof(t_new_pokemon));
+	t_position_and_name* _catch_pokemon = malloc(sizeof(t_position_and_name));
+	t_get_pokemon* _get_pokemon = malloc(sizeof(t_get_pokemon));
+
 		switch (cod_op) {
 		case NEW_POKEMON:
-			new_pokemon(buffer);
+			_new_pokemon = deserializar_new_pokemon(buffer);
+			new_pokemon(_new_pokemon);
 			break;
 		case CATCH_POKEMON:
-			catch_pokemon(buffer);
+			_catch_pokemon = deserializar_position_and_name(buffer);
+			catch_pokemon(_catch_pokemon);
 			break;
 		case GET_POKEMON:
-			get_pokemon(buffer);
+			_get_pokemon = deserializar_get_pokemon(buffer);
+			get_pokemon(_get_pokemon);
 			break;
 		case 0:
 			pthread_exit(NULL);
