@@ -233,9 +233,7 @@ void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,uint32
 	_recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
 	if(_recv == 0 || _recv == -1){
 		pthread_mutex_lock(&logger_mutex);
-		char* log_fallo_ack = string_new();
-		string_append_with_format(&log_fallo_ack,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
-		log_info(logger,log_fallo_ack);
+		log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
 		pthread_mutex_unlock(&logger_mutex);
 	}
 
