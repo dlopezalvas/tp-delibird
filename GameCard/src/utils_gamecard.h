@@ -71,9 +71,9 @@ pthread_t gameboy;
 void crear_tall_grass(t_config* config);
 void crear_bitmap(char* punto_montaje);
 
-void new_pokemon(t_buffer* buffer);
-void catch_pokemon(void* buffer);
-void get_pokemon(void* buffer);
+void new_pokemon(t_new_pokemon* pokemon);
+void catch_pokemon(t_position_and_name* pokemon);
+void get_pokemon(t_get_pokemon* pokemon);
 
 char* obtener_posiciones(t_get_pokemon* pokemon);
 void crear_pokemon(t_new_pokemon* pokemon);

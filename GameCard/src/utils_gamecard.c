@@ -99,9 +99,7 @@ void crear_bitmap(char* punto_montaje){
 
 //-------------------ACCIONES DE MENSAJES------------------//
 
-void new_pokemon(t_buffer* buffer){
-
-	t_new_pokemon* pokemon = deserializar_new_pokemon(buffer);
+void new_pokemon(t_new_pokemon* pokemon){
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
@@ -146,9 +144,7 @@ void new_pokemon(t_buffer* buffer){
 	}
 }
 
-void catch_pokemon(void* buffer){
-
-	t_position_and_name* pokemon = deserializar_position_and_name(buffer);
+void catch_pokemon(t_position_and_name* pokemon){
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
@@ -197,9 +193,7 @@ void catch_pokemon(void* buffer){
 
 }
 
-void get_pokemon(void* buffer){
-
-	t_get_pokemon* pokemon = deserializar_get_pokemon(buffer);
+void get_pokemon(t_get_pokemon* pokemon){
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s", pto_montaje, pokemon->nombre.nombre);
@@ -907,6 +901,8 @@ void connect_new_pokemon(){
 	int size = 0;
 	int cod_op;
 
+	t_new_pokemon* _new_pokemon;
+
 	while(1){
 
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
@@ -918,9 +914,15 @@ void connect_new_pokemon(){
 			pthread_exit(NULL);
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
+
 		pthread_t solicitud_mensaje;
 
 		if(cod_op == NEW_POKEMON){
+
+			_new_pokemon = deserializar_new_pokemon(buffer);
+			send(socket_broker,&_new_pokemon->id,sizeof(uint32_t),0);
+
+			new_pokemon(_new_pokemon);
 //			list_add(mensajes, &solicitud_mensaje);
 //			pthread_create(&solicitud_mensaje, NULL, (void*)new_pokemon, buffer);
 //			pthread_detach(solicitud_mensaje);
@@ -951,6 +953,7 @@ void connect_catch_pokemon(){
 
 	int size = 0;
 	int cod_op;
+	t_position_and_name* _catch_pokemon;
 
 	while(1){
 
@@ -966,6 +969,11 @@ void connect_catch_pokemon(){
 		pthread_t solicitud_mensaje;
 
 		if(cod_op == CATCH_POKEMON){
+
+			_catch_pokemon = deserializar_position_and_name(buffer);
+			send(socket_broker,&_catch_pokemon->id,sizeof(uint32_t),0);
+
+			catch_pokemon(_catch_pokemon);
 
 			list_add(mensajes, &solicitud_mensaje);
 			puts("catch_pokemon");
@@ -997,7 +1005,7 @@ void connect_get_pokemon(){
 	pthread_mutex_unlock(&log_mtx);
 
 	int size = 0;
-//	t_get_pokemon* get_pokemon;
+	t_get_pokemon* _get_pokemon;
 
 
 	while(1){
@@ -1010,15 +1018,18 @@ void connect_get_pokemon(){
 			sem_post(&conexiones);
 			pthread_exit(NULL);
 		}
-		puts(string_itoa(cod_op));
+
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		//pthread_t solicitud_mensaje;
 
 		if(cod_op == GET_POKEMON){
+			_get_pokemon = deserializar_get_pokemon(buffer);
+			send(socket_broker,&_get_pokemon->id,sizeof(uint32_t),0);
+
+			get_pokemon(_get_pokemon);
 
 			//list_add(mensajes, &solicitud_mensaje);
 			puts("get_pokemon");
-			get_pokemon(buffer);
 //			pthread_create(&solicitud_mensaje, NULL, (void*)get_pokemon, buffer);
 
 		}
