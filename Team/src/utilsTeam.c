@@ -871,7 +871,7 @@ void connect_localized_pokemon(){
 
 	list_iterate(especiesNecesarias, (void*)_get_pokemon); //poner if es la primera vez que lo ejecuta??
 	int size = 0;
-	t_localized_pokemon* localized;
+	t_localized_pokemon* localized = malloc(sizeof(t_localized_pokemon));
 	bool _mismaEspecie(char* especie1){
 		return mismaEspecie(especie1, localized->nombre.nombre);
 	}
@@ -902,29 +902,31 @@ void connect_localized_pokemon(){
 		if(cod_op == LOCALIZED_POKEMON){
 
 			puts("recibe mensaje");
-//			localized = deserializar_localized_pokemon(buffer);
-//			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
-////				printf("cantidad de ids recibidos %d", IDs_get_pokemon->elements_count);
-////				if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie)) puts("es espcie necesaria");
-////				if(list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)) puts("es correlation ID correcto");
-//
-//				char* mensaje = string_new();
-//				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized->id, localized->nombre.nombre, localized->cantidad);
-//				coordenadas_pokemon* coord;
-//				for(int i = 0; i<localized->cantidad; i++){
-//					coord = list_get(localized->listaCoordenadas, i);
-//					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
-//				}
-//				string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
-//				pthread_mutex_lock(&log_mutex);
-//				log_info(logger, mensaje);
-//				pthread_mutex_unlock(&log_mutex);
-//				pthread_mutex_lock(&mutex_cola_localized_pokemon);
-//				queue_push(colaLocalizedPokemon,localized);
-//				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
-//				sem_post(&semLocalized);
-//			}
-//			puts(localized->nombre.nombre);
+
+			localized = deserializar_localized_pokemon(buffer);
+//			send(socket_broker,&(localized->id),sizeof(uint32_t),0);
+			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
+				printf("cantidad de ids recibidos %d", IDs_get_pokemon->elements_count);
+				if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie)) puts("es espcie necesaria");
+				if(list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)) puts("es correlation ID correcto");
+
+				char* mensaje = string_new();
+				string_append_with_format(&mensaje, "Mensaje %d localized_pokemon %s %d", localized->id, localized->nombre.nombre, localized->cantidad);
+				coordenadas_pokemon* coord;
+				for(int i = 0; i<localized->cantidad; i++){
+					coord = list_get(localized->listaCoordenadas, i);
+					string_append_with_format(&mensaje, " %d %d", coord->pos_x, coord->pos_y);
+				}
+				string_append_with_format(&mensaje, " correlation id: %d", localized->correlation_id);
+				pthread_mutex_lock(&log_mutex);
+				log_info(logger, mensaje);
+				pthread_mutex_unlock(&log_mutex);
+				pthread_mutex_lock(&mutex_cola_localized_pokemon);
+				queue_push(colaLocalizedPokemon,localized);
+				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
+				sem_post(&semLocalized);
+			}
+			puts(localized->nombre.nombre);
 			puts("deserializo");
 		}
 	}

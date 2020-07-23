@@ -1013,8 +1013,7 @@ void connect_get_pokemon(){
 	pthread_mutex_unlock(&log_mtx);
 
 	int size = 0;
-	t_get_pokemon* _get_pokemon;
-
+	t_get_pokemon* _get_pokemon = malloc(sizeof(t_get_pokemon));
 
 	while(1){
 		int cod_op;
@@ -1027,12 +1026,14 @@ void connect_get_pokemon(){
 			pthread_exit(NULL);
 		}
 
+
 		void* buffer = recibir_mensaje(socket_broker,&size);
+
 		pthread_t solicitud_mensaje;
 
 		if(cod_op == GET_POKEMON){
 			_get_pokemon = deserializar_get_pokemon(buffer);
-//			send(socket_broker,&_get_pokemon->id,sizeof(uint32_t),0);
+//			send(socket_broker,&(_get_pokemon)->id,sizeof(uint32_t),0);
 
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);
@@ -1040,6 +1041,7 @@ void connect_get_pokemon(){
 
 			pthread_create(&solicitud_mensaje, NULL, (void*)get_pokemon, _get_pokemon);
 
+			puts("recibio mensaje get pokemon");
 		}
 	}
 

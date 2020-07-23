@@ -65,3 +65,25 @@
 [INFO] 23:53:16:419 GAMEBOY/(22270:22270): Se ha suscripto a la cola get_pokemon
 [INFO] 23:53:24:126 GAMEBOY/(22270:22521): Llego el mensaje Get_pokemon del pokemon: Pikachu con ID: 3
 [INFO] 23:53:24:127 GAMEBOY/(22270:22521): Llego el mensaje Get_pokemon del pokemon: Charmander con ID: 4
+[INFO] 19:14:51:125 GAMEBOY/(26094:26094): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:15:18:388 GAMEBOY/(26094:26094): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:16:53:19 GAMEBOY/(26121:26121): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:19:06:322 GAMEBOY/(26289:26289): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:19:19:4 GAMEBOY/(26289:26289): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:19:38:612 GAMEBOY/(26303:26303): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:21:58:326 GAMEBOY/(26464:26464): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:22:19:510 GAMEBOY/(26464:26464): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:26:10:970 GAMEBOY/(26577:26577): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:26:18:602 GAMEBOY/(26577:26577): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:33:06:377 GAMEBOY/(26770:26770): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:33:09:485 GAMEBOY/(26770:26770): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:42:15:514 GAMEBOY/(27106:27106): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:42:21:88 GAMEBOY/(27106:27106): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:42:26:21 GAMEBOY/(27106:27106): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:43:47:91 GAMEBOY/(27159:27159): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:43:49:761 GAMEBOY/(27159:27159): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:43:56:625 GAMEBOY/(27159:27159): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:43:58:949 GAMEBOY/(27159:27159): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:44:00:452 GAMEBOY/(27159:27159): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:44:34:207 GAMEBOY/(27184:27184): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:45:08:11 GAMEBOY/(27217:27217): Se ha establecido una conexion con el proceso Broker

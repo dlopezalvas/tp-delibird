@@ -282,7 +282,7 @@ void process_request(int cod_op, int cliente_fd){
 		break;
 	case GET_POKEMON:
 		get_pokemon = deserializar_get_pokemon(buffer);
-		send(cliente_fd,&caught_pokemon->id,sizeof(uint32_t),0);
+//		send(cliente_fd,&(get_pokemon->id),sizeof(uint32_t),0);
 		log_info(logger, "Llego el mensaje Get_pokemon del pokemon: %s con ID: %d", get_pokemon->nombre.nombre , get_pokemon->id);
 		break;
 	case LOCALIZED_POKEMON:

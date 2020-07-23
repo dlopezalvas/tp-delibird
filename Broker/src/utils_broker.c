@@ -106,8 +106,13 @@ void serve_client(int socket)
 	int cod_op;
 	while(1){
 		rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
-		if(rec == -1 || rec == 0)
-				cod_op = -1;
+		if(rec == -1 || rec == 0 ){
+			cod_op = -1;
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se desconecto el proceso con id: %d",socket);
+			pthread_mutex_unlock(&logger_mutex);
+			pthread_exit(NULL);
+		}
 		process_request(cod_op, socket);
 	}
 }
@@ -228,20 +233,25 @@ void socketEscucha(char*ip, char* puerto){
 void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,uint32_t mensaje_id,char* mensaje_log){
 //	puts(string_itoa(cliente_a_enviar));
 	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
-	uint32_t id;
-	int _recv;
-	_recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
-	if(_recv == 0 || _recv == -1){
-		pthread_mutex_lock(&logger_mutex);
-		log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
-		pthread_mutex_unlock(&logger_mutex);
-	}
-
-	string_append_with_format(&mensaje_log ," y recibio ack: %d",id);
+//	uint32_t id;
+//	int _recv;
+//	_recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
+//	if(_recv == 0 || _recv == -1){
+//		pthread_mutex_lock(&logger_mutex);
+//		log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
+//		pthread_mutex_unlock(&logger_mutex);
+//	}else{
+//		string_append_with_format(&mensaje_log ," y recibio ack: %d",id);
+//		pthread_mutex_lock(&logger_mutex);
+//		log_info(logger,mensaje_log);
+//		pthread_mutex_unlock(&logger_mutex);
+//	}
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,mensaje_log);
 	pthread_mutex_unlock(&logger_mutex);
 }
+
+
 
 void ejecutar_new_pokemon(){
 
@@ -502,8 +512,6 @@ void ejecutar_localized_pokemon(){
 		uint32_t mensaje_id;
 		mensaje_id = mensaje->id;
 		localized_pokemon->id = mensaje_id;
-
-
 
 		pthread_mutex_lock(&localized_pokemon_queue_mutex);
 		list_add(LOCALIZED_POKEMON_QUEUE,localized_pokemon);
