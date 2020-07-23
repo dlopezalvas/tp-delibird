@@ -33,6 +33,10 @@ void crear_tall_grass(t_config* config){
 
 	pthread_mutex_init(&log_mtx, NULL);
 
+
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard,"Se inició el FS TALL_GRASS");
+	pthread_mutex_unlock(&log_mtx);
 	//free(metadata_fs);
 
 }
@@ -89,7 +93,9 @@ void crear_bitmap(char* punto_montaje){
 	pthread_mutex_init(&bitarray_mtx, NULL);
 
 	close(bitarray_file);
-
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard,"Se creó el bitmap");
+	pthread_mutex_unlock(&log_mtx);
 	//free(path_bitarray);
 }
 
@@ -118,9 +124,14 @@ void new_pokemon(t_buffer* buffer){
 	puts(parametros);
 	int socket_broker = iniciar_cliente(config_get_string_value(config, IP_BROKER), config_get_string_value(config, PUERTO_BROKER));
 	if(socket_broker == -1){
-		puts("no se pudo contectar, error en log?");
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudo enviar el mensaje APPEARED_POKEMON al Broker, error de conexion");
+		pthread_mutex_unlock(&log_mtx);
 	}else{
 		enviar_mensaje(appeared_pokemon, socket_broker);
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"Se envió el mensaje APPEARED_POKEMON %s de la posicion %d - %d y Correlation-ID: %d",pokemon->nombre.nombre, pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y, pokemon->id );
+		pthread_mutex_unlock(&log_mtx);
 	}
 }
 
@@ -140,7 +151,9 @@ void catch_pokemon(void* buffer){
 	if(existe_pokemon(path_pokemon)){
 		actualizar_quitar_pokemon(pokemon, &resultado);
 	}else{
-		puts("informar error por logs???");
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudo capturar el pokemon %s porque no existe en el mapa", pokemon->nombre.nombre);
+		pthread_mutex_unlock(&log_mtx);
 	}
 
 	string_append_with_format(&parametros, "%d,0,%d", resultado, pokemon->id);
@@ -150,9 +163,14 @@ void catch_pokemon(void* buffer){
 	puts(parametros);
 	int socket_broker = iniciar_cliente(config_get_string_value(config, IP_BROKER), config_get_string_value(config, PUERTO_BROKER));
 	if(socket_broker == -1){
-		puts("no se pudo contectar, error en log?");
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudo enviar el mensaje CAUGHT_POKEMON al Broker, error de conexion");
+		pthread_mutex_unlock(&log_mtx);
 	}else{
 		enviar_mensaje(caught_pokemon, socket_broker);
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"Se envió el mensaje CAUGHT_POKEMON con resultado: %d y Correlation-ID: %d", resultado, pokemon->id);
+		pthread_mutex_unlock(&log_mtx);
 	}
 
 }
@@ -172,7 +190,9 @@ void get_pokemon(void* buffer){
 		parametros = obtener_posiciones(pokemon);
 	}else{
 		string_append_with_format(&parametros, "%s,0", pokemon->nombre.nombre);
-		puts("informar error por logs???");
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudo obtener el pokemon %s porque no existe en el mapa", pokemon->nombre.nombre);
+		pthread_mutex_unlock(&log_mtx);
 	}
 
 	string_append_with_format(&parametros, ",0,%d", pokemon->id);
@@ -182,9 +202,23 @@ void get_pokemon(void* buffer){
 	puts(parametros);
 	int socket_broker = iniciar_cliente(config_get_string_value(config, IP_BROKER), config_get_string_value(config, PUERTO_BROKER));
 	if(socket_broker == -1){
-		puts("no se pudo contectar, error en log?");
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudo enviar el mensaje LOCALIZED_POKEMON al Broker, error de conexion");
+		pthread_mutex_unlock(&log_mtx);
 	}else{
 		enviar_mensaje(localized_pokemon, socket_broker);
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"Se envió el mensaje LOCALIZED_POKEMON %s", parametros);
+		pthread_mutex_unlock(&log_mtx);
+		uint32_t id;
+		int _recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
+		if(_recv == 0 || _recv == -1){
+			puts("error al recibir ack");
+		}
+
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"El mensaje de ID: %d fue recibido por el Broker", id);
+		pthread_mutex_unlock(&log_mtx);
 	}
 
 }
@@ -195,8 +229,6 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
-	puts(path_pokemon);
-
 	t_config* config_pokemon = config_create(path_pokemon);
 
 
@@ -204,10 +236,7 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 
 		abrir_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
-
 		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
-
-		puts(blocks[0]);
 
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
@@ -240,9 +269,11 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 		//destruir lista y esas cosas (?
 
 	}else{
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
+		pthread_mutex_unlock(&log_mtx);
 		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
 		obtener_posiciones(pokemon);
-		puts("reintentar");
 	}
 }
 
@@ -316,6 +347,10 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	t_config* config_aux = config_create(path_pokemon);
 
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_aux, BLOCKS), pokemon->nombre.nombre, string_itoa(tamanio));
+	pthread_mutex_unlock(&log_mtx);
+
 	config_set_value(config_aux, SIZE, string_itoa(tamanio));
 
 	int offset = 0;
@@ -331,13 +366,16 @@ void crear_pokemon(t_new_pokemon* pokemon){
 
 	config_destroy(config_aux);
 
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard,"Se creo el pokemon %s", pokemon->nombre.nombre);
+	pthread_mutex_unlock(&log_mtx);
+
 	//liberar_vector(bloques_a_escribir);
 //	free(datos);
 //	free(path_pokemon);
 }
 
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
-
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
@@ -382,6 +420,10 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		guardar_archivo(lista_datos, config_pokemon, path_pokemon);
 
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_pokemon, BLOCKS), pokemon->nombre.nombre,config_get_string_value(config_pokemon, SIZE) );
+		pthread_mutex_unlock(&log_mtx);
+
 	//	cerrar_archivo(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
 		liberar_vector(blocks);
@@ -390,9 +432,11 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 		config_destroy(config_datos);
 
 	}else{
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
+		pthread_mutex_unlock(&log_mtx);
 		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
 		actualizar_nuevo_pokemon(pokemon);
-		puts("reintentar");
 	}
 }
 
@@ -450,7 +494,10 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 			guardar_archivo(lista_datos, config_pokemon, path_pokemon);
 
 		}else{
-			puts("otro error que ni idea si va en log o que :(");
+			pthread_mutex_lock(&log_mtx);
+			log_info(logger_gamecard, "No se pudo capturar el pokemon %s ya que no existe en la posicion %d - %d", pokemon->nombre.nombre, pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
+			pthread_mutex_unlock(&log_mtx);
+
 			config_set_value(config_pokemon, OPEN, NO);
 
 			sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
@@ -464,9 +511,11 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 		config_destroy(config_datos);
 
 	}else{
+		pthread_mutex_lock(&log_mtx);
+		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
+		pthread_mutex_unlock(&log_mtx);
 		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
 		actualizar_quitar_pokemon(pokemon, resultado);
-		puts("reintentar");
 	}
 }
 
@@ -593,7 +642,9 @@ int bloque_libre(){
 			return i;
 		}
 	}
-
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard,"No existen bloques libres");
+	pthread_mutex_unlock(&log_mtx);
 	return -1;
 }
 
@@ -779,11 +830,11 @@ int index_pokemon(char* nombre){
 		pokemon = list_get(pokemones, index);
 	}
 	if(!string_equals_ignore_case(pokemon, nombre)){
-		pthread_mutex_t* pokemon_mtx;
+		pthread_mutex_t pokemon_mtx;
 
-		pthread_mutex_init(pokemon_mtx, NULL);
+		pthread_mutex_init(&pokemon_mtx, NULL);
 
-		list_add(sem_metadatas, pokemon_mtx);
+		list_add(sem_metadatas, &pokemon_mtx);
 		list_add(pokemones, nombre);
 		index++;
 	}
@@ -847,24 +898,16 @@ void socket_escucha(char*IP, char* Puerto){
 void process_request(int cod_op, int cliente_fd) {
 	int size = 0;
 	void* buffer = recibir_mensaje(cliente_fd, &size);
-	uint32_t id = 0;
-
-	recv(cliente_fd, &id, sizeof(uint32_t),0);
-
-	//t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
 
 		switch (cod_op) {
 		case NEW_POKEMON:
-		//	new_pokemon = deserializar_new_pokemon(buffer);
 			new_pokemon(buffer);
 			break;
 		case CATCH_POKEMON:
-			puts("catch pokemon");
 			catch_pokemon(buffer);
 			break;
 		case GET_POKEMON:
 			get_pokemon(buffer);
-			puts("get pokemon");
 			break;
 		case 0:
 			pthread_exit(NULL);
@@ -888,7 +931,9 @@ void crear_conexiones(){
 		sem_wait(&conexiones);
 		sem_wait(&conexiones);
 		sleep(tiempoReconexion);
+		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard, "Inicio Reintento de todas las conexiones");
+		pthread_mutex_unlock(&log_mtx);
 
 	}
 	sem_destroy(&conexiones);
@@ -906,16 +951,19 @@ void connect_new_pokemon(){
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 
-	puts("envia mensaje");
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard, "Se suscribio a la cola NEW_POKEMON");
+	pthread_mutex_unlock(&log_mtx);
 
 	int size = 0;
-	t_new_pokemon* new_pokemon;
 	int cod_op;
 
 	while(1){
 
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mtx);
 			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mtx);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
@@ -948,16 +996,19 @@ void connect_catch_pokemon(){
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 
-	puts("envia mensaje");
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard, "Se suscribio a la cola CATCH_POKEMON");
+	pthread_mutex_unlock(&log_mtx);
 
 	int size = 0;
-	t_position_and_name* catch_pokemon;
 	int cod_op;
 
 	while(1){
 
 		if(recv(socket_broker, &cod_op, sizeof(int), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mtx);
 			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mtx);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
@@ -992,7 +1043,9 @@ void connect_get_pokemon(){
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 
-	puts("envia mensaje");
+	pthread_mutex_lock(&log_mtx);
+	log_info(logger_gamecard, "Se suscribio a la cola GET_POKEMON");
+	pthread_mutex_unlock(&log_mtx);
 
 	int size = 0;
 //	t_get_pokemon* get_pokemon;
@@ -1001,7 +1054,9 @@ void connect_get_pokemon(){
 	while(1){
 		int cod_op;
 		if(recv(socket_broker, &cod_op, sizeof(op_code), MSG_WAITALL) == 0){
+			pthread_mutex_lock(&log_mtx);
 			log_info(logger_gamecard,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mtx);
 			liberar_conexion(socket_broker);
 			sem_post(&conexiones);
 			pthread_exit(NULL);
@@ -1036,13 +1091,17 @@ int iniciar_cliente_gamecard(char* ip, char* puerto){
 	int cliente = socket(AF_INET, SOCK_STREAM, 0);
 
 	if(connect(cliente, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
+		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard, "No se pudo realizar la conexion");
+		pthread_mutex_unlock(&log_mtx);
 		liberar_conexion(cliente);
 		sem_post(&conexiones);
 		pthread_exit(NULL);
 	}
 
+	pthread_mutex_lock(&log_mtx);
 	log_info(logger_gamecard,"Se ha establecido una conexion con el proceso Broker");
+	pthread_mutex_unlock(&log_mtx);
 	return cliente;
 }
 
