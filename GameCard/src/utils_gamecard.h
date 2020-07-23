@@ -68,6 +68,8 @@ t_list* mensajes;
 
 pthread_t gameboy;
 
+pthread_mutex_t solicitudes_mtx;
+
 void crear_tall_grass(t_config* config);
 void crear_bitmap(char* punto_montaje);
 

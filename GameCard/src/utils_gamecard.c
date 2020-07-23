@@ -33,6 +33,8 @@ void crear_tall_grass(t_config* config){
 
 	pthread_mutex_init(&log_mtx, NULL);
 
+	mensajes = list_create();
+	pthread_mutex_init(&solicitudes_mtx, NULL);
 
 	pthread_mutex_lock(&log_mtx);
 	log_info(logger_gamecard,"Se inició el FS TALL_GRASS");
@@ -923,10 +925,11 @@ void connect_new_pokemon(){
 			send(socket_broker,&_new_pokemon->id,sizeof(uint32_t),0);
 
 			new_pokemon(_new_pokemon);
-//			list_add(mensajes, &solicitud_mensaje);
-//			pthread_create(&solicitud_mensaje, NULL, (void*)new_pokemon, buffer);
-//			pthread_detach(solicitud_mensaje);
+			pthread_mutex_lock(&solicitudes_mtx);
+			list_add(mensajes, &solicitud_mensaje);
+			pthread_mutex_unlock(&solicitudes_mtx);
 
+			pthread_create(&solicitud_mensaje, NULL, (void*)new_pokemon, _new_pokemon);
 		}
 	}
 
@@ -973,13 +976,12 @@ void connect_catch_pokemon(){
 			_catch_pokemon = deserializar_position_and_name(buffer);
 			send(socket_broker,&_catch_pokemon->id,sizeof(uint32_t),0);
 
-			catch_pokemon(_catch_pokemon);
-
+//			catch_pokemon(_catch_pokemon);
+			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);
-			puts("catch_pokemon");
+			pthread_mutex_unlock(&solicitudes_mtx);
 
-//			pthread_create(&solicitud_mensaje, NULL, (void*)new_pokemon, buffer);
-
+			pthread_create(&solicitud_mensaje, NULL, (void*)catch_pokemon, _catch_pokemon);
 		}
 	}
 
@@ -1020,17 +1022,17 @@ void connect_get_pokemon(){
 		}
 
 		void* buffer = recibir_mensaje(socket_broker,&size);
-		//pthread_t solicitud_mensaje;
+		pthread_t solicitud_mensaje;
 
 		if(cod_op == GET_POKEMON){
 			_get_pokemon = deserializar_get_pokemon(buffer);
-			send(socket_broker,&_get_pokemon->id,sizeof(uint32_t),0);
+//			send(socket_broker,&_get_pokemon->id,sizeof(uint32_t),0);
 
-			get_pokemon(_get_pokemon);
+			pthread_mutex_lock(&solicitudes_mtx);
+			list_add(mensajes, &solicitud_mensaje);
+			pthread_mutex_unlock(&solicitudes_mtx);
 
-			//list_add(mensajes, &solicitud_mensaje);
-			puts("get_pokemon");
-//			pthread_create(&solicitud_mensaje, NULL, (void*)get_pokemon, buffer);
+			pthread_create(&solicitud_mensaje, NULL, (void*)get_pokemon, _get_pokemon);
 
 		}
 	}
