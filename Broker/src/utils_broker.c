@@ -237,7 +237,7 @@ void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,uint32
 		pthread_mutex_unlock(&logger_mutex);
 	}
 
-	string_append_with_format(&logger,mensaje_log ," y recibio ack ack: %d",id);
+	string_append_with_format(&mensaje_log ," y recibio ack: %d",id);
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,mensaje_log);
 	pthread_mutex_unlock(&logger_mutex);
