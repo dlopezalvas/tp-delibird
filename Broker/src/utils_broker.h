@@ -57,8 +57,8 @@ typedef enum{
 }algtm_reemplazo;
 
 typedef enum{
-	FF = 1,
-	BF = 2,
+	FIRST_FIT = 1,
+	BEST_FIT = 2,
 }algtm_part_libre;
 
 typedef struct{
@@ -153,5 +153,8 @@ void ejecutar_catch_pokemon_suscripcion(int suscriptor);
 void ejecutar_caught_pokemon_suscripcion(int suscriptor);
 void ejecutar_get_pokemon_suscripcion(int suscriptor);
 void ejecutar_localized_pokemon_suscripcion(int suscriptor);
+
+
+void iniciar_memoria(t_config* config);
 
 #endif /* UTILS_BROKER_H_ */
