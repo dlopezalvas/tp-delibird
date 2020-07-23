@@ -2970,3 +2970,81 @@
 [INFO] 16:12:59:978 GAMECARD/(6961:6964): Se ha establecido una conexion con el proceso Broker
 [INFO] 16:12:59:978 GAMECARD/(6961:6966): Se ha establecido una conexion con el proceso Broker
 [INFO] 16:12:59:978 GAMECARD/(6961:6965): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:36:56:235 GAMECARD/(19734:19739): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:36:56:235 GAMECARD/(19734:19738): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:36:56:236 GAMECARD/(19734:19737): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:37:26:834 GAMECARD/(19764:19769): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:37:26:836 GAMECARD/(19764:19768): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:37:26:837 GAMECARD/(19764:19767): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:37:38:596 GAMECARD/(19764:19767): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:37:38:596 GAMECARD/(19764:19768): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:37:38:596 GAMECARD/(19764:19769): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:37:43:597 GAMECARD/(19764:19765): Inicio Reintento de todas las conexiones
+[INFO] 19:37:43:598 GAMECARD/(19764:19791): No se pudo realizar la conexion
+[INFO] 19:37:43:599 GAMECARD/(19764:19790): No se pudo realizar la conexion
+[INFO] 19:37:43:599 GAMECARD/(19764:19789): No se pudo realizar la conexion
+[INFO] 19:37:57:272 GAMECARD/(19803:19808): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:37:57:273 GAMECARD/(19803:19807): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:37:57:273 GAMECARD/(19803:19806): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:38:16:544 GAMECARD/(19833:19838): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:38:16:544 GAMECARD/(19833:19837): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:38:16:545 GAMECARD/(19833:19836): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:38:34:62 GAMECARD/(19865:19870): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:38:34:62 GAMECARD/(19865:19869): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:38:34:62 GAMECARD/(19865:19868): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:07:84 GAMECARD/(19895:19900): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:07:85 GAMECARD/(19895:19899): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:07:86 GAMECARD/(19895:19898): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:17:259 GAMECARD/(19895:19898): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:39:17:259 GAMECARD/(19895:19899): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:39:17:259 GAMECARD/(19895:19900): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:39:28:312 GAMECARD/(19926:19931): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:28:313 GAMECARD/(19926:19930): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:28:314 GAMECARD/(19926:19929): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:37:409 GAMECARD/(19926:19929): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:39:37:410 GAMECARD/(19926:19930): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:39:37:410 GAMECARD/(19926:19931): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:39:53:89 GAMECARD/(19958:19963): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:53:90 GAMECARD/(19958:19962): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:39:53:90 GAMECARD/(19958:19961): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:40:06:8 GAMECARD/(19958:19961): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:40:06:9 GAMECARD/(19958:19962): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:40:06:9 GAMECARD/(19958:19963): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:40:11:10 GAMECARD/(19958:19959): Inicio Reintento de todas las conexiones
+[INFO] 19:40:11:11 GAMECARD/(19958:20001): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:40:11:11 GAMECARD/(19958:20000): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:40:11:12 GAMECARD/(19958:19999): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:40:34:72 GAMECARD/(19958:19999): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:40:34:73 GAMECARD/(19958:20000): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:40:34:73 GAMECARD/(19958:20001): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:40:48:0 GAMECARD/(20015:20020): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:40:48:1 GAMECARD/(20015:20019): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:40:48:2 GAMECARD/(20015:20018): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:02:242 GAMECARD/(20015:20018): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:02:243 GAMECARD/(20015:20019): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:02:243 GAMECARD/(20015:20020): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:07:245 GAMECARD/(20015:20016): Inicio Reintento de todas las conexiones
+[INFO] 19:41:07:246 GAMECARD/(20015:20039): No se pudo realizar la conexion
+[INFO] 19:41:07:246 GAMECARD/(20015:20038): No se pudo realizar la conexion
+[INFO] 19:41:07:246 GAMECARD/(20015:20037): No se pudo realizar la conexion
+[INFO] 19:41:12:246 GAMECARD/(20015:20016): Inicio Reintento de todas las conexiones
+[INFO] 19:41:12:247 GAMECARD/(20015:20051): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:12:248 GAMECARD/(20015:20050): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:12:249 GAMECARD/(20015:20049): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:23:504 GAMECARD/(20015:20049): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:23:505 GAMECARD/(20015:20050): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:23:505 GAMECARD/(20015:20051): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:28:506 GAMECARD/(20015:20016): Inicio Reintento de todas las conexiones
+[INFO] 19:41:28:507 GAMECARD/(20015:20078): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:28:507 GAMECARD/(20015:20077): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:28:508 GAMECARD/(20015:20076): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:47:939 GAMECARD/(20015:20076): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:47:939 GAMECARD/(20015:20077): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:47:939 GAMECARD/(20015:20078): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:41:52:940 GAMECARD/(20015:20016): Inicio Reintento de todas las conexiones
+[INFO] 19:41:52:940 GAMECARD/(20015:20112): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:52:940 GAMECARD/(20015:20111): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:41:52:941 GAMECARD/(20015:20110): Se ha establecido una conexion con el proceso Broker
+[INFO] 19:42:02:276 GAMECARD/(20015:20110): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:42:02:276 GAMECARD/(20015:20111): Se ha perdido la conexion con el proceso Broker
+[INFO] 19:42:02:276 GAMECARD/(20015:20112): Se ha perdido la conexion con el proceso Broker
