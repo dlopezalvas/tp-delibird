@@ -29,6 +29,14 @@
 #define CAUGHT_POKEMON_QUEUE_NAME "CAUGHT_POKEMON"
 #define GET_POKEMON_QUEUE_NAME "GET_POKEMON"
 
+
+#define TAMANO_MEMORIA "TAMANO_MEMORIA"
+#define TAMANO_MINIMO_PARTICION "TAMANO_MINIMO_PARTICION"
+#define ALGORITMO_MEMORIA "ALGORITMO_MEMORIA"
+#define ALGORITMO_REEMPLAZO "ALGORITMO_REEMPLAZO"
+#define ALGORITMO_PARTICION_LIBRE "ALGORITMO_PARTICION_LIBRE"
+#define FRECUENCIA_COMPACTACION "FRECUENCIA_COMPACTACION"
+
 t_log* logger;
 
 typedef struct{
@@ -37,6 +45,32 @@ typedef struct{
   int suscriptor;
   uint32_t id;
 }t_mensaje_broker;
+
+typedef enum{
+	BS = 1,
+	PARTICIONES = 2,
+}algtm_memoria;
+
+typedef enum{
+	FIFO = 1,
+	LRU = 2,
+}algtm_reemplazo;
+
+typedef enum{
+	FF = 1,
+	BF = 2,
+}algtm_part_libre;
+
+typedef struct{
+	int tamanio_memoria;
+	int tamanio_minimo_p;
+	algtm_memoria algoritmo_memoria;
+	algtm_reemplazo algoritmo_reemplazo;
+	algtm_part_libre algoritmo_part_libre;
+	int frecuencia_compact;
+}t_config_cache;
+
+t_config_cache* configuracion_cache;
 
 //Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
 t_list* NEW_POKEMON_QUEUE;
