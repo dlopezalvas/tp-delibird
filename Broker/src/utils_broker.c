@@ -753,11 +753,15 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){
 
 t_particion* buscar_particion_bf(int tamanio_a_almacenar){
 
-	t_particion* particion_libre;
+	t_particion* particion_libre = malloc(sizeof(t_particion));
 
-	if(particion_libre == NULL){
-		//compactar_memoria();
+	int best_fit = best_fit_index(tamanio_a_almacenar);
+
+	if(best_fit == -1){
+		//compactar creo?
 	}
+
+	particion_libre = list_get(particiones_libres, best_fit);
 
 	return particion_libre;
 }
@@ -783,6 +787,8 @@ int best_fit_index(int tamanio_a_almacenar){
 		}
 	}
 
+	free(aux);
+	free(mayor);
 
 	return best_fit;
 
