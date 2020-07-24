@@ -710,7 +710,7 @@ void iniciar_memoria(t_config* config){
 void almacenar_dato(void* datos, int tamanio){
 	switch(memoria_cache->config_cache->algoritmo_memoria){
 	case BS:
-		almacenar_dato_bs(datos, tamanio);
+	//	almacenar_dato_bs(datos, tamanio);
 		break;
 	case PARTICIONES:
 		almacenar_dato_particiones(datos, tamanio);
@@ -730,8 +730,7 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 		particion_libre = buscar_particion_bf(tamanio);
 	}
 
-	asignar_particion(datos); //necesita tamanio aca?
-
+	asignar_particion(datos, particion_libre, tamanio);
 }
 
 t_particion* buscar_particion_ff(int tamanio_a_almacenar){
@@ -745,11 +744,39 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){
 	particion_libre =  list_find(memoria_cache->particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
 	if(particion_libre == NULL){
-		return nueva_victima(tamanio_a_almacenar);
+		compactar_memoria();
 	}
 
 	return particion_libre;
 }
+
+
+void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
+
+	memcpy(memoria_cache->data + particion_libre->base, datos, tamanio); //copio a la memoria
+
+	bool _es_la_particion(t_particion* particion){
+		return particion == particion_libre;
+	}
+	list_remove_by_condition(memoria_cache->particiones_libres, (void*) _es_la_particion); //esto funca?? saco de la lista la particion (no se si anda haciendo == particion_libre
+
+	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
+		t_particion* particion_nueva;
+		particion_nueva->base = particion_libre->base + tamanio;
+		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
+		particion_libre->tamanio = tamanio;
+
+		list_add(memoria_cache->particiones_libres, particion_nueva);
+	}
+
+	list_add(memoria_cache->particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
+
+}
+
+//----------TRANSFORMAR MENSAJES EN VOID*????----------//
+
+
+
 
 
 
