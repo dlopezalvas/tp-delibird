@@ -248,7 +248,7 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){ //funciona
 		else return false;
 		break;
 	case EXEC:
-		if(nuevoEstado == READY || nuevoEstado == BLOCK || nuevoEstado == EXIT) return true;
+		if(nuevoEstado == READY || nuevoEstado == BLOCK || nuevoEstado == EXIT || nuevoEstado == EXEC) return true;
 		else return false;
 		break;
 	case BLOCK:
@@ -475,8 +475,7 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 			cambiarEstado(&entrenador, EXEC, "va a ejecutar");
 			puts("cambia de estado a exec");
 			pthread_mutex_unlock(&((entrenador)->mutex));
-			pthread_mutex_lock(&mutex_ejecutar);
-			//replanificar();
+			//replanificar
 			puts("ejecuto");
 			if(entrenadoresTienenElInventarioLleno()){ //probar
 				sem_post(&sem_deteccionDeadlock);
@@ -484,6 +483,8 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 		}
 	pthread_exit(NULL);
 }
+
+
 
 void llenarColaReady(){ // probar
 
@@ -561,31 +562,36 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 			//puts(string_itoa((*entrenador)->pokemonACapturar->coordx));
 				coordx = (entrenador)->pokemonACapturar->coordx;
 				coordy = (entrenador)->pokemonACapturar->coordy;
-				puts("despues de coordx");
 		}else{
-			puts("else");
-			puts("antes de coordx");
-				coordx = (intercambio->entrenador->coordx);
+			puts("intercambio");
+			coordx = (intercambio->entrenador->coordx);
 				coordy = (intercambio->entrenador->coordy);
-				puts("despues de coordx");
 		}
 		pthread_mutex_unlock(&(entrenador->mutex));
 		while((coordx != entrenador->coordx	|| coordy != entrenador->coordy)){
-			puts("en el while");
 			pthread_mutex_lock(&(entrenador->mutex));
-			puts("antes de moverse");
 			moverEntrenador(&entrenador, coordx, coordy);
+			puts("despues de moverse");
+			sem_post(&sem_ejecutar);
 			pthread_mutex_unlock(&mutex_ejecutar);
 					}
-		if(puedeAtraparPokemon(entrenador)){
+		if(tieneEspacioYEstaEnExec(entrenador)){
 			pthread_mutex_lock(&((entrenador)->mutex));
 			cambiarEstado(&entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
 			catch_pokemon(config_get_string_value(config, "IP_BROKER"), config_get_string_value(config, "PUERTO_BROKER"), &entrenador);
+			puts("mando catch");
 			pthread_mutex_unlock(&mutex_ejecutar);
+			pthread_mutex_lock(&(entrenador->mutex));
+			//ver si el resultado es positivo o negativo
+			if(entrenador->respuesta_catch){
+				capturoPokemon(&entrenador);
+			}else{
+				noCapturoPokemon(&entrenador);
+			}
 		}else {
 			intercambiarPokemon(&entrenador);
 			}
-	if(cumpleObjetivoParticular((entrenador))) cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
+	if(cumpleObjetivoParticular(entrenador)) cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
 	}
 	pthread_exit(NULL);
 	return 0;
@@ -885,8 +891,9 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 	uint32_t id;
 	_recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
 	if(_recv == 0 || _recv == -1) puts("error al recibir id get pokemon");
-	else{list_add(IDs, id);
-	puts(string_itoa(id));
+	else{
+		list_add(IDs, id);
+		puts(string_itoa(id));
 	}
 }
 
@@ -1075,14 +1082,28 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
 	direccion_servidor.sin_port = htons(atoi(puerto));
 
+	pthread_mutex_lock(&log_mutex);
+	log_info(logger, "Atrapar %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
+	pthread_mutex_unlock(&log_mutex);
+	puts("va a atrapar pokemon");
+	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
+	(*entrenador)->CiclosCPU ++;
+	ciclosCPUGlobal ++;
+	bool _mismoID(void* entre){
+		mismoID(entre, (*entrenador)->ID);
+	}
+	list_remove_by_condition(ready, _mismoID);
+
+
 	int socket_broker = socket(AF_INET, SOCK_STREAM, 0);
 	int _recv;
 	if(connect(socket_broker, (void*) &direccion_servidor, sizeof(direccion_servidor)) !=0){
 		pthread_mutex_lock(&log_mutex);
 		log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
 		pthread_mutex_unlock(&log_mutex);
-		capturoPokemon(entrenador);
+//		capturoPokemon(entrenador);
 		liberar_conexion(socket_broker);
+		(*entrenador)->respuesta_catch = true;
 		pthread_mutex_unlock(&((*entrenador)->mutex));
 		return;
 	}else{
@@ -1093,7 +1114,8 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 			log_info(logger, "Se atrapara al pokemon por default porque no se pudo conectar con el Broker");
 			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
-			capturoPokemon(entrenador);
+			(*entrenador)->respuesta_catch = true;
+//			capturoPokemon(entrenador);
 			pthread_mutex_unlock(&((*entrenador)->mutex));
 			return;
 		}
@@ -1104,14 +1126,8 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 		(*entrenador)->catch_id = ID;
 		liberar_conexion(socket_broker);
 	}
-	pthread_mutex_lock(&log_mutex);
-	log_info(logger, "Atrapar %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
-	pthread_mutex_unlock(&log_mutex);
-	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
-	(*entrenador)->CiclosCPU ++;
-	ciclosCPUGlobal ++;
 	free(mensaje);
-	pthread_mutex_lock(&(*entrenador)->mutex);
+//	pthread_mutex_lock(&(*entrenador)->mutex);
 }
 
 void crearConexiones(){
@@ -1233,12 +1249,15 @@ void caught_pokemon(){
 		pthread_mutex_lock(&mutex_cola_caught_pokemon);
 		caught = queue_pop(colaCaughtPokemon);
 		pthread_mutex_unlock(&mutex_cola_caught_pokemon);
+		entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
 		if(caught->caught){
-			entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
-			capturoPokemon(&entrenador);
+//			entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
+//			capturoPokemon(&entrenador);
+			entrenador->respuesta_catch =true;
 		}
 		else{
-			noCapturoPokemon(&entrenador);
+//			noCapturoPokemon(&entrenador);
+			entrenador->respuesta_catch =false;
 		}
 		pthread_mutex_unlock(&(entrenador->mutex));
 	}

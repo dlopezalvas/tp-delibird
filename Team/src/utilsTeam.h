@@ -61,6 +61,7 @@ typedef struct t_entrenador
 	int CiclosCPU;
 	pthread_mutex_t mutex;
 	uint32_t catch_id;
+	bool respuesta_catch;
 } t_entrenador;
 
 typedef struct t_intercambio{

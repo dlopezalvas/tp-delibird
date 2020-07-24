@@ -348,12 +348,12 @@ void ejecutar_team(char** linea_split, t_config* config){
 	log_info(logger,"Se ha establecido una conexion con el proceso Team");
 
 	enviar_mensaje(mensaje, socket_team);
-	uint32_t id;
-	int _recv;
-	_recv = recv(socket_team, &id, sizeof(uint32_t), 0);
-	if(_recv == 0 || _recv == -1){
-		log_info(logger,"DEBUG: recibio el ack %d",id);
-	}
+//	uint32_t id;
+//	int _recv;
+//	_recv = recv(socket_team, &id, sizeof(uint32_t), 0);
+//	if(_recv == 0 || _recv == -1){
+//		log_info(logger,"DEBUG: recibio el ack %d",id);
+//	}
 	liberar_conexion(socket_team);
 
 	free(mensaje -> parametros);
