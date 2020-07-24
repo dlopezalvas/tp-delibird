@@ -301,7 +301,7 @@ void ejecutar_new_pokemon(){
 		char* log_envio_new_pokemon = string_new();
 		string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 
-		void _enviar_mensaje_broker(void* cliente_a_enviar){
+		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_new_pokemon);
 		}
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -348,7 +348,7 @@ void ejecutar_appeared_pokemon(){
 		char* log_envio_appeared_pokemon = string_new();
 		string_append_with_format(&log_envio_appeared_pokemon ,"Se envio el mensaje APPEARED_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 
-		void _enviar_mensaje_broker(void* cliente_a_enviar){
+		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_appeared_pokemon);
 		}
 		list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
@@ -394,7 +394,7 @@ void ejecutar_catch_pokemon(){
 
 		char* log_envio_catch_pokemon = string_new();
 		string_append_with_format(&log_envio_catch_pokemon ,"Se envio el mensaje CATCH_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
-		void _enviar_mensaje_broker(void* cliente_a_enviar){
+		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_catch_pokemon);
 		}
 		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -441,7 +441,7 @@ void ejecutar_caught_pokemon(){
 		char* log_envio_caught_pokemon = string_new();
 		string_append_with_format(&log_envio_caught_pokemon ,"Se envio el mensaje CAUGHT_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 
-		void _enviar_mensaje_broker(void* cliente_a_enviar){
+		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_caught_pokemon );
 		}
 		list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -489,7 +489,7 @@ void ejecutar_get_pokemon(){
 		char* log_envio_get_pokemon = string_new();
 		string_append_with_format(&log_envio_get_pokemon ,"Se envio el mensaje GET_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 
-		void _enviar_mensaje_broker(void* cliente_a_enviar){
+		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_get_pokemon);
 		}
 		list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -541,7 +541,7 @@ void ejecutar_localized_pokemon(){
 		char* log_envio_localized_pokemon = string_new();
 		string_append_with_format(&log_envio_localized_pokemon ,"Se envio el mensaje LOCALIZED_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 
-		void _enviar_mensaje_broker(void* cliente_a_enviar){
+		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_localized_pokemon );
 		}
 		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -596,10 +596,10 @@ void ejecutar_suscripcion(){
 		case LOCALIZED_POKEMON:
 			ejecutar_localized_pokemon_suscripcion(suscriptor);
 			break;
-		case 0:
-			pthread_exit(NULL);
-		case -1:
-			pthread_exit(NULL);
+//		case 0:
+//			pthread_exit(NULL);
+//		case -1:
+//			pthread_exit(NULL);
 		}
 	}
 }
@@ -676,39 +676,39 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 //------------MEMORIA------------//
 void iniciar_memoria(t_config* config){
 
-	memoria_cache->config_cache->tamanio_memoria = config_get_int_value(config, TAMANO_MEMORIA);
-	memoria_cache->config_cache->tamanio_minimo_p = config_get_int_value(config, TAMANO_MINIMO_PARTICION);
+	configuracion_cache->tamanio_memoria = config_get_int_value(config, TAMANO_MEMORIA);
+	configuracion_cache->tamanio_minimo_p = config_get_int_value(config, TAMANO_MINIMO_PARTICION);
 
-	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "BS")) memoria_cache->config_cache->algoritmo_memoria = BS;
-	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "PARTICIONES")) memoria_cache->config_cache->algoritmo_memoria = PARTICIONES;
+	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "BS")) configuracion_cache->algoritmo_memoria = BS;
+	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "PARTICIONES")) configuracion_cache->algoritmo_memoria = PARTICIONES;
 
-	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "FIFO")) memoria_cache->config_cache->algoritmo_reemplazo = FIFO;
-	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "LRU")) memoria_cache->config_cache->algoritmo_reemplazo = LRU;
+	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "FIFO")) configuracion_cache->algoritmo_reemplazo = FIFO;
+	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "LRU")) configuracion_cache->algoritmo_reemplazo = LRU;
 
-	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "FF")) memoria_cache->config_cache->algoritmo_part_libre = FIRST_FIT;
-	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "BF")) memoria_cache->config_cache->algoritmo_part_libre = BEST_FIT;
+	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "FF")) configuracion_cache->algoritmo_part_libre = FIRST_FIT;
+	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "BF")) configuracion_cache->algoritmo_part_libre = BEST_FIT;
 
-	memoria_cache->config_cache->frecuencia_compact = config_get_int_value(config, FRECUENCIA_COMPACTACION);
+	configuracion_cache->frecuencia_compact = config_get_int_value(config, FRECUENCIA_COMPACTACION);
 
-	memoria_cache->data = malloc(configuracion_cache->tamanio_memoria);
+	memoria_cache = malloc(configuracion_cache->tamanio_memoria);
 
-	memoria_cache->particiones_libres = list_create();
+	particiones_libres = list_create();
 	t_particion* aux;
 
-	aux->base = memoria_cache->data;
+	aux->base = memoria_cache;
 
-	aux->tamanio = memoria_cache->config_cache->tamanio_memoria;
+	aux->tamanio = configuracion_cache->tamanio_memoria;
 
-	list_add(memoria_cache->particiones_libres, aux);
+	list_add(particiones_libres, aux);
 
-	memoria_cache->particiones_ocupadas = list_create();
+	particiones_ocupadas = list_create();
 
 	//claramente faltan semaforos
 
 }
 
 void almacenar_dato(void* datos, int tamanio){
-	switch(memoria_cache->config_cache->algoritmo_memoria){
+	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
 	//	almacenar_dato_bs(datos, tamanio);
 		break;
@@ -722,7 +722,7 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 
 	t_particion* particion_libre;
 
-	switch(memoria_cache->config_cache->algoritmo_part_libre){
+	switch(configuracion_cache->algoritmo_part_libre){
 	case FIRST_FIT:
 		particion_libre = buscar_particion_ff(tamanio);
 		break;
@@ -742,7 +742,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){
 		return tamanio>= tamanio_a_almacenar;
 	}
 
-	particion_libre =  list_find(memoria_cache->particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
+	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
 	if(particion_libre == NULL){
 		//compactar_memoria();
@@ -751,15 +751,38 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){
 	return particion_libre;
 }
 
+t_particion* buscar_particion_bf(int tamanio_a_almacenar){
+
+	t_particion* particion_libre;
+
+	bool _puede_almacenar(int tamanio){
+		return es_el_mejor(tamanio_a_almacenar, tamanio);
+	}
+
+	particion_libre =  list_fold(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
+
+	if(particion_libre == NULL){
+		//compactar_memoria();
+	}
+
+	return particion_libre;
+}
+
+bool es_el_mejor(int tamanio_a_almacenar, int tamanio){
+
+	tamanio_a_almacenar == tamanio;
+}
+
+
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
-	memcpy(memoria_cache->data + particion_libre->base, datos, tamanio); //copio a la memoria
+	memcpy(memoria_cache + particion_libre->base, datos, tamanio); //copio a la memoria
 
 	bool _es_la_particion(t_particion* particion){
 		return particion == particion_libre;
 	}
-	list_remove_by_condition(memoria_cache->particiones_libres, (void*) _es_la_particion); //esto funca?? saco de la lista la particion (no se si anda haciendo == particion_libre)
+	list_remove_by_condition(particiones_libres, (void*) _es_la_particion); //esto funca?? saco de la lista la particion (no se si anda haciendo == particion_libre)
 
 	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
 		t_particion* particion_nueva = malloc(sizeof(t_particion));
@@ -767,10 +790,10 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
 		particion_libre->tamanio = tamanio;
 
-		list_add(memoria_cache->particiones_libres, particion_nueva);
+		list_add(particiones_libres, particion_nueva);
 	}
 
-	list_add(memoria_cache->particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
+	list_add(particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
 
 }
 
