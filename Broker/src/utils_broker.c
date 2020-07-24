@@ -755,12 +755,6 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){
 
 	t_particion* particion_libre;
 
-	bool _puede_almacenar(int tamanio){
-		return es_el_mejor(tamanio_a_almacenar, tamanio);
-	}
-
-	particion_libre =  list_fold(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
-
 	if(particion_libre == NULL){
 		//compactar_memoria();
 	}
@@ -768,9 +762,30 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){
 	return particion_libre;
 }
 
-bool es_el_mejor(int tamanio_a_almacenar, int tamanio){
+int best_fit_index(int tamanio_a_almacenar){
 
-	tamanio_a_almacenar == tamanio;
+	int best_fit = -1;
+
+	int cantidad_libres = list_size(particiones_libres) - 1; //para que comience por 0
+
+	t_particion* aux = malloc(sizeof(t_particion));
+	t_particion* mayor = malloc(sizeof(t_particion));
+
+	for(int i = 0; i < cantidad_libres; i++){
+		aux = list_get(particiones_libres, i);
+		if(aux->tamanio >= tamanio_a_almacenar){
+			if(best_fit == -1){
+				best_fit = i;
+				mayor = list_get(particiones_libres, i);
+			}else if(mayor->tamanio > aux->tamanio){
+				best_fit = i;
+			}
+		}
+	}
+
+
+	return best_fit;
+
 }
 
 

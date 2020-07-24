@@ -177,6 +177,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
 void almacenar_dato(void* datos, int tamanio);
 void almacenar_dato_particiones(void* datos, int tamanio);
 t_particion* buscar_particion_ff(int tamanio_a_almacenar);
+int best_fit_index(int tamanio_a_almacenar);
 
 t_buffer_broker* deserializar_broker(void* buffer, int size);
 
