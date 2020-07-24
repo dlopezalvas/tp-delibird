@@ -70,20 +70,20 @@ void iniciarTeam(){
 	}
 	list_iterate(objetivoGlobal, (void*)_agregarEspecie);
 
-	pthread_t conexionBroker;
-	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
-//	pthread_join(conexionBroker, NULL);
-
-	pthread_t recibirAppearedPokemon;
-	pthread_create(&recibirAppearedPokemon, NULL, (void*)appeared_pokemon, NULL);
-
-	pthread_t recibirLocalizedPokemon;
-	pthread_create(&recibirLocalizedPokemon, NULL, (void*)localized_pokemon, NULL);
-
-	pthread_t recibirCaughtPokemon;
-	pthread_create(&recibirCaughtPokemon, NULL, (void*)caught_pokemon, NULL);
-	pthread_join(recibirCaughtPokemon, NULL);
-
+//	pthread_t conexionBroker;
+//	pthread_create(&conexionBroker, NULL, (void*)crearConexiones, NULL);
+////	pthread_join(conexionBroker, NULL);
+//
+//	pthread_t recibirAppearedPokemon;
+//	pthread_create(&recibirAppearedPokemon, NULL, (void*)appeared_pokemon, NULL);
+//
+//	pthread_t recibirLocalizedPokemon;
+//	pthread_create(&recibirLocalizedPokemon, NULL, (void*)localized_pokemon, NULL);
+//
+//	pthread_t recibirCaughtPokemon;
+//	pthread_create(&recibirCaughtPokemon, NULL, (void*)caught_pokemon, NULL);
+//	pthread_join(recibirCaughtPokemon, NULL);
+//
 //	pthread_t conexionGameBoy;
 //	pthread_create(&conexionGameBoy, NULL, (void*)connect_gameboy, NULL);
 //	pthread_join(conexionGameBoy, NULL);
@@ -148,9 +148,15 @@ void configurarEntrenadores(){ //funciona
 	char** posiciones = config_get_array_value(config, "POSICIONES_ENTRENADORES");
 	char** pokemonEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** objetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
-
+	bool hayMasPokemons = true;
 	for(int i=0; posiciones[i];i++){
-		t_entrenador* entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i], i);
+		t_entrenador* entrenador;
+		if(pokemonEntrenadores[i] == NULL) hayMasPokemons =false;
+		if(hayMasPokemons){
+		entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i], i);
+		}else{
+			entrenador = crearEntrenador(posiciones[i], NULL, objetivos[i], i);
+		}
 		list_add(entrenadores, entrenador);
 	}
 
@@ -170,8 +176,18 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	char** coordenadas = string_split(posicion,"|");
 	entrenador->coordx = atoi(coordenadas[0]);
 	entrenador->coordy = atoi(coordenadas[1]);
+	if(pokemonsEntrenador != NULL){
 	char** pokemons = string_split(pokemonsEntrenador,"|");
 	entrenador->pokemons = configurarPokemons(pokemons);
+	entrenador->pokemonsNoNecesarios = list_duplicate(entrenador->pokemons);
+	void _eliminarPokemonsObjetivo(void* pokemon){
+			return eliminarPokemonsObjetivoParticular(pokemon, entrenador->pokemonsNoNecesarios);
+		}
+	list_iterate(entrenador->objetivos, (void*)_eliminarPokemonsObjetivo);
+	}else{
+		entrenador->pokemons = list_create();
+		entrenador->pokemonsNoNecesarios = list_create();
+	}
 	entrenador->pokemonACapturar = NULL;
 	entrenador->intercambio = NULL;
 	entrenador->CiclosCPU = 0;
@@ -179,14 +195,7 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	pthread_mutex_init(&(entrenador->mutex), NULL);
 	pthread_mutex_lock(&(entrenador->mutex));
 
-	entrenador->pokemonsNoNecesarios = list_duplicate(entrenador->pokemons);
-	void _eliminarPokemonsObjetivo(void* pokemon){
-		return eliminarPokemonsObjetivoParticular(pokemon, entrenador->pokemonsNoNecesarios);
-	}
-	list_iterate(entrenador->objetivos, (void*)_eliminarPokemonsObjetivo);
-	if(cumpleObjetivoParticular(entrenador)) {
-		cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
-	}
+
 
 	//	liberar_vector(objetivosEntrenador);
 	//	liberar_vector(coordenadas);
@@ -204,11 +213,12 @@ void eliminarPokemonsObjetivoParticular(char* pokemon, t_list* pokemonsNoNecesar
 
 t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 	t_list* listaPokemons = list_create();
-
 	for(int i=0; pokemons[i];i++){
+		if(pokemons[i]!= NULL){
 		list_add(listaPokemons, (pokemons[i]));
-	}
 
+		}
+	}
 	return listaPokemons;
 }
 
