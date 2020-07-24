@@ -468,6 +468,7 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 			cantidad--;
 			break;
 		case ID_AL_PRINCIPIO:	//empiezo desde el primer argumento, sin tener en cuenta el id (posicion 3)
+			cantidad--;
 			i_linea_split ++;
 			break;
 	}
@@ -476,14 +477,15 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 
 	char** lista_argumentos = malloc(sizeof(char*)*(cantidad+2));
 	int k;
+
 	for(k = 0; k < cantidad; k++){
 		lista_argumentos[k] = linea_split[i_linea_split];
 		i_linea_split++;
-
 	}
 
 	lista_argumentos[k] = id;
 	lista_argumentos[k+1] = correlation_id;
+
 
 	return lista_argumentos;
 }
