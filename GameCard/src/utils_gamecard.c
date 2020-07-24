@@ -553,7 +553,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		tamanio_nuevo = 0;
 
 	}else{
-		tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio) -1 ; //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
+		tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio); //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
 	}
 
 	int cantidad_bloques_actuales = ceil((float)tamanio_nuevo / (float)metadata_fs->block_size);
@@ -621,7 +621,6 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 			pthread_mutex_unlock(&bitarray_mtx);
 
 			string_append_with_format(&aux_borrar,"%s/Blocks/%s.bin", pto_montaje, bloques[k+1]);
-			puts(aux_borrar);
 			remove(aux_borrar);
 			k++;
 			bloques_a_borrar--;
@@ -757,7 +756,7 @@ int cantidad_bloques(char** blocks){
 char* transformar_a_dato(t_list* lista_datos, int tamanio){
 	char* datos = string_new();
 
-	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
+	int cantidad_lineas = list_size(lista_datos); //la ultima linea no tiene \n
 
 	int i;
 
@@ -765,9 +764,9 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio){
 		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
 	}
 
-	if(!list_is_empty(lista_datos)){
-	string_append(&datos, list_get(lista_datos, i)); //ultima linea
-	}
+//	if(!list_is_empty(lista_datos)){
+//	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+//	}
 	datos[tamanio] = '\0';
 
 	return datos;
