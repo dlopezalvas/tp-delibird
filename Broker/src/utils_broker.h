@@ -70,7 +70,14 @@ typedef struct{
 	int frecuencia_compact;
 }t_config_cache;
 
+typedef struct{
+	void* data;
+	t_config_cache* config_cache;
+	t_list* particiones;
+}memoria;
+
 t_config_cache* configuracion_cache;
+memoria* memoria_cache;
 
 //Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
 t_list* NEW_POKEMON_QUEUE;

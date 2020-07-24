@@ -676,20 +676,24 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 //------------MEMORIA------------//
 void iniciar_memoria(t_config* config){
 
-	configuracion_cache->tamanio_memoria = config_get_int_value(config, TAMANO_MEMORIA);
-	configuracion_cache->tamanio_minimo_p = config_get_int_value(config, TAMANO_MINIMO_PARTICION);
+	memoria_cache->config_cache->tamanio_memoria = config_get_int_value(config, TAMANO_MEMORIA);
+	memoria_cache->config_cache->tamanio_minimo_p = config_get_int_value(config, TAMANO_MINIMO_PARTICION);
 
-	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "BS")) configuracion_cache->algoritmo_memoria = BS;
-	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "PARTICIONES")) configuracion_cache->algoritmo_memoria = PARTICIONES;
+	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "BS")) memoria_cache->config_cache->algoritmo_memoria = BS;
+	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_MEMORIA), "PARTICIONES")) memoria_cache->config_cache->algoritmo_memoria = PARTICIONES;
 
-	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "FIFO")) configuracion_cache->algoritmo_reemplazo = FIFO;
-	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "LRU")) configuracion_cache->algoritmo_reemplazo = LRU;
+	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "FIFO")) memoria_cache->config_cache->algoritmo_reemplazo = FIFO;
+	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_REEMPLAZO), "LRU")) memoria_cache->config_cache->algoritmo_reemplazo = LRU;
 
-	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "FF")) configuracion_cache->algoritmo_part_libre = FIRST_FIT;
-	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "BF")) configuracion_cache->algoritmo_part_libre = BEST_FIT;
+	if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "FF")) memoria_cache->config_cache->algoritmo_part_libre = FIRST_FIT;
+	else if(string_equals_ignore_case(config_get_string_value(config, ALGORITMO_PARTICION_LIBRE), "BF")) memoria_cache->config_cache->algoritmo_part_libre = BEST_FIT;
 
-	configuracion_cache->frecuencia_compact = config_get_int_value(config, FRECUENCIA_COMPACTACION);
+	memoria_cache->config_cache->frecuencia_compact = config_get_int_value(config, FRECUENCIA_COMPACTACION);
+
+	memoria_cache->data = malloc(configuracion_cache->tamanio_memoria);
 
 }
+
+
 
 
