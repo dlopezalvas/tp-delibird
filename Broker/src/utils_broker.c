@@ -727,7 +727,8 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 		particion_libre = buscar_particion_ff(tamanio);
 		break;
 	case BEST_FIT:
-		particion_libre = buscar_particion_bf(tamanio);
+		puts("best fit");
+		//particion_libre = buscar_particion_bf(tamanio);
 	}
 
 	asignar_particion(datos, particion_libre, tamanio);
@@ -744,7 +745,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){
 	particion_libre =  list_find(memoria_cache->particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
 	if(particion_libre == NULL){
-		compactar_memoria();
+		//compactar_memoria();
 	}
 
 	return particion_libre;
@@ -758,10 +759,10 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 	bool _es_la_particion(t_particion* particion){
 		return particion == particion_libre;
 	}
-	list_remove_by_condition(memoria_cache->particiones_libres, (void*) _es_la_particion); //esto funca?? saco de la lista la particion (no se si anda haciendo == particion_libre
+	list_remove_by_condition(memoria_cache->particiones_libres, (void*) _es_la_particion); //esto funca?? saco de la lista la particion (no se si anda haciendo == particion_libre)
 
 	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
-		t_particion* particion_nueva;
+		t_particion* particion_nueva = malloc(sizeof(t_particion));
 		particion_nueva->base = particion_libre->base + tamanio;
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
 		particion_libre->tamanio = tamanio;
@@ -775,6 +776,25 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
 //----------TRANSFORMAR MENSAJES EN VOID*????----------//
 
+
+t_buffer_broker* deserializar_broker(void* buffer, int size){ //eso hay que probarlo que onda
+
+	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
+
+	int tamanio_mensaje = size - sizeof(uint32_t) * 2;
+
+	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje)); //??????
+
+	int offset = 0;
+	memcpy(&buffer_broker->id + offset, buffer, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&buffer_broker->correlation_id + offset, buffer, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(buffer_broker->buffer, buffer, tamanio_mensaje);
+
+
+	return buffer_broker;
+}
 
 
 
