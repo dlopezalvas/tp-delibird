@@ -43,13 +43,15 @@ typedef struct{
 	char* magic_number;
 }t_metadata;
 
+typedef struct{
+	char* nombre;
+	pthread_mutex_t mtx;
+}t_pokemon;
+
 t_bitarray* bitarray;
 pthread_mutex_t bitarray_mtx;
 
-t_list* sem_metadatas;
-pthread_mutex_t lista_metadatas_mtx;
-
-t_list* pokemones; //index del pokemon deberia ser el mismo index de su semaforo
+t_list* pokemones;
 pthread_mutex_t pokemones_mtx;
 
 pthread_mutex_t log_mtx;
@@ -82,7 +84,7 @@ void crear_pokemon(t_new_pokemon* pokemon);
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon);
 void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado);
 
-void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon);
+void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_pokemon, char* nombre_pokemon);
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio);
 char** leer_archivo(char** blocks, int tamanio_total);
 
@@ -94,9 +96,8 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio);
 t_list* transformar_a_lista(char** lineas);
 t_config* transformar_a_config(char** lineas);
 
-void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
-void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
-int index_pokemon(char* nombre);
+void guardar_metadata(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
+t_pokemon* semaforo_pokemon(char* nombre);
 bool archivo_abierto(t_config* config_archivo);
 
 void crear_conexiones();
