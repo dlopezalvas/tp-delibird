@@ -188,4 +188,6 @@ void llenarAppearedPokemon(coordenadas_pokemon* coord,t_localized_pokemon* local
 //Reaccion al mensaje localized pokemon
 void localized_pokemon();
 
+bool tieneEspacioYEstaEnExec(t_entrenador* entrenador);
+
 #endif /* UTILSTEAM_H_ */

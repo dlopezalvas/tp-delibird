@@ -95,7 +95,7 @@ void iniciarTeam(){
 	pthread_t hiloEntrenador[entrenadores->elements_count];
 	t_link_element * aux = entrenadores->head;
 		for(int j=0; j<entrenadores->elements_count; j++){
-			pthread_create(&hiloEntrenador[j],NULL, (void*)entrenadorMaster,(void*)(&(aux->data)));
+			pthread_create(&hiloEntrenador[j],NULL, (void*)entrenadorMaster,(void*)((aux->data)));
 			aux = aux->next;
 			//join o detatch del hilo ??
 		}
@@ -317,6 +317,10 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 	return ((entrenador->estado == NEW || entrenador->estado == BLOCK) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
 }
 
+bool tieneEspacioYEstaEnExec(t_entrenador* entrenador){ //funciona
+	return (entrenador->estado == EXEC && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
+}
+
 
 bool mismoPokemon(t_pokemon* pokemon,t_pokemon* pokemon2){
 
@@ -507,9 +511,9 @@ void llenarColaReady(){ // probar
 		bool _estadoNewoBlock(void* entrenador){
 						return estadoNewOBlock(entrenador);
 					}
-		entrenadorAPlanificar = (list_find(entrenadores, _estadoNewoBlock));
+		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
 		pthread_mutex_lock(&requeridos);
-		(entrenadorAPlanificar)->pokemonACapturar = malloc(sizeof(t_pokemon*));
+//		(entrenadorAPlanificar)->pokemonACapturar = malloc(sizeof(t_pokemon));
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
 		puts((entrenadorAPlanificar)->pokemonACapturar->especie);
 		puts(string_itoa((entrenadorAPlanificar)->pokemonACapturar->coordx));
@@ -541,44 +545,47 @@ bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon
 
 void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 
-	t_entrenador** entrenador = entre;
+	t_entrenador* entrenador = entre;
 	t_intercambio* intercambio;
 	int coordx = 0;
 	int coordy = 0;
 
-	while((*entrenador)->estado != EXIT){
-		pthread_mutex_lock(&((*entrenador)->mutex));
-		puts((*entrenador)->pokemons->head->data);
+	while((entrenador)->estado != EXIT){
+		pthread_mutex_lock(&((entrenador)->mutex));
+		puts((entrenador)->pokemons->head->data);
 		puts("ejecuta un entrenador");
-		puts((*entrenador)->pokemonACapturar->especie);
-		intercambio = (*entrenador)->intercambio;
-		if(puedeAtraparPokemon(*entrenador)){
+		puts((entrenador)->pokemonACapturar->especie);
+		intercambio = (entrenador)->intercambio;
+		if(tieneEspacioYEstaEnExec(entrenador)){
 			puts("puede atrapar entreandor");
 			//puts(string_itoa((*entrenador)->pokemonACapturar->coordx));
-				coordx = (*entrenador)->pokemonACapturar->coordx;
-				coordy = (*entrenador)->pokemonACapturar->coordy;
+				coordx = (entrenador)->pokemonACapturar->coordx;
+				coordy = (entrenador)->pokemonACapturar->coordy;
 				puts("despues de coordx");
 		}else{
+			puts("else");
 			puts("antes de coordx");
 				coordx = (intercambio->entrenador->coordx);
 				coordy = (intercambio->entrenador->coordy);
 				puts("despues de coordx");
 		}
-		pthread_mutex_unlock(&((*entrenador)->mutex));
-		while((coordx != (*entrenador)->coordx	&& coordy != (*entrenador)->coordy)){
-			pthread_mutex_lock(&((*entrenador)->mutex));
-			moverEntrenador(entrenador, coordx, coordy);
+		pthread_mutex_unlock(&(entrenador->mutex));
+		while((coordx != entrenador->coordx	|| coordy != entrenador->coordy)){
+			puts("en el while");
+			pthread_mutex_lock(&(entrenador->mutex));
+			puts("antes de moverse");
+			moverEntrenador(&entrenador, coordx, coordy);
 			pthread_mutex_unlock(&mutex_ejecutar);
 					}
-		if(puedeAtraparPokemon(*entrenador)){
-			pthread_mutex_lock(&((*entrenador)->mutex));
-			cambiarEstado(entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
-			catch_pokemon(config_get_string_value(config, "IP_BROKER"), config_get_string_value(config, "PUERTO_BROKER"), entrenador);
+		if(puedeAtraparPokemon(entrenador)){
+			pthread_mutex_lock(&((entrenador)->mutex));
+			cambiarEstado(&entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
+			catch_pokemon(config_get_string_value(config, "IP_BROKER"), config_get_string_value(config, "PUERTO_BROKER"), &entrenador);
 			pthread_mutex_unlock(&mutex_ejecutar);
 		}else {
-			intercambiarPokemon(entrenador);
+			intercambiarPokemon(&entrenador);
 			}
-	if(cumpleObjetivoParticular((*entrenador))) cambiarEstado(entrenador, EXIT, "cumplio su objetivo particular");
+	if(cumpleObjetivoParticular((entrenador))) cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
 	}
 	pthread_exit(NULL);
 	return 0;
