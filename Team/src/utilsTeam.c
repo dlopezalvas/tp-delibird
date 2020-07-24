@@ -11,7 +11,7 @@ t_queue* colaLocalizedPokemon;
 t_queue* colaCaughtPokemon;
 
 pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar, mutex_cola_appeared_pokemon, mutex_cola_caught_pokemon, mutex_cola_localized_pokemon,
-log_mutex, sem_ready;
+log_mutex, sem_ready, mutex_entrenadores;
 sem_t conexiones, sem_deteccionDeadlock,  sem_ejecutar, semAppeared, semCaught, semLocalized;
 
 t_config* config;
@@ -33,6 +33,7 @@ void iniciarTeam(){
 	pthread_mutex_init(&mutex_cola_caught_pokemon, NULL);
 	pthread_mutex_init(&mutex_cola_localized_pokemon, NULL);
 	pthread_mutex_init(&log_mutex, NULL);
+	pthread_mutex_init(&mutex_entrenadores, NULL);
 	sem_init(&conexiones, 0,0);
 //	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
@@ -65,6 +66,7 @@ void iniciarTeam(){
 
 	configurarEntrenadores(config);
 	configurarObjetivoGlobal();
+	printf("Objetivo global: %d", objetivoGlobal->elements_count);
 
 	void _agregarEspecie(void* pokemon){
 		return agregarEspecie(pokemon, especiesNecesarias);
@@ -499,7 +501,6 @@ void llenarColaReady(){ // probar
 		bool _noEstaPlanificado(void* pokemon){
 			return noEstaPlanificado(pokemon);
 		}
-		puts("antes de semaforo ready");
 		pthread_mutex_lock(&sem_ready);
 		puts("entra a llena cola ready");
 		pthread_mutex_lock(&requeridos);
@@ -509,10 +510,10 @@ void llenarColaReady(){ // probar
 				return menorDistancia(elem1, elem2, pokemon);
 			}
 		list_sort(entrenadores, _menorDistancia);
-		bool _estadoNewoBlock(void* entrenador){
-						return estadoNewOBlock(entrenador);
+		bool _puedeSerPlanificado(void* entrenador){
+						return puedeSerPlanificado(entrenador);
 					}
-		entrenadorAPlanificar = list_find(entrenadores, _estadoNewoBlock);
+		entrenadorAPlanificar = list_find(entrenadores, _puedeSerPlanificado);
 		pthread_mutex_lock(&requeridos);
 //		(entrenadorAPlanificar)->pokemonACapturar = malloc(sizeof(t_pokemon));
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
@@ -530,6 +531,10 @@ void llenarColaReady(){ // probar
 		puts("agrega a cola ready");
 	}
 	return;
+}
+
+bool puedeSerPlanificado(t_entrenador* entrenador){
+	return estadoNewOBlock(entrenador) && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos));
 }
 
 bool noEstaPlanificado(t_pokemon* pokemon){
@@ -628,9 +633,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 	switch (cod_op) {
 	case APPEARED_POKEMON:
 		appeared = deserializar_position_and_name(buffer);
-		puts(appeared->nombre.nombre);
-		puts(string_itoa(appeared->id));
+		puts("llega appeared_pokemon");
 		if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
+			puts("no ignora el appeared_pokemon");
 			pthread_mutex_lock(&log_mutex);
 			log_info(logger, "Mensaje %d Appeared_pokemon %s %d %d", appeared->id, appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
 			pthread_mutex_unlock(&log_mutex);
@@ -647,7 +652,7 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			pthread_mutex_lock(&log_mutex);
 			log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->correlation_id);
 			pthread_mutex_unlock(&log_mutex);
-			//caught_pokemon(); //usar capturo_pokemon
+			//caught_pokemon();
 			pthread_mutex_lock(&mutex_cola_caught_pokemon);
 			queue_push(colaCaughtPokemon,caught);
 			pthread_mutex_unlock(&mutex_cola_caught_pokemon);
@@ -985,7 +990,6 @@ void connect_localized_pokemon(){
 void connect_caught_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-
 	char* linea_split[1] = {"CAUGHT_POKEMON"};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
@@ -1092,7 +1096,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	bool _mismoID(void* entre){
 		mismoID(entre, (*entrenador)->ID);
 	}
-	list_remove_by_condition(ready, _mismoID);
+	list_remove_by_condition(ready, _mismoID); //saca al entrenador de la lista de ready
 
 
 	int socket_broker = socket(AF_INET, SOCK_STREAM, 0);
@@ -1166,10 +1170,9 @@ bool tieneInventarioLlenoOEstaEnExit(t_entrenador* entrenador){
 	return (puedeEstarEnDeadlock(entrenador) || entrenador->estado == EXIT);
 	}
 void appeared_pokemon(){
-
 	while(!(cumpleObjetivoGlobal())){
-		puts("entra appeared_pokemon");
 		sem_wait(&semAppeared);
+		puts("entra appeared_pokemon");
 		pthread_mutex_lock(&mutex_cola_appeared_pokemon);
 		t_position_and_name* appeared = queue_pop(colaAppearedPokemon);
 		pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
@@ -1205,7 +1208,8 @@ void appeared_pokemon(){
 			if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
 		}
 
-		printf("%d", pokemonsRequeridos->elements_count);
+		printf("pokemons requeridos: %d", pokemonsRequeridos->elements_count);
+		puts("-------------------------------------------------------------------------");
 	}
 }
 
@@ -1250,6 +1254,7 @@ void caught_pokemon(){
 		caught = queue_pop(colaCaughtPokemon);
 		pthread_mutex_unlock(&mutex_cola_caught_pokemon);
 		entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
+		entrenador->ID = 0;
 		if(caught->caught){
 //			entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
 //			capturoPokemon(&entrenador);
@@ -1259,11 +1264,12 @@ void caught_pokemon(){
 //			noCapturoPokemon(&entrenador);
 			entrenador->respuesta_catch =false;
 		}
+//		printf("pokemons requeridos: %d",pokemonsRequeridos->elements_count);
 		pthread_mutex_unlock(&(entrenador->mutex));
 	}
 }
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
-
+	puts("capturo pokemon");
 	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))
 		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
 
@@ -1288,16 +1294,16 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 	pthread_mutex_lock(&requeridos);
 	list_remove_by_condition(pokemonsRequeridos, (void*)_mismoPokemon);
 	pthread_mutex_unlock(&requeridos);
-	pthread_mutex_lock(&objetivo);
-	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
-	pthread_mutex_unlock(&objetivo);
+//	pthread_mutex_lock(&objetivo);
+//	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
+//	pthread_mutex_unlock(&objetivo);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
 
 }
 
 void noCapturoPokemon(t_entrenador** entrenador){//Probar
-
+	puts("no capturo pokemon");
 	bool _mismoPokemon(t_pokemon* pokemon ){
 				return mismoPokemon(pokemon,(*entrenador)->pokemonACapturar);
 				}
