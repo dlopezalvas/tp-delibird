@@ -191,4 +191,6 @@ void localized_pokemon();
 
 bool tieneEspacioYEstaEnExec(t_entrenador* entrenador);
 
+bool puedeSerPlanificado(t_entrenador* entrenador);
+
 #endif /* UTILSTEAM_H_ */
