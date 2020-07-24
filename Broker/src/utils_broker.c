@@ -692,8 +692,64 @@ void iniciar_memoria(t_config* config){
 
 	memoria_cache->data = malloc(configuracion_cache->tamanio_memoria);
 
+	memoria_cache->particiones_libres = list_create();
+	t_particion* aux;
+
+	aux->base = memoria_cache->data;
+
+	aux->tamanio = memoria_cache->config_cache->tamanio_memoria;
+
+	list_add(memoria_cache->particiones_libres, aux);
+
+	memoria_cache->particiones_ocupadas = list_create();
+
+	//claramente faltan semaforos
+
 }
 
+void almacenar_dato(void* datos, int tamanio){
+	switch(memoria_cache->config_cache->algoritmo_memoria){
+	case BS:
+		almacenar_dato_bs(datos, tamanio);
+		break;
+	case PARTICIONES:
+		almacenar_dato_particiones(datos, tamanio);
+		break;
+	}
+}
+
+void almacenar_dato_particiones(void* datos, int tamanio){
+
+	t_particion* particion_libre;
+
+	switch(memoria_cache->config_cache->algoritmo_part_libre){
+	case FIRST_FIT:
+		particion_libre = buscar_particion_ff(tamanio);
+		break;
+	case BEST_FIT:
+		particion_libre = buscar_particion_bf(tamanio);
+	}
+
+	asignar_particion(datos); //necesita tamanio aca?
+
+}
+
+t_particion* buscar_particion_ff(int tamanio_a_almacenar){
+
+	t_particion* particion_libre;
+
+	bool _puede_almacenar(int tamanio){
+		return tamanio>= tamanio_a_almacenar;
+	}
+
+	particion_libre =  list_find(memoria_cache->particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
+
+	if(particion_libre == NULL){
+		return nueva_victima(tamanio_a_almacenar);
+	}
+
+	return particion_libre;
+}
 
 
 

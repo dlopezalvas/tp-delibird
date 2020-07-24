@@ -17,11 +17,18 @@
 #define BROKER_CONFIG "Broker.config"
 
 
-
+void dump_cache (int n){
+	switch(n){
+	case SIGUSR1: puts("acá hay que poner lo de la dump de cache");
+	break;
+	}
+}
 
 t_list* multihilos;
 
 int main(void) {
+//	signal(SIGUSR1, dump_cache);
+
 	t_config* config = leer_config(PATH);
 
 

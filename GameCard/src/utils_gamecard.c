@@ -340,7 +340,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	char* datos = string_new();
 	string_append_with_format(&datos, "%d-%d=%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y, pokemon->cantidad);
 
-	int tamanio = strlen(datos);
+	int tamanio = strlen(datos) + 1;
 
 	int cantidad_bloques = ceil((float) tamanio / (float) metadata_fs->block_size);
 
@@ -351,8 +351,6 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	FILE* actualizar_metadata = fopen(path_pokemon, "r+");
 
 	fprintf(actualizar_metadata, "BLOCKS=[");
-
-
 
 	int j;
 
@@ -555,7 +553,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		tamanio_nuevo = 0;
 
 	}else{
-		tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio) - 1; //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
+		tamanio_nuevo = list_fold(lista_datos, 0, (void*) calcular_tamanio); //el -1 porque el ultimo elemento (ultima linea del archivo) no tiene \n
 	}
 
 	int cantidad_bloques_actuales = ceil((float)tamanio_nuevo / (float)metadata_fs->block_size);
@@ -618,11 +616,11 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 
 		while(bloques_a_borrar!=0){
 			pthread_mutex_lock(&bitarray_mtx);
-			bitarray_clean_bit(bitarray,atoi(bloques[k]));
+			bitarray_clean_bit(bitarray,atoi(bloques[k+1]));
 			msync(bitarray, sizeof(bitarray), MS_SYNC);
 			pthread_mutex_unlock(&bitarray_mtx);
 
-			string_append_with_format(&aux_borrar,"%s/Blocks/%s.bin", pto_montaje, bloques[k]);
+			string_append_with_format(&aux_borrar,"%s/Blocks/%s.bin", pto_montaje, bloques[k+1]);
 			remove(aux_borrar);
 			k++;
 			bloques_a_borrar--;
@@ -758,7 +756,7 @@ int cantidad_bloques(char** blocks){
 char* transformar_a_dato(t_list* lista_datos, int tamanio){
 	char* datos = string_new();
 
-	int cantidad_lineas = list_size(lista_datos) - 1; //la ultima linea no tiene \n
+	int cantidad_lineas = list_size(lista_datos); //la ultima linea no tiene \n
 
 	int i;
 
@@ -766,9 +764,9 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio){
 		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
 	}
 
-	if(!list_is_empty(lista_datos)){
-	string_append(&datos, list_get(lista_datos, i)); //ultima linea
-	}
+//	if(!list_is_empty(lista_datos)){
+//	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+//	}
 	datos[tamanio] = '\0';
 
 	return datos;
@@ -816,14 +814,14 @@ void abrir_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_po
 
 void cerrar_archivo(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon){
 
-	int index_sem_metadata = index_pokemon(nombre_pokemon);
+//	int index_sem_metadata = index_pokemon(nombre_pokemon);
+//
+//	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
 
-	pthread_mutex_t* semaforo_pokemon = list_get(sem_metadatas, index_sem_metadata);
-
-	pthread_mutex_lock(semaforo_pokemon);
+//	pthread_mutex_lock(semaforo_pokemon);
 	config_set_value(config_archivo, OPEN, NO);
 	config_save_in_file(config_archivo, path_pokemon);
-	pthread_mutex_unlock(semaforo_pokemon);
+//	pthread_mutex_unlock(semaforo_pokemon);
 
 }
 
