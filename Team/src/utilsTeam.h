@@ -121,6 +121,7 @@ void intercambiarPokemon(t_entrenador** entrenador);
 //void atraparPokemon(t_entrenador* entrenador);
 //planifica a los entrenadores con FIFO
 void planificarFIFO();
+void planificar();
 //Devuelve true si el primer entrenador esta mas cerca del pokemon que el segundo
 bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon);
 //Planifica al entrenador mas cercano al pokemon y lo agrega a la cola ready
