@@ -422,7 +422,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
 
 		if(config_has_property(config_datos, posicion)){
-			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + 1); //a la cantidad que ya hay, le sumo el nuevo pokemon
+			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + pokemon->cantidad); //a la cantidad que ya hay, le sumo el nuevo pokemon
 
 			int i = 0;
 
@@ -435,7 +435,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 			list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
 
 		}else{
-			string_append(&posicion, "=1"); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
+			string_append_with_format(&posicion, "=%d",pokemon->cantidad); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
 			list_add(lista_datos, posicion);
 		}
 

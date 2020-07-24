@@ -381,12 +381,12 @@ void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
 
 	enviar_mensaje(mensaje, socket_gamecard);
 
-	uint32_t id;
-	int _recv;
-	_recv = recv(socket_gamecard, &id, sizeof(uint32_t), 0);
-	if(_recv == 0 || _recv == -1){
-		log_info(logger,"DEBUG: recibio el ack %d",id);
-	}
+//	uint32_t id;
+//	int _recv;
+//	_recv = recv(socket_gamecard, &id, sizeof(uint32_t), 0);
+//	if(_recv == 0 || _recv == -1){
+//		log_info(logger,"DEBUG: recibio el ack %d",id);
+//	}
 	liberar_conexion(socket_gamecard);
 
 	free(mensaje -> parametros);
