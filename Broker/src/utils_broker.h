@@ -202,7 +202,7 @@ t_list* memoria_buddy;
 uint32_t buddy_id;
 
 void almacenar_datos_buddy(void* datos, int tamanio);
-void eleccion_victima_fifo_buddy();
+void eleccion_victima_fifo_buddy(int tamanio);
 void eleccion_victima_lru_buddy();
 void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio);
 void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio);
@@ -211,7 +211,8 @@ bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo);
 t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy);
 bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
 bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
-void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
+t_particion_buddy* consolidar_buddy(t_list* lista_fifo_buddy);
+void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old,t_particion_buddy* buddy_elegido);
 //
 
 
