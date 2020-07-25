@@ -809,7 +809,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
-			//particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
 			contador++;
 		}else{
 			compactar();
@@ -856,6 +856,14 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 
 }
 
+t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
+	switch(configuracion_cache->algoritmo_reemplazo){
+	case LRU:
+		return elegir_victima_particiones_LRU(tamanio_a_almacenar);
+	//case fifo
+	}
+}
+
 t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	t_particion* particion;
@@ -866,7 +874,13 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	list_sort(particiones_ocupadas, (void*)_orden);
 
-	return particiones_ocupadas->head->data;
+	bool _puede_guardar(t_particion* particion){
+		return particion->tamanio >= tamanio_a_almacenar;
+	}
+
+	particion = list_find(particiones_ocupadas, (void*)_puede_guardar);
+
+	return particion;
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
