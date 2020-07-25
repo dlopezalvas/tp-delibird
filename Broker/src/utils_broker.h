@@ -58,6 +58,13 @@ typedef struct{
 	uint32_t tamanio;
 }t_particion;
 
+typedef struct{
+	uint32_t base;
+	uint32_t tamanio;
+	uint32_t id;
+	bool ocupado;
+}t_particion_buddy;
+
 typedef enum{
 	BS = 1,
 	PARTICIONES = 2,
@@ -86,6 +93,8 @@ void* memoria_cache;
 
 t_list* particiones_libres;
 t_list* particiones_ocupadas;
+t_list* memoria_buddy;
+uint32_t buddy_id;
 
 t_config_cache* configuracion_cache;
 
@@ -170,6 +179,10 @@ void ejecutar_catch_pokemon_suscripcion(int suscriptor);
 void ejecutar_caught_pokemon_suscripcion(int suscriptor);
 void ejecutar_get_pokemon_suscripcion(int suscriptor);
 void ejecutar_localized_pokemon_suscripcion(int suscriptor);
+void almacenar_datos_buddy(void* datos, int tamanio);
+void eleccion_victima_fifo_buddy();
+void eleccion_victima_lru_buddy();
+void eleccion_particion_buddy(t_particion_buddy bloque_buddy,void* datos,int tamanio);
 
 
 void iniciar_memoria(t_config* config);

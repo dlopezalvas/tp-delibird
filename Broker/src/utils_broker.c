@@ -693,6 +693,19 @@ void iniciar_memoria(t_config* config){
 	memoria_cache = malloc(configuracion_cache->tamanio_memoria);
 
 	particiones_libres = list_create();
+	buddy_id = 0;
+
+	buddy_id++;
+	t_particion_buddy* bloque_buddy = malloc(sizeof(t_particion_buddy));
+
+	bloque_buddy->base = memoria_cache;
+	bloque_buddy->ocupado = false;
+	bloque_buddy->tamanio = configuracion_cache->tamanio_memoria;
+	bloque_buddy->id = buddy_id;
+
+	memoria_buddy = list_create();
+	list_add(memoria_buddy,bloque_buddy);
+
 	t_particion* aux;
 
 	aux->base = memoria_cache;
@@ -702,7 +715,6 @@ void iniciar_memoria(t_config* config){
 	list_add(particiones_libres, aux);
 
 	particiones_ocupadas = list_create();
-
 	//claramente faltan semaforos
 
 }
@@ -710,7 +722,7 @@ void iniciar_memoria(t_config* config){
 void almacenar_dato(void* datos, int tamanio){
 	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
-	//	almacenar_dato_bs(datos, tamanio);
+		almacenar_datos_buddy(datos, tamanio);
 		break;
 	case PARTICIONES:
 		almacenar_dato_particiones(datos, tamanio);
@@ -818,6 +830,61 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
 }
 
+void almacenar_datos_buddy(void* datos, uint32_t tamanio){
+
+//	t_particion_buddy* bloque_buddy = malloc(sizeof(t_particion_buddy));
+
+//	buddy_id++;
+//	bloque_buddy->base = memoria_cache;
+//	bloque_buddy->ocupado = false;
+//	bloque_buddy->tamanio = tamanio;
+//	bloque_buddy->id = buddy_id;
+
+
+	void _eleccion_particion_buddy(t_particion_buddy bloque_buddy){
+		return eleccion_particion_buddy(bloque_buddy,datos,tamanio);
+	}
+
+	list_iterate(memoria_buddy, (void*)_eleccion_particion_buddy);
+
+	//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
+	//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
+	//O hasta llegar a que no entre.
+	//Si no entra, lo guardo en la ultima particion que entraba.
+
+	//if(no encuentra ninguna particion disponible)
+	switch(configuracion_cache->algoritmo_reemplazo){
+		case FIFO:
+			eleccion_victima_fifo_buddy();
+			break;
+		case LRU:
+			eleccion_victima_lru_buddy();
+			break;
+		}
+	//
+}
+
+void eleccion_particion_buddy(t_particion_buddy bloque_buddy,void* datos,int tamanio){
+
+	bool condition_buddy = bloque_buddy.tamanio > tamanio
+			&& !bloque_buddy.ocupado
+			&& bloque_buddy.tamanio > configuracion_cache->tamanio_minimo_p;
+
+	if(condition_buddy){
+
+//		generar_particion_buddy(bloque_buddy);
+		t_particion_buddy bloque_buddy2 = malloc(size_of(bloque_buddy));
+		t_particion_buddy bloque_buddy2 = bloque_buddy;
+	}
+}
+
+void eleccion_victima_fifo_buddy(){
+
+}
+
+void eleccion_victima_lru_buddy(){
+
+}
 //----------TRANSFORMAR MENSAJES EN VOID*????----------//
 
 
