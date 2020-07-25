@@ -51,19 +51,15 @@ typedef struct{
 	uint32_t id;
 	uint32_t correlation_id;
 	void* buffer;
+	int compactacion_intentos_fallidos;
 }t_buffer_broker;
 
 typedef struct{
 	uint32_t base;
 	uint32_t tamanio;
+	uint32_t id_mensaje;
+	uint32_t ultimo_acceso;
 }t_particion;
-
-typedef struct{
-	uint32_t base;
-	int tamanio;
-	uint32_t id;
-	bool ocupado;
-}t_particion_buddy;
 
 typedef enum{
 	BS = 1,
@@ -93,8 +89,6 @@ void* memoria_cache;
 
 t_list* particiones_libres;
 t_list* particiones_ocupadas;
-t_list* memoria_buddy;
-uint32_t buddy_id;
 
 t_config_cache* configuracion_cache;
 
@@ -179,7 +173,33 @@ void ejecutar_catch_pokemon_suscripcion(int suscriptor);
 void ejecutar_caught_pokemon_suscripcion(int suscriptor);
 void ejecutar_get_pokemon_suscripcion(int suscriptor);
 void ejecutar_localized_pokemon_suscripcion(int suscriptor);
+
+void ordenar_particiones_libres();
+void iniciar_memoria(t_config* config);
+void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
+void almacenar_dato(void* datos, int tamanio);
+void almacenar_dato_particiones(void* datos, int tamanio);
+t_particion* buscar_particion_ff(int tamanio_a_almacenar);
+t_particion* buscar_particion_bf(int tamanio_a_almacenar);
+t_particion* particion_libre_bf(int tamanio_a_almacenar);
+t_particion* particion_libre_ff(int tamanio_a_almacenar);
+
+t_particion* elegir_victima_particiones(int tamanio_a_almacenar);
+t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+
+
+t_buffer_broker* deserializar_broker(void* buffer, int size);
+
 //buddy
+typedef struct{
+	uint32_t base;
+	int tamanio;
+	uint32_t id;
+	bool ocupado;
+}t_particion_buddy;
+t_list* memoria_buddy;
+uint32_t buddy_id;
+
 void almacenar_datos_buddy(void* datos, int tamanio);
 void eleccion_victima_fifo_buddy();
 void eleccion_victima_lru_buddy();
@@ -192,13 +212,6 @@ bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
 bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
 void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
 //
-void iniciar_memoria(t_config* config);
-void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
-void almacenar_dato(void* datos, int tamanio);
-void almacenar_dato_particiones(void* datos, int tamanio);
-t_particion* buscar_particion_ff(int tamanio_a_almacenar);
-int best_fit_index(int tamanio_a_almacenar);
 
-t_buffer_broker* deserializar_broker(void* buffer, int size);
 
 #endif /* UTILS_BROKER_H_ */

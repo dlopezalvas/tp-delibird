@@ -693,6 +693,16 @@ void iniciar_memoria(t_config* config){
 	memoria_cache = malloc(configuracion_cache->tamanio_memoria);
 
 	particiones_libres = list_create();
+	t_particion* aux;
+
+	aux->base = memoria_cache;
+
+	aux->tamanio = configuracion_cache->tamanio_memoria;
+
+	list_add(particiones_libres, aux);
+
+	particiones_ocupadas = list_create();
+
 	buddy_id = 0;
 
 	buddy_id++;
@@ -706,15 +716,6 @@ void iniciar_memoria(t_config* config){
 	memoria_buddy = list_create();
 	list_add(memoria_buddy,bloque_buddy);
 
-	t_particion* aux;
-
-	aux->base = memoria_cache;
-
-	aux->tamanio = configuracion_cache->tamanio_memoria;
-
-	list_add(particiones_libres, aux);
-
-	particiones_ocupadas = list_create();
 	//claramente faltan semaforos
 
 }
@@ -722,7 +723,7 @@ void iniciar_memoria(t_config* config){
 void almacenar_dato(void* datos, int tamanio){
 	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
-		almacenar_datos_buddy(datos, tamanio);
+	//	almacenar_dato_bs(datos, tamanio);
 		break;
 	case PARTICIONES:
 		almacenar_dato_particiones(datos, tamanio);
@@ -736,49 +737,104 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 
 	switch(configuracion_cache->algoritmo_part_libre){
 	case FIRST_FIT:
-		particion_libre = buscar_particion_ff(tamanio);
+		particion_libre = particion_libre_ff(tamanio);
 		break;
 	case BEST_FIT:
-		puts("best fit");
-		//particion_libre = buscar_particion_bf(tamanio);
+		particion_libre = particion_libre_bf(tamanio);
 	}
 
 	asignar_particion(datos, particion_libre, tamanio);
 }
 
-t_particion* buscar_particion_ff(int tamanio_a_almacenar){
+void ordenar_particiones_libres(){ //no se si anda esto
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+		return particion1->base < particion2->base;
+	}
+
+	list_sort(particiones_libres, (void*)_orden);
+}
+
+void compactar(){
+	int offset = 0;
+
+	ordenar_particiones_libres(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
+
+	int cantidad_particiones = list_size(particiones_ocupadas) - 1;
+
+	t_particion* aux;
+
+	for(int i = 0; i < cantidad_particiones; i++){
+		aux = list_get(particiones_ocupadas, i);
+		memcpy(memoria_cache + offset, memoria_cache + aux->base, aux->tamanio);
+		aux->base = offset;
+		offset+= aux->tamanio;
+	}
+
+	list_clean(particiones_libres);
+
+	t_particion* particion_unica = malloc(sizeof(t_particion));
+	particion_unica->base = offset;
+	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
+	list_add(particiones_libres, particion_unica);
+
+}
+
+t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	t_particion* particion_libre;
 
-	bool _puede_almacenar(int tamanio){
-		return tamanio>= tamanio_a_almacenar;
+	bool _puede_almacenar(t_particion* particion){
+		return particion->tamanio>= tamanio_a_almacenar;
 	}
+
+	ordenar_particiones_libres();
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
-	if(particion_libre == NULL){
-		//compactar_memoria();
+	return particion_libre;
+}
+
+t_particion* particion_libre_ff(int tamanio_a_almacenar){
+	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
+
+	int contador = 1;
+
+	while(particion_libre == NULL){
+		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
+			//particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			contador++;
+		}else{
+			compactar();
+			particion_libre = buscar_particion_ff(tamanio_a_almacenar);
+			contador = 0;
+		}
 	}
 
 	return particion_libre;
 }
 
-t_particion* buscar_particion_bf(int tamanio_a_almacenar){
+t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
-	t_particion* particion_libre = malloc(sizeof(t_particion));
+	t_particion* particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 
-	int best_fit = best_fit_index(tamanio_a_almacenar);
+	int contador = 1;
 
-	if(best_fit == -1){
-		//compactar creo?
+	while(particion_libre == NULL){
+		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
+			particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			contador++;
+		}else{
+			compactar();
+			particion_libre = buscar_particion_bf(tamanio_a_almacenar);
+			contador = 0;
+		}
 	}
-
-	particion_libre = list_get(particiones_libres, best_fit);
 
 	return particion_libre;
 }
 
-int best_fit_index(int tamanio_a_almacenar){
+t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold creo
 
 	int best_fit = -1;
 
@@ -801,12 +857,44 @@ int best_fit_index(int tamanio_a_almacenar){
 
 	free(aux);
 	free(mayor);
+	t_particion* best = malloc(sizeof(t_particion));
 
-	return best_fit;
+	if(best_fit == -1){
+		best = NULL;
+	}else{
+		best = list_get(particiones_libres, best_fit);
+	}
+
+	return best;
 
 }
 
+t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
+	switch(configuracion_cache->algoritmo_reemplazo){
+	case LRU:
+		return elegir_victima_particiones_LRU(tamanio_a_almacenar);
+	//case fifo
+	}
+}
 
+t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
+
+	t_particion* particion;
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+		return particion1->ultimo_acceso > particion2->ultimo_acceso;
+	}
+
+	list_sort(particiones_ocupadas, (void*)_orden);
+
+	bool _puede_guardar(t_particion* particion){
+		return particion->tamanio >= tamanio_a_almacenar;
+	}
+
+	particion = list_find(particiones_ocupadas, (void*)_puede_guardar);
+
+	return particion;
+}
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
@@ -826,9 +914,36 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 		list_add(particiones_libres, particion_nueva);
 	}
 
+	particion_libre->ultimo_acceso = time(NULL);
 	list_add(particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
 
 }
+
+//----------TRANSFORMAR MENSAJES EN VOID*????----------//
+
+
+t_buffer_broker* deserializar_broker(void* buffer, int size){ //eso hay que probarlo que onda
+
+	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
+
+	int tamanio_mensaje = size - sizeof(uint32_t) * 2;
+
+	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje)); //??????
+
+	int offset = 0;
+	memcpy(&buffer_broker->id + offset, buffer, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&buffer_broker->correlation_id + offset, buffer, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(buffer_broker->buffer, buffer, tamanio_mensaje);
+
+
+	return buffer_broker;
+}
+
+
+// Buddy
+
 
 void almacenar_datos_buddy(void* datos, int tamanio){
 
@@ -1020,29 +1135,7 @@ bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* 
 void eleccion_victima_lru_buddy(){
 
 }
-//----------TRANSFORMAR MENSAJES EN VOID*????----------//
 
-
-t_buffer_broker* deserializar_broker(void* buffer, int size){ //eso hay que probarlo que onda
-
-	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
-
-	int tamanio_mensaje = size - sizeof(uint32_t) * 2;
-
-	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje)); //??????
-
-	int offset = 0;
-	memcpy(&buffer_broker->id + offset, buffer, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(&buffer_broker->correlation_id + offset, buffer, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(buffer_broker->buffer, buffer, tamanio_mensaje);
-
-
-	return buffer_broker;
-}
-
-
-
+//
 
 
