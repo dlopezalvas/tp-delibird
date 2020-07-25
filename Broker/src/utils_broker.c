@@ -734,9 +734,28 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 }
 
 void compactar(){
-	int offset = memoria_cache;
+	int offset = 0;
 
-	int cantidad_ocupadas = list_size(particiones_ocupadas) - 1;
+	ordenar_particiones_libres(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
+
+	int cantidad_particiones = list_size(particiones_ocupadas) - 1;
+
+	t_particion* aux;
+
+	for(int i = 0; i < cantidad_particiones; i++){
+		aux = list_get(particiones_ocupadas, i);
+		memcpy(memoria_cache + offset, memoria_cache + aux->base, aux->tamanio);
+		aux->base = offset;
+		offset+= aux->tamanio;
+	}
+
+	list_clean(particiones_libres);
+
+	t_particion* particion_unica = malloc(sizeof(t_particion));
+	particion_unica->base = offset;
+	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
+	list_add(particiones_libres, particion_unica);
+
 
 }
 
@@ -748,7 +767,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 		return particion->tamanio>= tamanio_a_almacenar;
 	}
 
-//	ordenar_particiones_libres();
+	ordenar_particionar_libres();
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 

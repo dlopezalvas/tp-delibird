@@ -181,6 +181,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar);
 t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 int best_fit_index(int tamanio_a_almacenar);
 t_particion* particion_libre_ff(int tamanio_a_almacenar);
+void ordenar_particionar_libres();
 
 t_buffer_broker* deserializar_broker(void* buffer, int size);
 
