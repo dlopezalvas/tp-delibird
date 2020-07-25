@@ -830,7 +830,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
 }
 
-void almacenar_datos_buddy(void* datos, uint32_t tamanio){
+void almacenar_datos_buddy(void* datos, int tamanio){
 
 //	t_particion_buddy* bloque_buddy = malloc(sizeof(t_particion_buddy));
 
@@ -841,12 +841,17 @@ void almacenar_datos_buddy(void* datos, uint32_t tamanio){
 //	bloque_buddy->id = buddy_id;
 
 
-	void _eleccion_particion_buddy(t_particion_buddy bloque_buddy){
+	void _eleccion_particion_buddy(t_particion_buddy* bloque_buddy){
 		return eleccion_particion_buddy(bloque_buddy,datos,tamanio);
 	}
 
 	list_iterate(memoria_buddy, (void*)_eleccion_particion_buddy);
+	//TODO: Como devolver el bloque bloque_buddy_particion y como cortar la iteracion cuando se eligio un bloque
+	//Simulo que me devolvio un bloque
+	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
+	//
 
+//	asignar_particion(bloque_buddy_particion,datos,tamanio);
 	//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
 	//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
 	//O hasta llegar a que no entre.
@@ -864,18 +869,64 @@ void almacenar_datos_buddy(void* datos, uint32_t tamanio){
 	//
 }
 
-void eleccion_particion_buddy(t_particion_buddy bloque_buddy,void* datos,int tamanio){
+void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,void* datos,int tamanio){
 
-	bool condition_buddy = bloque_buddy.tamanio > tamanio
-			&& !bloque_buddy.ocupado
-			&& bloque_buddy.tamanio > configuracion_cache->tamanio_minimo_p;
+//	bool condicion_buddy = malloc(sizeof(bool));
+	bool condicion_buddy_particion = validar_condicion_buddy(bloque_buddy,tamanio);
+	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
 
-	if(condition_buddy){
+	//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
+	//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
+	//O hasta llegar a que no entre.
+	//Si no entra, lo guardo en la ultima particion que entraba.
 
-//		generar_particion_buddy(bloque_buddy);
-		t_particion_buddy bloque_buddy2 = malloc(size_of(bloque_buddy));
-		t_particion_buddy bloque_buddy2 = bloque_buddy;
+	while(condicion_buddy_particion){
+		bloque_buddy_particion = generar_particion_buddy(bloque_buddy);
+		condicion_buddy_particion = validar_condicion_buddy(bloque_buddy_particion,tamanio);
 	}
+
+	if(bloque_buddy_particion != NULL && !bloque_buddy->ocupado && bloque_buddy->tamanio > tamanio) //TODO: ver como preguntar si existe
+		bloque_buddy_particion = bloque_buddy;
+
+//	asignar_particion(bloque_buddy_particion,datos,tamanio);
+}
+
+bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio){
+	int bloque_tamanio_siguiente = bloque_buddy->tamanio / 2;
+	return bloque_tamanio_siguiente > tamanio
+			&& !bloque_buddy->ocupado
+			&& bloque_tamanio_siguiente > configuracion_cache->tamanio_minimo_p;
+}
+
+t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy){
+	uint32_t id_viejo = bloque_buddy->id;
+
+	t_particion_buddy* bloque_buddy2 = malloc(sizeof(t_particion_buddy));
+	bloque_buddy2 = bloque_buddy;
+	uint32_t nuevo_tamanio = bloque_buddy->tamanio / 2;
+	bloque_buddy->tamanio = nuevo_tamanio;
+	bloque_buddy2->tamanio = nuevo_tamanio;
+	bloque_buddy2->base = bloque_buddy->base + nuevo_tamanio;//TODO: Falta el +1 ?
+	bloque_buddy->ocupado = false;
+	bloque_buddy2->ocupado = false;
+	buddy_id++;
+	bloque_buddy2->id = buddy_id;
+	buddy_id++;
+	bloque_buddy->id = buddy_id;
+
+	bool _mismo_id_buddy(t_particion_buddy* bloque_buddy){
+		return mismo_id_buddy(bloque_buddy,id_viejo);
+	}
+
+	list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy);
+	list_add(memoria_buddy,bloque_buddy2);
+	list_add(memoria_buddy,bloque_buddy);
+	return bloque_buddy2;
+}
+
+
+bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo){
+	return bloque_buddy->id == id_viejo;
 }
 
 void eleccion_victima_fifo_buddy(){

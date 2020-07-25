@@ -60,7 +60,7 @@ typedef struct{
 
 typedef struct{
 	uint32_t base;
-	uint32_t tamanio;
+	int tamanio;
 	uint32_t id;
 	bool ocupado;
 }t_particion_buddy;
@@ -179,12 +179,15 @@ void ejecutar_catch_pokemon_suscripcion(int suscriptor);
 void ejecutar_caught_pokemon_suscripcion(int suscriptor);
 void ejecutar_get_pokemon_suscripcion(int suscriptor);
 void ejecutar_localized_pokemon_suscripcion(int suscriptor);
+//buddy
 void almacenar_datos_buddy(void* datos, int tamanio);
 void eleccion_victima_fifo_buddy();
 void eleccion_victima_lru_buddy();
-void eleccion_particion_buddy(t_particion_buddy bloque_buddy,void* datos,int tamanio);
-
-
+void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,void* datos,int tamanio);
+bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo);
+t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy);
+bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
+//
 void iniciar_memoria(t_config* config);
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
 void almacenar_dato(void* datos, int tamanio);
