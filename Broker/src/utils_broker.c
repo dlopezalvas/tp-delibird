@@ -822,7 +822,9 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
-			particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			elegir_victima_particiones(tamanio_a_almacenar);
+			consolidar();
+			particion_libre = buscar_particion_bf;
 			contador++;
 		}else{
 			compactar();
@@ -877,7 +879,7 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 	}
 }
 
-t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
+void elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	t_particion* particion;
 
@@ -893,7 +895,24 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	particion = list_find(particiones_ocupadas, (void*)_puede_guardar);
 
-	return particion;
+	eliminar_particion(particion);
+
+}
+
+void eliminar_particion(t_particion* particion_a_liberar){
+
+	bool _es_la_particion(t_particion* particion){
+		return particion == particion_a_liberar;
+	}
+
+	list_remove_by_condition(particiones_libres, (void*) _es_la_particion);
+
+	t_particion* particion_nueva_libre = malloc(sizeof(t_particion));
+
+	particion_nueva_libre->base = particion_a_liberar->base;
+	particion_nueva_libre->tamanio = particion_a_liberar->tamanio;
+
+	list_add(particiones_libres, particion_nueva_libre);
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
