@@ -985,12 +985,12 @@ void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloqu
 	bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
 
 	if(condition_for_buddy){
-		t_particion_buddy bloque_buddy_new = malloc(sizeof(t_particion_buddy));
-		bloque_buddy_new.tamanio = bloque_buddy->tamanio * 2;
-		bloque_buddy_new.ocupado = false;
+		t_particion_buddy* bloque_buddy_new = malloc(sizeof(t_particion_buddy));
+		bloque_buddy_new->tamanio = bloque_buddy->tamanio * 2;
+		bloque_buddy_new->ocupado = false;
 		buddy_id++;
-		bloque_buddy_new.id = buddy_id;
-		bloque_buddy_new.base = bloque_buddy_old->base;
+		bloque_buddy_new->id = buddy_id;
+		bloque_buddy_new->base = bloque_buddy_old->base;
 
 		//
 		bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy){
@@ -1007,18 +1007,6 @@ void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloqu
 
 		list_add(memoria_buddy,bloque_buddy_new);
 	}
-}
-
-void remover_bloques_buddys(t_particion_buddy* bloque_buddy,uint32_t id1,uint32_t id2){
-	bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy){
-		return mismo_id_buddy(bloque_buddy,id1);
-	}
-
-	bool _mismo_id_buddy2(t_particion_buddy* bloque_buddy){
-		return mismo_id_buddy(bloque_buddy,id1);
-	}
-
-	list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy);
 }
 
 bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio){
