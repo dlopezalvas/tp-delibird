@@ -51,6 +51,7 @@ typedef struct{
 	uint32_t id;
 	uint32_t correlation_id;
 	void* buffer;
+	int compactacion_intentos_fallidos;
 }t_buffer_broker;
 
 typedef struct{
@@ -177,7 +178,9 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
 void almacenar_dato(void* datos, int tamanio);
 void almacenar_dato_particiones(void* datos, int tamanio);
 t_particion* buscar_particion_ff(int tamanio_a_almacenar);
+t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 int best_fit_index(int tamanio_a_almacenar);
+t_particion* particion_libre_ff(int tamanio_a_almacenar);
 
 t_buffer_broker* deserializar_broker(void* buffer, int size);
 

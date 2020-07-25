@@ -724,28 +724,60 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 
 	switch(configuracion_cache->algoritmo_part_libre){
 	case FIRST_FIT:
-		particion_libre = buscar_particion_ff(tamanio);
+		particion_libre = particion_libre_ff(tamanio);
 		break;
 	case BEST_FIT:
-		puts("best fit");
-		//particion_libre = buscar_particion_bf(tamanio);
+		particion_libre = buscar_particion_bf(tamanio);
 	}
 
 	asignar_particion(datos, particion_libre, tamanio);
 }
 
-t_particion* buscar_particion_ff(int tamanio_a_almacenar){
+void compactar(){
+	int offset = memoria_cache;
+
+	int cantidad_ocupadas = list_size(particiones_ocupadas) - 1;
+
+}
+
+t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	t_particion* particion_libre;
 
-	bool _puede_almacenar(int tamanio){
-		return tamanio>= tamanio_a_almacenar;
+	bool _puede_almacenar(t_particion* particion){
+		return particion->tamanio>= tamanio_a_almacenar;
 	}
+
+	//ordenar_particiones_libres();
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
-	if(particion_libre == NULL){
-		//compactar_memoria();
+	return particion_libre;
+}
+
+//void ordenar_particionar_libres(){
+//
+//	bool _orden(t_particion* particion1, t_particion* particion2){
+//
+//	}
+//
+//	list_sort(particiones_libres, _orden)
+//}
+
+t_particion* particion_libre_ff(int tamanio_a_almacenar){
+	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
+
+	int contador = 0;
+
+	while(particion_libre == NULL){
+		contador++;
+		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
+			//particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+		}else{
+			compactar();
+			particion_libre = buscar_particion_ff(tamanio_a_almacenar);
+			contador = 0;
+		}
 	}
 
 	return particion_libre;
@@ -766,7 +798,7 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){
 	return particion_libre;
 }
 
-int best_fit_index(int tamanio_a_almacenar){
+int best_fit_index(int tamanio_a_almacenar){ //se puede con fold creo
 
 	int best_fit = -1;
 
@@ -793,8 +825,6 @@ int best_fit_index(int tamanio_a_almacenar){
 	return best_fit;
 
 }
-
-
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
