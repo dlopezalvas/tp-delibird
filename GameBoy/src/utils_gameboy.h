@@ -59,8 +59,8 @@ typedef enum{
 }tipo_id;
 
 
-void iniciar_gameboy(char** argv, int argc);
-void iniciar_consola(t_config* config, char** argv, int argc);
+void iniciar_gameboy(void);
+void iniciar_consola(t_config*);
 void help(char* mensaje);
 void liberar_consola(char* proceso, char* mensaje, char** linea_split);
 

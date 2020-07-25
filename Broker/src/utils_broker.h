@@ -184,10 +184,35 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_ff(int tamanio_a_almacenar);
 
-t_particion* elegir_victima_particiones(int tamanio_a_almacenar);
-t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+void elegir_victima_particiones(int tamanio_a_almacenar);
+void elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+void eliminar_particion(t_particion* particion_a_liberar);
 
 
 t_buffer_broker* deserializar_broker(void* buffer, int size);
+
+//buddy
+typedef struct{
+	uint32_t base;
+	int tamanio;
+	uint32_t id;
+	bool ocupado;
+}t_particion_buddy;
+t_list* memoria_buddy;
+uint32_t buddy_id;
+
+void almacenar_datos_buddy(void* datos, int tamanio);
+void eleccion_victima_fifo_buddy();
+void eleccion_victima_lru_buddy();
+void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio);
+void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio);
+bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
+bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo);
+t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy);
+bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
+bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
+void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
+//
+
 
 #endif /* UTILS_BROKER_H_ */
