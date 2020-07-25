@@ -727,10 +727,19 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 		particion_libre = particion_libre_ff(tamanio);
 		break;
 	case BEST_FIT:
-		particion_libre = buscar_particion_bf(tamanio);
+		particion_libre = particion_libre_bf(tamanio);
 	}
 
 	asignar_particion(datos, particion_libre, tamanio);
+}
+
+void ordenar_particiones_libres(){ //no se si anda esto
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+		return particion1->base < particion2->base;
+	}
+
+	list_sort(particiones_libres, (void*)_orden);
 }
 
 void compactar(){
@@ -756,7 +765,6 @@ void compactar(){
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 	list_add(particiones_libres, particion_unica);
 
-
 }
 
 t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
@@ -767,31 +775,22 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 		return particion->tamanio>= tamanio_a_almacenar;
 	}
 
-	ordenar_particionar_libres();
+	ordenar_particiones_libres();
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
 	return particion_libre;
 }
 
-void ordenar_particionar_libres(){ //no se si anda esto
-
-	bool _orden(t_particion* particion1, t_particion* particion2){
-		return particion1->base < particion2->base;
-	}
-
-	list_sort(particiones_libres, _orden);
-}
-
 t_particion* particion_libre_ff(int tamanio_a_almacenar){
 	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
 
-	int contador = 0;
+	int contador = 1;
 
 	while(particion_libre == NULL){
-		contador++;
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
 			//particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			contador++;
 		}else{
 			compactar();
 			particion_libre = buscar_particion_ff(tamanio_a_almacenar);
@@ -802,22 +801,27 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar){
 	return particion_libre;
 }
 
-t_particion* buscar_particion_bf(int tamanio_a_almacenar){
+t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
-	t_particion* particion_libre = malloc(sizeof(t_particion));
+	t_particion* particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 
-	int best_fit = best_fit_index(tamanio_a_almacenar);
+	int contador = 1;
 
-	if(best_fit == -1){
-		//compactar creo?
+	while(particion_libre == NULL){
+		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
+			//particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			contador++;
+		}else{
+			compactar();
+			particion_libre = buscar_particion_bf(tamanio_a_almacenar);
+			contador = 0;
+		}
 	}
-
-	particion_libre = list_get(particiones_libres, best_fit);
 
 	return particion_libre;
 }
 
-int best_fit_index(int tamanio_a_almacenar){ //se puede con fold creo
+t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold creo
 
 	int best_fit = -1;
 
@@ -840,8 +844,18 @@ int best_fit_index(int tamanio_a_almacenar){ //se puede con fold creo
 
 	free(aux);
 	free(mayor);
+	t_particion* best = malloc(sizeof(t_particion));
 
-	return best_fit;
+	if(best_fit == -1){
+		best = NULL;
+	}else{
+		best = list_get(particiones_libres, best_fit);
+	}
+
+
+
+
+	return best;
 
 }
 
