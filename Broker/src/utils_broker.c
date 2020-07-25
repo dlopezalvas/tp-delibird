@@ -841,23 +841,25 @@ void almacenar_datos_buddy(void* datos, int tamanio){
 //	bloque_buddy->id = buddy_id;
 
 
+	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
 	void _eleccion_particion_buddy(t_particion_buddy* bloque_buddy){
-		return eleccion_particion_buddy(bloque_buddy,datos,tamanio);
+		return eleccion_particion_buddy(bloque_buddy,bloque_buddy_particion,datos,tamanio);
 	}
 
 	list_iterate(memoria_buddy, (void*)_eleccion_particion_buddy);
-	//TODO: Como devolver el bloque bloque_buddy_particion y como cortar la iteracion cuando se eligio un bloque
-	//Simulo que me devolvio un bloque
-	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
-	//
+//	//TODO: Como devolver el bloque bloque_buddy_particion y como cortar la iteracion cuando se eligio un bloque
+//	//Simulo que me devolvio un bloque
+//	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
+//	//
 
-//	asignar_particion(bloque_buddy_particion,datos,tamanio);
+	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio);
 	//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
 	//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
 	//O hasta llegar a que no entre.
 	//Si no entra, lo guardo en la ultima particion que entraba.
 
-	//if(no encuentra ninguna particion disponible)
+	if(bloque_buddy_particion == NULL){ //TODO: Preguntar si es vacio
+
 	switch(configuracion_cache->algoritmo_reemplazo){
 		case FIFO:
 			eleccion_victima_fifo_buddy();
@@ -866,14 +868,21 @@ void almacenar_datos_buddy(void* datos, int tamanio){
 			eleccion_victima_lru_buddy();
 			break;
 		}
-	//
+
+	}
 }
 
-void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,void* datos,int tamanio){
+void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio){
+	memcpy(memoria_cache + bloque_buddy_particion->base, datos, tamanio); //copio a la memoria
+	bloque_buddy_particion->ocupado = true;
+
+	//modificar en la lista
+}
+
+void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio){
 
 //	bool condicion_buddy = malloc(sizeof(bool));
 	bool condicion_buddy_particion = validar_condicion_buddy(bloque_buddy,tamanio);
-	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
 
 	//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
 	//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
@@ -929,8 +938,95 @@ bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo){
 	return bloque_buddy->id == id_viejo;
 }
 
-void eleccion_victima_fifo_buddy(){
+void eleccion_victima_fifo_buddy(int tamanio){
+	t_list* lista_fifo_buddy = malloc(sizeof(t_list));
+	lista_fifo_buddy = memoria_buddy;
 
+	bool _sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+			return sort_byId_memoria_buddy(bloque_buddy,bloque_buddy2);
+		}
+
+	list_sort(lista_fifo_buddy,_sort_byId_memoria_buddy);
+
+	bool _eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy){
+		return eleccion_victima_fifo_a_eliminar(bloque_buddy,tamanio);
+	}
+
+	t_particion_buddy* victima_elegida = list_find(lista_fifo_buddy, (void*)_eleccion_victima_fifo_a_eliminar);
+
+	if(victima_elegida == NULL){
+		//consolidar
+		//asigno a victima_elegida
+	}
+
+	//reemplazo
+	//victima_elegida
+}
+
+void consolidar_buddy(t_list* lista_fifo_buddy){
+	t_particion_buddy* bloque_buddy_old = malloc(sizeof(t_particion_buddy));
+	bloque_buddy_old = lista_fifo_buddy->head->data;
+
+	void _encontrar_su_buddy(t_particion_buddy* bloque_buddy){
+		return encontrar_su_buddy(bloque_buddy,bloque_buddy_old);
+	}
+
+	list_iterate(lista_fifo_buddy, (void*)_encontrar_su_buddy);
+
+}
+
+//TODO: Reveer esto Lucas
+bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
+	return (bloque_buddy->tamanio == bloque_buddy_old->tamanio)
+			&& (bloque_buddy_old->base+bloque_buddy_old->tamanio == bloque_buddy->base);
+}
+
+void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
+	bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
+
+	if(condition_for_buddy){
+		t_particion_buddy bloque_buddy_new = malloc(sizeof(t_particion_buddy));
+		bloque_buddy_new.tamanio = bloque_buddy->tamanio * 2;
+		bloque_buddy_new.ocupado = false;
+		buddy_id++;
+		bloque_buddy_new.id = buddy_id;
+		bloque_buddy_new.base = bloque_buddy_old->base;
+
+		//
+		bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy){
+			return mismo_id_buddy(bloque_buddy,bloque_buddy_old->id);
+		}
+
+		bool _mismo_id_buddy2(t_particion_buddy* bloque_buddy){
+			return mismo_id_buddy(bloque_buddy,bloque_buddy->id);
+		}
+
+		list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
+		list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy2);
+		//
+
+		list_add(memoria_buddy,bloque_buddy_new);
+	}
+}
+
+void remover_bloques_buddys(t_particion_buddy* bloque_buddy,uint32_t id1,uint32_t id2){
+	bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy){
+		return mismo_id_buddy(bloque_buddy,id1);
+	}
+
+	bool _mismo_id_buddy2(t_particion_buddy* bloque_buddy){
+		return mismo_id_buddy(bloque_buddy,id1);
+	}
+
+	list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy);
+}
+
+bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio){
+	return bloque_buddy->tamanio > tamanio;
+}
+
+bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+	return bloque_buddy->id < bloque_buddy2->id;
 }
 
 void eleccion_victima_lru_buddy(){
