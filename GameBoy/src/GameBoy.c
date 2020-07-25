@@ -17,15 +17,10 @@
 t_config* config;
 t_log* logger;
 
-int main(void) {
+int main(int argc, char* argv[]) {
 
 
-	iniciar_gameboy();
+	iniciar_gameboy(argv, argc);
 
 	return EXIT_SUCCESS;
 }
-
-
-
-
-

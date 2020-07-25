@@ -4,55 +4,61 @@ extern t_config* config;
 extern t_log* logger;
 
 
-void iniciar_gameboy(void){
+void iniciar_gameboy(char** argv, int argc){
 
 	config = leer_config(PATH);
 	logger = iniciar_logger(config);
 
-	iniciar_consola(config);
+	iniciar_consola(config, argv, argc);
   	terminar_proceso(1,logger,config);
 }
 
 //////////////CONSOLA//////////////////////////
-void iniciar_consola(t_config* config){
+void iniciar_consola(t_config* config, char** argv, int argc){
 
-	char * linea;
-
+//	char * linea;
+//
 	tipo_id flag_id = NO_TIENE_ID;
 
-	linea = readline(">");
+	char** linea_split = malloc(sizeof(char*)*argc);
 
-	if(linea){
-		add_history(linea);
+	for(int i = 0; i < argc; i++){ //esto esta re feo pero estamos al horno con el tiempo D: (perdon)
+		linea_split[i] = argv[i+1];
 	}
-
-	char** linea_split = string_split(linea," ");
+//
+//	linea = readline(">");
+//
+//	if(linea){
+//		add_history(linea);
+//	}
+//
+//	char** linea_split = string_split(linea," ");
 
 	//free(linea);
 
 	if(string_equals_ignore_case(linea_split[0],comando_help)){
 
 		help(linea_split[1]);
-		liberar_vector(linea_split);
-		iniciar_consola(config);
+//		liberar_vector(linea_split);
+		//iniciar_consola(config);
 
 	}else if(verificar_mensaje(linea_split, config, &flag_id)){
 
 		ejecutar_proceso(linea_split, config, flag_id);
-		liberar_vector(linea_split);
+//		liberar_vector(linea_split);
 
 		//liberar_consola(proceso, tipo_mensaje, linea_split);
-		iniciar_consola(config);
+	//	iniciar_consola(config);
 	}else if(string_equals_ignore_case(linea_split[0],comando_exit)){
 
 		printf("%s\n", terminar_consola);
-		liberar_vector(linea_split);
+//		liberar_vector(linea_split);
 
 	}else{
 
 		printf("%s\n", mensaje_invalido);
-		liberar_vector(linea_split);
-		iniciar_consola(config);
+//		liberar_vector(linea_split);
+	//	iniciar_consola(config);
 	}
 
 }
