@@ -184,8 +184,8 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_ff(int tamanio_a_almacenar);
 
-void elegir_victima_particiones(int tamanio_a_almacenar);
-void elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+t_particion* elegir_victima_particiones(int tamanio_a_almacenar);
+t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
 void eliminar_particion(t_particion* particion_a_liberar);
 
 
@@ -212,6 +212,7 @@ t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy);
 bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
 bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
 t_particion_buddy* consolidar_buddy(t_list* lista_fifo_buddy);
+bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover);
 void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old,t_particion_buddy* buddy_elegido);
 //
 

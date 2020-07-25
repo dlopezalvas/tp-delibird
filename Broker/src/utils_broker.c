@@ -933,11 +933,12 @@ void eliminar_particion(t_particion* particion_a_liberar){
 
 	list_add(particiones_libres, particion_nueva_libre);
 
-	bool _es_la_particion(t_particion* particion){
+	bool _es_la_particion(void* particion){
 		return particion == particion_a_liberar;
 	}
 
-	list_remove_and_destroy_by_condition(particiones_libres, (void*) _es_la_particion);
+	//TODO: Diana, ver si esta bien con el null (?
+	list_remove_and_destroy_by_condition(particiones_libres,_es_la_particion,NULL);
 
 }
 
@@ -1089,7 +1090,7 @@ void eleccion_victima_fifo_buddy(int tamanio){
 
 	list_sort(lista_fifo_buddy,_sort_byId_memoria_buddy);
 
-	bool _eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy){
+	bool _eleccion_victima_fifo_a_eliminar(void* bloque_buddy){
 		return eleccion_victima_fifo_a_eliminar(bloque_buddy,tamanio);
 	}
 
@@ -1098,8 +1099,17 @@ void eleccion_victima_fifo_buddy(int tamanio){
 	if(victima_elegida == NULL)
 		victima_elegida = consolidar_buddy(lista_fifo_buddy);
 
+	uint32_t id_remover = victima_elegida->id;
+	bool _remove_by_id(void* bloque_buddy){
+		return remove_by_id(bloque_buddy,id_remover);
+	}
 
-	//reemplazo en la lista victima_elegida
+	list_remove_by_condition(memoria_buddy,_remove_by_id);
+	list_add(memoria_buddy,victima_elegida);
+}
+
+bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover){
+	return bloque_buddy->id == id_remover;
 }
 
 t_particion_buddy* consolidar_buddy(t_list* lista_fifo_buddy){
