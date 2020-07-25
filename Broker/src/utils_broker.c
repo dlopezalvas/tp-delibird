@@ -748,21 +748,21 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 		return particion->tamanio>= tamanio_a_almacenar;
 	}
 
-	//ordenar_particiones_libres();
+//	ordenar_particiones_libres();
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
 	return particion_libre;
 }
 
-//void ordenar_particionar_libres(){
-//
-//	bool _orden(t_particion* particion1, t_particion* particion2){
-//
-//	}
-//
-//	list_sort(particiones_libres, _orden)
-//}
+void ordenar_particionar_libres(){ //no se si anda esto
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+		return particion1->base < particion2->base;
+	}
+
+	list_sort(particiones_libres, _orden);
+}
 
 t_particion* particion_libre_ff(int tamanio_a_almacenar){
 	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
