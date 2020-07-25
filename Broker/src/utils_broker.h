@@ -57,6 +57,8 @@ typedef struct{
 typedef struct{
 	uint32_t base;
 	uint32_t tamanio;
+	uint32_t id_mensaje;
+	uint32_t ultimo_acceso;
 }t_particion;
 
 typedef enum{

@@ -852,11 +852,21 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 		best = list_get(particiones_libres, best_fit);
 	}
 
-
-
-
 	return best;
 
+}
+
+t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
+
+	t_particion* particion;
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+		return particion1->ultimo_acceso > particion2->ultimo_acceso;
+	}
+
+	list_sort(particiones_ocupadas, (void*)_orden);
+
+	return particiones_ocupadas->head->data;
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
@@ -877,6 +887,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 		list_add(particiones_libres, particion_nueva);
 	}
 
+	particion_libre->ultimo_acceso = time(NULL);
 	list_add(particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
 
 }
