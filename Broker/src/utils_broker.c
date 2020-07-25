@@ -822,8 +822,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
-			elegir_victima_particiones(tamanio_a_almacenar);
-			consolidar();
+			consolidar(elegir_victima_particiones(tamanio_a_almacenar)); //aca se elimina la particion (se pone como libre), se consolida y se vuelve a buscar una particion
 			particion_libre = buscar_particion_bf;
 			contador++;
 		}else{
@@ -834,6 +833,31 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 	}
 
 	return particion_libre;
+}
+
+void consolidar(t_particion* particion_liberada){
+
+	bool _es_la_anterior(t_particion* particion){
+		return particion->base + particion->tamanio == particion_liberada->base;
+	}
+
+	bool _es_la_siguiente(t_particion* particion){
+		return particion_liberada->base + particion_liberada->tamanio == particion->base;
+	}
+
+
+	t_particion* p_antes = list_find(particiones_libres, _es_la_anterior); //para no confundir izq y derecha
+	t_particion* p_despues = list_find(particiones_libres, _es_la_siguiente);
+
+
+	if(particion_liberada != NULL){
+		if(p_antes != NULL && p_despues != NULL){ //si alguna es null es porque no existe una particion libre que sea anterior/posterior a la que libere
+			p_antes->tamanio += particion_liberada->tamanio + p_despues->tamanio; //directamente hago la anterior mas grande (?
+			//TODO aca hay que sacar las particiones p_despues y particion_liberada de la lista de particiones liberadas pero ya tengo sueño jaja salu2
+
+
+		}
+	}
 }
 
 t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold creo
@@ -875,11 +899,12 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 	switch(configuracion_cache->algoritmo_reemplazo){
 	case LRU:
 		return elegir_victima_particiones_LRU(tamanio_a_almacenar);
+
 	//case fifo
 	}
 }
 
-void elegir_victima_particiones_LRU(int tamanio_a_almacenar){
+t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	t_particion* particion;
 
@@ -901,18 +926,19 @@ void elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 void eliminar_particion(t_particion* particion_a_liberar){
 
-	bool _es_la_particion(t_particion* particion){
-		return particion == particion_a_liberar;
-	}
-
-	list_remove_by_condition(particiones_libres, (void*) _es_la_particion);
-
 	t_particion* particion_nueva_libre = malloc(sizeof(t_particion));
 
 	particion_nueva_libre->base = particion_a_liberar->base;
 	particion_nueva_libre->tamanio = particion_a_liberar->tamanio;
 
 	list_add(particiones_libres, particion_nueva_libre);
+
+	bool _es_la_particion(t_particion* particion){
+		return particion == particion_a_liberar;
+	}
+
+	list_remove_and_destroy_by_condition(particiones_libres, (void*) _es_la_particion);
+
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){

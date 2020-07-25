@@ -184,8 +184,9 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_ff(int tamanio_a_almacenar);
 
-t_particion* elegir_victima_particiones(int tamanio_a_almacenar);
-t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+void elegir_victima_particiones(int tamanio_a_almacenar);
+void elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+void eliminar_particion(t_particion* particion_a_liberar);
 
 
 t_buffer_broker* deserializar_broker(void* buffer, int size);
