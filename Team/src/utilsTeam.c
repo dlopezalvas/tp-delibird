@@ -11,7 +11,7 @@ t_queue* colaLocalizedPokemon;
 t_queue* colaCaughtPokemon;
 
 pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar, mutex_cola_appeared_pokemon, mutex_cola_caught_pokemon, mutex_cola_localized_pokemon,
-log_mutex, sem_ready, mutex_entrenadores;
+log_mutex, sem_ready, mutex_lista_entrenadores, mutex_deadlock;
 sem_t conexiones, sem_deteccionDeadlock,  sem_ejecutar, semAppeared, semCaught, semLocalized;
 
 t_config* config;
@@ -33,7 +33,8 @@ void iniciarTeam(){
 	pthread_mutex_init(&mutex_cola_caught_pokemon, NULL);
 	pthread_mutex_init(&mutex_cola_localized_pokemon, NULL);
 	pthread_mutex_init(&log_mutex, NULL);
-	pthread_mutex_init(&mutex_entrenadores, NULL);
+	pthread_mutex_init(&mutex_lista_entrenadores, NULL);
+	pthread_mutex_init(&mutex_deadlock, NULL);
 	sem_init(&conexiones, 0,0);
 //	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
@@ -228,11 +229,12 @@ t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 }
 
 void cambiarEstado (t_entrenador** entrenador,t_estado nuevoEstado, char* razonDeCambio){ //funciona
+	if((*entrenador)->estado == nuevoEstado) return;
 	if((*entrenador)->estado == EXEC) cambiosDeContexto ++;
 	if(cambioEstadoValido((*entrenador)->estado, nuevoEstado)){
 	(*entrenador)->estado = nuevoEstado;
 	pthread_mutex_lock(&log_mutex);
-	log_info(logger, "Se cambio al entrenador %d a la cola %s porque %s", (*entrenador)->ID, estado[(*entrenador)->estado], razonDeCambio);
+	log_info(logger, "Se cambio al entrenador %d a la cola %d porque %s", (*entrenador)->ID, (*entrenador)->estado, razonDeCambio);
 	pthread_mutex_unlock(&log_mutex);
 	}else {
 		printf("Estado invalido");
@@ -260,7 +262,7 @@ bool cambioEstadoValido(t_estado estadoViejo,t_estado nuevoEstado){ //funciona
 	case EXIT:
 		return false;
 		break;
-	return true;
+//	return true;
 	}
 	return false;
 }
@@ -269,7 +271,9 @@ bool cumpleObjetivoGlobal(){ //funciona
 	bool _esEstadoExit(void* entrenador){
 		return esEstadoExit(entrenador);
 	}
+//	pthread_mutex_lock(&mutex_lista_entrenadores);
 	return list_all_satisfy(entrenadores,_esEstadoExit);
+//	pthread_mutex_unlock(&mutex_lista_entrenadores);
 
 }
 
@@ -278,17 +282,12 @@ bool esEstadoExit(t_entrenador* entrenador){//funciona
 }
 
 bool cumpleObjetivoParticular (t_entrenador* entrenador){//funciona
-	if (tieneMenosElementos (entrenador->objetivos, entrenador->pokemons)) return false;
-//	bool _criterioOrden(void* elem1 , void* elem2){
-//		return criterioOrden(elem1, elem2);
-//	}
-//	list_sort(entrenador->objetivos, _criterioOrden);
-//	list_sort(entrenador->pokemons, _criterioOrden);
+	if(entrenador->pokemons->elements_count != entrenador->objetivos->elements_count) return false;
 	return listasIguales(entrenador->objetivos, entrenador->pokemons);
 }
 
 bool tieneMenosElementos (t_list* listaChica, t_list* lista ){	//funciona
-	if(list_size(listaChica) < list_size(lista)) return true;
+	if(listaChica->elements_count < lista->elements_count) return true;
 	return false;
 }
 
@@ -312,6 +311,8 @@ bool listasIguales(t_list* lista1, t_list* lista2){ //funciona
 }
 
 bool criterioOrden(char* elem1, char* elem2){ //funciona
+	string_to_lower(elem1);
+	string_to_lower(elem2);
 	return (0 < strcmp(elem1, elem2));
 }
 
@@ -320,6 +321,8 @@ bool puedeAtraparPokemon(t_entrenador* entrenador){ //funciona
 }
 
 bool tieneEspacioYEstaEnExec(t_entrenador* entrenador){ //funciona
+	printf("estado %d pokemons: %d objetivos: %d\n",entrenador->estado,entrenador->pokemons->elements_count,  entrenador->objetivos->elements_count);
+	puts("-------------------------------------------------------------------");
 	return (entrenador->estado == EXEC && (tieneMenosElementos (entrenador->pokemons, entrenador->objetivos)));
 }
 
@@ -466,22 +469,28 @@ void planificarFIFO(){// funciona
 }
 
 void ejecutaEntrenadores(){ //agregar semaforos y probar
+
+
 	while(!cumpleObjetivoGlobal()){
 			sem_wait(&sem_ejecutar);
 			puts("entra a ejecutar");
+//			if(entrenadoresTienenElInventarioLleno()){ //probar
+//							puts("entrenadores tiene inventario lleeno");
+//							sem_post(&sem_deteccionDeadlock);
+//						}
+			if(!list_is_empty(ready)){
 			pthread_mutex_lock(&mutex_ejecutar);
 			pthread_mutex_lock(&mutex_ready);
 			t_entrenador* entrenador = ready->head->data;//list_get(ready, 0);
 			pthread_mutex_unlock(&mutex_ready);
-			puts("amtes cambia de estado a exec");
 			cambiarEstado(&entrenador, EXEC, "va a ejecutar");
-			puts("cambia de estado a exec");
 			pthread_mutex_unlock(&((entrenador)->mutex));
-			//replanificar
-			puts("ejecuto");
-			if(entrenadoresTienenElInventarioLleno()){ //probar
-				sem_post(&sem_deteccionDeadlock);
 			}
+			//replanificar
+//			if(entrenadoresTienenElInventarioLleno()){ //probar
+//				puts("entrenadores tiene inventario lleeno");
+//				sem_post(&sem_deteccionDeadlock);
+//			}
 		}
 	pthread_exit(NULL);
 }
@@ -495,7 +504,6 @@ void llenarColaReady(){ // probar
 //	bool puedePlanificar(t_entrenador* entrenador){
 //		return tieneMenosElementos (entrenador->pokemons, entrenador->objetivos) && entrenador->pokemonACapturar == NULL;
 //	}
-	puts("antes del while");
 	while(!entrenadoresTienenElInventarioLleno()){
 
 		bool _noEstaPlanificado(void* pokemon){
@@ -509,18 +517,16 @@ void llenarColaReady(){ // probar
 		bool _menorDistancia(void* elem1 , void* elem2){
 				return menorDistancia(elem1, elem2, pokemon);
 			}
-		list_sort(entrenadores, _menorDistancia);
 		bool _puedeSerPlanificado(void* entrenador){
-						return puedeSerPlanificado(entrenador);
-					}
+							return puedeSerPlanificado(entrenador);
+						}
+//		pthread_mutex_lock(&mutex_lista_entrenadores);
+		list_sort(entrenadores, _menorDistancia);
 		entrenadorAPlanificar = list_find(entrenadores, _puedeSerPlanificado);
+//		pthread_mutex_unlock(&mutex_lista_entrenadores);
 		pthread_mutex_lock(&requeridos);
 //		(entrenadorAPlanificar)->pokemonACapturar = malloc(sizeof(t_pokemon));
 		entrenadorAPlanificar->pokemonACapturar = pokemon;
-		puts((entrenadorAPlanificar)->pokemonACapturar->especie);
-		puts(string_itoa((entrenadorAPlanificar)->pokemonACapturar->coordx));
-		puts(string_itoa((entrenadorAPlanificar)->pokemonACapturar->coordy));
-		puts("imprimio coordenadas");
 		pokemon->planificado = true;
 		pthread_mutex_unlock(&requeridos);
 		cambiarEstado((&entrenadorAPlanificar), READY, "se le asigno el pokemon a atrapar");
@@ -555,12 +561,15 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 	t_intercambio* intercambio;
 	int coordx = 0;
 	int coordy = 0;
+	bool _mismoID(void* entre){
+			mismoID(entre, entrenador->ID);
+		}
 
 	while((entrenador)->estado != EXIT){
 		pthread_mutex_lock(&((entrenador)->mutex));
-		puts((entrenador)->pokemons->head->data);
 		puts("ejecuta un entrenador");
-		puts((entrenador)->pokemonACapturar->especie);
+		puts(string_itoa(entrenador->ID));
+//		puts((entrenador)->pokemonACapturar->especie);
 		intercambio = (entrenador)->intercambio;
 		if(tieneEspacioYEstaEnExec(entrenador)){
 			puts("puede atrapar entreandor");
@@ -570,13 +579,13 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 		}else{
 			puts("intercambio");
 			coordx = (intercambio->entrenador->coordx);
-				coordy = (intercambio->entrenador->coordy);
+			coordy = (intercambio->entrenador->coordy);
 		}
 		pthread_mutex_unlock(&(entrenador->mutex));
 		while((coordx != entrenador->coordx	|| coordy != entrenador->coordy)){
 			pthread_mutex_lock(&(entrenador->mutex));
 			moverEntrenador(&entrenador, coordx, coordy);
-			puts("despues de moverse");
+			//ver si cambiar a block
 			sem_post(&sem_ejecutar);
 			pthread_mutex_unlock(&mutex_ejecutar);
 					}
@@ -594,7 +603,14 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 				noCapturoPokemon(&entrenador);
 			}
 		}else {
+			pthread_mutex_lock(&((entrenador)->mutex));
+			pthread_mutex_lock(&mutex_ready);
+			list_remove_by_condition(ready, _mismoID);
+			pthread_mutex_unlock(&mutex_ready);
+			puts("va a intercambiar");
 			intercambiarPokemon(&entrenador);
+			pthread_mutex_unlock(&mutex_deadlock);
+			pthread_mutex_unlock(&mutex_ejecutar);
 			}
 	if(cumpleObjetivoParticular(entrenador)) cambiarEstado(&entrenador, EXIT, "cumplio su objetivo particular");
 	}
@@ -663,7 +679,7 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 
 	case LOCALIZED_POKEMON:
 
-		puts("recibe mensaje");
+		puts("recibe localized_pokemon");
 		localized = deserializar_localized_pokemon(buffer);
 		bool mismoIdMensaje(int* ID){
 			return  (localized->correlation_id == *ID);
@@ -732,7 +748,7 @@ void socketEscucha(char* ip, char* puerto){ //funciona
 }
 
 void deteccionDeadlock(){ //funciona
-	sem_wait(&sem_deteccionDeadlock); //probar
+//	sem_wait(&sem_deteccionDeadlock); //probar
 	sem_wait(&sem_deteccionDeadlock);
 	pthread_mutex_lock(&log_mutex);
 	log_info(logger,"Se ha iniciado el algoritmo de deteccion de deadlock");
@@ -742,8 +758,9 @@ void deteccionDeadlock(){ //funciona
 		return puedeEstarEnDeadlock(entrenador);
 	}
 	t_list* entrenadoresDeadlock = list_create();
+//	pthread_mutex_lock(&mutex_lista_entrenadores);
 	entrenadoresDeadlock = list_filter(entrenadores, _puedeEstarEnDeadlock);
-
+//	pthread_mutex_unlock(&mutex_lista_entrenadores);
 	t_entrenador* entrenador;
 	t_entrenador* entrenadorAIntercambiar;
 	int ID;
@@ -760,9 +777,10 @@ void deteccionDeadlock(){ //funciona
 	bool _mismoID(t_entrenador* entrenador1){
 		return mismoID(entrenador1, ID);
 	}
-
+	pthread_mutex_lock(&mutex_deadlock);
 	while(list_size(entrenadoresDeadlock) > 0){
 
+//		puts(string_itoa(list_size(entrenadoresDeadlock)));
 		entrenador = entrenadoresDeadlock->head->data;
 		while(list_size(entrenador->pokemonsNoNecesarios) > 0 ){
 			pokemon = list_find(entrenador->objetivos, _necesitaPokemon); //devuelve el primer pokemon que necesita el entrenador
@@ -776,10 +794,15 @@ void deteccionDeadlock(){ //funciona
 			printf("%s \n",intercambio->pokemonARecibir);
 
 			if(necesitaPokemon(intercambio->entrenador, intercambio->pokemonAEntregar)) cantDeadlocks++;
-
+			cambiarEstado(&entrenador, READY, "va a moverse para hacer intercambio");
+			pthread_mutex_lock(&mutex_ready);
 			list_add(ready, entrenador);
+			pthread_mutex_unlock(&mutex_ready);
+			puts("Agrega a cola ready para intercambio");
+			sem_post(&sem_ejecutar);
+//			pthread_mutex_unlock(&mutex_ejecutar); //ver si funciona
+			pthread_mutex_lock(&mutex_deadlock);
 			//wait (espera a que termine de moverse el entrenador)
-			intercambiarPokemon(&entrenador);
 			if(cumpleObjetivoParticular(entrenadorAIntercambiar)){
 				puts("cumple objetivo Entrenador a intercambiar");
 				cambiarEstado(&entrenadorAIntercambiar, EXIT, "cumplio su objetivo particular");
@@ -799,7 +822,9 @@ void deteccionDeadlock(){ //funciona
 				cambiarEstado(&entrenador, BLOCK, "termino de intercambiar pokemon");
 			}
 		}
+//		puts("sale del primer ciclo");
 	}
+	puts("termina deteccion de deadlock");
 	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Cantidad de deadlocks Detectados: %d Cantidad de deadlocks Resueltos: %d", cantDeadlocks, cantDeadlocks);
 	pthread_mutex_unlock(&log_mutex);
@@ -813,7 +838,7 @@ bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funcion
 }
 
 bool puedeEstarEnDeadlock(t_entrenador* entrenador){//funciona
-	return (entrenador->estado == BLOCK &&(entrenador->pokemons->elements_count ==  entrenador->objetivos->elements_count));
+	return (entrenador->estado == BLOCK && (entrenador->pokemons->elements_count ==  entrenador->objetivos->elements_count));
 }
 
 bool mismoID(t_entrenador* entrenador, int ID){ //funciona
@@ -1096,8 +1121,9 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	bool _mismoID(void* entre){
 		mismoID(entre, (*entrenador)->ID);
 	}
+	pthread_mutex_lock(&mutex_ready);
 	list_remove_by_condition(ready, _mismoID); //saca al entrenador de la lista de ready
-
+	pthread_mutex_unlock(&mutex_ready);
 
 	int socket_broker = socket(AF_INET, SOCK_STREAM, 0);
 	int _recv;
@@ -1159,10 +1185,14 @@ void crearConexiones(){
 }
 
 bool entrenadoresTienenElInventarioLleno(){
+	bool resultado;
 	bool _tieneInventarioLlenoOEstaEnExit(void* entrenador){
 		return tieneInventarioLlenoOEstaEnExit(entrenador);
 	}
-	return list_all_satisfy(entrenadores, (void*)_tieneInventarioLlenoOEstaEnExit);
+//	pthread_mutex_lock(&mutex_lista_entrenadores);
+	resultado = list_all_satisfy(entrenadores, (void*)_tieneInventarioLlenoOEstaEnExit);
+//	pthread_mutex_unlock(&mutex_lista_entrenadores);
+	return resultado;
 }
 
 
@@ -1207,9 +1237,6 @@ void appeared_pokemon(){
 		}else{
 			if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
 		}
-
-		printf("pokemons requeridos: %d", pokemonsRequeridos->elements_count);
-		puts("-------------------------------------------------------------------------");
 	}
 }
 
@@ -1253,7 +1280,9 @@ void caught_pokemon(){
 		pthread_mutex_lock(&mutex_cola_caught_pokemon);
 		caught = queue_pop(colaCaughtPokemon);
 		pthread_mutex_unlock(&mutex_cola_caught_pokemon);
+//		pthread_mutex_lock(&mutex_lista_entrenadores);
 		entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
+//		pthread_mutex_unlock(&mutex_lista_entrenadores);
 		entrenador->ID = 0;
 		if(caught->caught){
 //			entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
@@ -1274,6 +1303,7 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
 
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
+	printf("Se agrego al pokemon %s a la lista", (*entrenador)->pokemonACapturar->especie);
 	pthread_mutex_lock(&objetivo);
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
 	pthread_mutex_unlock(&objetivo);
@@ -1299,6 +1329,10 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 //	pthread_mutex_unlock(&objetivo);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
+	if(entrenadoresTienenElInventarioLleno()){ //probar
+		puts("entrenadores tiene inventario lleeno");
+		sem_post(&sem_deteccionDeadlock);
+	}
 
 }
 
