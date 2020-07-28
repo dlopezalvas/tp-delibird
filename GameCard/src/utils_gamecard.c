@@ -80,10 +80,10 @@ void crear_bitmap(char* punto_montaje){
 	//ver errores en mapeo
 
 	bitarray = bitarray_create_with_mode(mapeo_bitarray, blocks, LSB_FIRST);
-
-	for(int i = 0; i < blocks; i++){
-		bitarray_clean_bit(bitarray, i);
-	}
+//
+//	for(int i = 0; i < blocks; i++){
+//		bitarray_clean_bit(bitarray, i);
+//	}
 
 	msync(bitarray, sizeof(bitarray), MS_SYNC);
 
@@ -814,6 +814,7 @@ t_pokemon* semaforo_pokemon(char* nombre){
 		pthread_mutex_lock(&pokemones_mtx);
 		list_add(pokemones, new_pokemon);
 		pthread_mutex_unlock(&pokemones_mtx);
+		return new_pokemon;
 	}
 
 	return pokemon_sem;
