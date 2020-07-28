@@ -197,8 +197,10 @@ typedef struct{
 	int tamanio;
 	uint32_t id;
 	bool ocupado;
+	uint32_t ultimo_acceso;
 }t_particion_buddy;
 t_list* memoria_buddy;
+
 uint32_t buddy_id;
 
 void almacenar_datos_buddy(void* datos, int tamanio);
@@ -214,6 +216,8 @@ bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int taman
 t_particion_buddy* consolidar_buddy(t_list* lista_fifo_buddy);
 bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover);
 void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old,t_particion_buddy* buddy_elegido);
+bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
+
 //
 
 

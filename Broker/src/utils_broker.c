@@ -1167,7 +1167,18 @@ bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* 
 }
 
 void eleccion_victima_lru_buddy(){
+	bool _sort_by_acceso_memoria_buddy(void* bloque_buddy,void* bloque_buddy2){
+		return sort_by_acceso_memoria_buddy(bloque_buddy,bloque_buddy2);
+	}
 
+	list_sort(memoria_buddy,sort_by_acceso_memoria_buddy);
+
+//	t_particion_buddy bloque_a_eliminar = memoria_buddy->head->data;
+
+}
+
+bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+	return (bloque_buddy->ultimo_acceso) < (bloque_buddy2->ultimo_acceso);
 }
 
 //
