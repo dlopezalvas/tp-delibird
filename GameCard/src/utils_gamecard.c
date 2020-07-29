@@ -248,7 +248,11 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
+	t_pokemon* pokemon_sem = semaforo_pokemon(pokemon->nombre.nombre);
+
+	pthread_mutex_lock(&(pokemon_sem->mtx));
 	t_config* config_pokemon = config_create(path_pokemon);
+	pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 	if(!archivo_abierto(config_pokemon)){
 
@@ -389,7 +393,11 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
+	t_pokemon* pokemon_sem = semaforo_pokemon(pokemon->nombre.nombre);
+
+	pthread_mutex_lock(&(pokemon_sem->mtx));
 	t_config* config_pokemon = config_create(path_pokemon);
+	pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 	if(!archivo_abierto(config_pokemon)){
 
@@ -489,7 +497,6 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) - 1);
 
 			if(string_equals_ignore_case(nueva_cantidad_posicion, "0")){
-				puts(nueva_cantidad_posicion);
 				list_remove(lista_datos, i);
 			}else{
 				string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
@@ -802,7 +809,7 @@ t_pokemon* semaforo_pokemon(char* nombre){
 		return string_equals_ignore_case(_pokemon->nombre, nombre);
 	}
 
-	pthread_mutex_unlock(&pokemones_mtx);
+	pthread_mutex_lock(&pokemones_mtx);
 	t_pokemon* pokemon_sem = list_find(pokemones, (void*) _es_pokemon);
 	pthread_mutex_unlock(&pokemones_mtx);
 
