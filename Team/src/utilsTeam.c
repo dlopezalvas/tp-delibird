@@ -37,7 +37,7 @@ void iniciarTeam(){
 	pthread_mutex_init(&mutex_lista_entrenadores, NULL);
 	pthread_mutex_init(&mutex_deadlock, NULL);
 	sem_init(&conexiones, 0,0);
-	sem_init(&sem_ready,0,0);
+
 	sem_init(&sem_ejecutar,0,0);
 	sem_init(&sem_deteccionDeadlock, 0, 0);
 	sem_init(&semAppeared,0,0);
@@ -482,20 +482,6 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 
 	while(!cumpleObjetivoGlobal()){
 			sem_wait(&sem_ejecutar);
-//			puts("1");
-//			sem_wait(&sem_ejecutar);
-//			puts("2");
-//			sem_wait(&sem_ejecutar);
-//			puts("3");
-//			sem_wait(&sem_ejecutar);
-//			puts("4");
-//			sem_wait(&sem_ejecutar);
-//			puts("5");
-//			sem_wait(&sem_ejecutar);
-//			puts("6");
-//			sem_wait(&sem_ejecutar);
-//			puts("7");
-
 			puts("entra a ejecutar");
 //			if(entrenadoresTienenElInventarioLleno()){ //probar
 //							puts("entrenadores tiene inventario lleeno");
@@ -523,7 +509,7 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 
 
 void llenarColaReady(){ // probar
-
+	sem_init(&sem_ready,0,0);
 	t_entrenador* entrenadorAPlanificar;
 	t_pokemon* pokemon;
 //	bool puedePlanificar(t_entrenador* entrenador){
@@ -538,21 +524,6 @@ void llenarColaReady(){ // probar
 		}
 //		pthread_mutex_lock(&sem_ready);
 		sem_wait(&sem_ready);
-		puts("---------------1--------------");
-		sem_wait(&sem_ready);
-		puts("---------------2--------------");
-		sem_wait(&sem_ready);
-		puts("---------------3--------------");
-		sem_wait(&sem_ready);
-		puts("---------------4-------------");
-		sem_wait(&sem_ready);
-		puts("---------------5--------------");
-		sem_wait(&sem_ready);
-		puts("---------------6--------------");
-		sem_wait(&sem_ready);
-		puts("---------------7--------------");
-		sem_wait(&sem_ready);
-		puts("---------------8--------------");
 
 		puts("entra a llena cola ready");
 		pthread_mutex_lock(&requeridos);
@@ -1277,7 +1248,7 @@ void appeared_pokemon(){
 			list_add(pokemonsRequeridos, pokemonNuevo);
 			pthread_mutex_unlock(&requeridos);
 //			pthread_mutex_unlock(&sem_ready);
-			//sem_post(&sem_ready);
+			sem_post(&sem_ready);
 			puts("--------------appeared pokemon-------------");
 		}else{
 
@@ -1383,7 +1354,6 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 	if(entrenadoresTienenElInventarioLleno()){ //probar
 		puts("entrenadores tiene inventario lleeno");
 		sem_post(&sem_deteccionDeadlock);
-
 	}
 
 }
