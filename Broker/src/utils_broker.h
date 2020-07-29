@@ -128,7 +128,9 @@ suscripcion_catch_queue_mutex,
 suscripcion_appeared_queue_mutex,
 multhilos_mutex,
 logger_mutex,
-unique_id_mutex;
+unique_id_mutex,
+memoria_buddy_mutex,
+buddy_id_mutex;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
@@ -213,9 +215,9 @@ bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo);
 t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy);
 bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
 bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
-t_particion_buddy* consolidar_buddy(t_list* lista_fifo_buddy);
+void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_buddy);
 bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover);
-void encontrar_su_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old,t_particion_buddy* buddy_elegido);
+void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
 bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
 
 //
