@@ -11,8 +11,9 @@ t_queue* colaLocalizedPokemon;
 t_queue* colaCaughtPokemon;
 
 pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_ejecutar, mutex_cola_appeared_pokemon, mutex_cola_caught_pokemon, mutex_cola_localized_pokemon,
-log_mutex, sem_ready, mutex_lista_entrenadores, mutex_deadlock;
-sem_t conexiones, sem_deteccionDeadlock,  sem_ejecutar, semAppeared, semCaught, semLocalized;
+log_mutex, mutex_lista_entrenadores, mutex_deadlock;
+sem_t conexiones, sem_deteccionDeadlock,  sem_ejecutar, semAppeared, semCaught, semLocalized, entrenadoresPlanificados,
+sem_ready;
 
 t_config* config;
 t_log* logger;
@@ -27,7 +28,7 @@ void iniciarTeam(){
 	pthread_mutex_init(&objetivo, NULL);
 	pthread_mutex_init(&requeridos, NULL);
 	pthread_mutex_init(&mutex_ready, NULL);
-	pthread_mutex_init(&sem_ready, NULL);
+	//pthread_mutex_init(&sem_ready, NULL);
 	pthread_mutex_init(&mutex_ejecutar, NULL);
 	pthread_mutex_init(&mutex_cola_appeared_pokemon, NULL);
 	pthread_mutex_init(&mutex_cola_caught_pokemon, NULL);
@@ -36,12 +37,14 @@ void iniciarTeam(){
 	pthread_mutex_init(&mutex_lista_entrenadores, NULL);
 	pthread_mutex_init(&mutex_deadlock, NULL);
 	sem_init(&conexiones, 0,0);
-//	sem_init(&sem_ready,0,0);
+	sem_init(&sem_ready,0,0);
 	sem_init(&sem_ejecutar,0,0);
 	sem_init(&sem_deteccionDeadlock, 0, 0);
 	sem_init(&semAppeared,0,0);
 	sem_init(&semLocalized,0,0);
 	sem_init(&semCaught,0,0);
+	sem_init(&entrenadoresPlanificados,0,0);
+
 	estado[1] = "NEW";
 	estado[2] = "READY";
 	estado[3] ="EXEC";
@@ -68,6 +71,12 @@ void iniciarTeam(){
 	configurarEntrenadores(config);
 	configurarObjetivoGlobal();
 	printf("Objetivo global: %d", objetivoGlobal->elements_count);
+
+	for(int i=0; i<entrenadores->elements_count; i++){
+
+		sem_post(&entrenadoresPlanificados);
+
+	}
 
 	void _agregarEspecie(void* pokemon){
 		return agregarEspecie(pokemon, especiesNecesarias);
@@ -473,6 +482,20 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 
 	while(!cumpleObjetivoGlobal()){
 			sem_wait(&sem_ejecutar);
+//			puts("1");
+//			sem_wait(&sem_ejecutar);
+//			puts("2");
+//			sem_wait(&sem_ejecutar);
+//			puts("3");
+//			sem_wait(&sem_ejecutar);
+//			puts("4");
+//			sem_wait(&sem_ejecutar);
+//			puts("5");
+//			sem_wait(&sem_ejecutar);
+//			puts("6");
+//			sem_wait(&sem_ejecutar);
+//			puts("7");
+
 			puts("entra a ejecutar");
 //			if(entrenadoresTienenElInventarioLleno()){ //probar
 //							puts("entrenadores tiene inventario lleeno");
@@ -485,6 +508,8 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 			pthread_mutex_unlock(&mutex_ready);
 			cambiarEstado(&entrenador, EXEC, "va a ejecutar");
 			pthread_mutex_unlock(&((entrenador)->mutex));
+			}else{
+				puts("------------lista vacia-----------------");
 			}
 			//replanificar
 //			if(entrenadoresTienenElInventarioLleno()){ //probar
@@ -505,11 +530,30 @@ void llenarColaReady(){ // probar
 //		return tieneMenosElementos (entrenador->pokemons, entrenador->objetivos) && entrenador->pokemonACapturar == NULL;
 //	}
 	while(!entrenadoresTienenElInventarioLleno()){
-
+		puts("------------antes llenar cola ready-----------------");
+		sem_wait(&entrenadoresPlanificados);
+		puts("------------DESPUES llenar cola ready-----------------");
 		bool _noEstaPlanificado(void* pokemon){
 			return noEstaPlanificado(pokemon);
 		}
-		pthread_mutex_lock(&sem_ready);
+//		pthread_mutex_lock(&sem_ready);
+		sem_wait(&sem_ready);
+		puts("---------------1--------------");
+		sem_wait(&sem_ready);
+		puts("---------------2--------------");
+		sem_wait(&sem_ready);
+		puts("---------------3--------------");
+		sem_wait(&sem_ready);
+		puts("---------------4-------------");
+		sem_wait(&sem_ready);
+		puts("---------------5--------------");
+		sem_wait(&sem_ready);
+		puts("---------------6--------------");
+		sem_wait(&sem_ready);
+		puts("---------------7--------------");
+		sem_wait(&sem_ready);
+		puts("---------------8--------------");
+
 		puts("entra a llena cola ready");
 		pthread_mutex_lock(&requeridos);
 		pokemon = list_find(pokemonsRequeridos, _noEstaPlanificado);
@@ -1232,10 +1276,16 @@ void appeared_pokemon(){
 			pthread_mutex_lock(&requeridos);
 			list_add(pokemonsRequeridos, pokemonNuevo);
 			pthread_mutex_unlock(&requeridos);
-			pthread_mutex_unlock(&sem_ready);
-			puts("appeared pokemon");
+//			pthread_mutex_unlock(&sem_ready);
+			//sem_post(&sem_ready);
+			puts("--------------appeared pokemon-------------");
 		}else{
-			if(necesarios>0) list_add(pokemonsDeRepuesto, &pokemonNuevo);
+
+			if(necesarios>0){
+				list_add(pokemonsDeRepuesto, &pokemonNuevo);
+				puts("--------------entra al if recien agregado-------------");
+			}
+
 		}
 	}
 }
@@ -1329,9 +1379,11 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 //	pthread_mutex_unlock(&objetivo);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
+	sem_post(&entrenadoresPlanificados);
 	if(entrenadoresTienenElInventarioLleno()){ //probar
 		puts("entrenadores tiene inventario lleeno");
 		sem_post(&sem_deteccionDeadlock);
+
 	}
 
 }
@@ -1346,6 +1398,7 @@ void noCapturoPokemon(t_entrenador** entrenador){//Probar
 	pthread_mutex_unlock(&requeridos);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
+	sem_post(&entrenadoresPlanificados);
 }
 
 
