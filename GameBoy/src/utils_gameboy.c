@@ -366,7 +366,6 @@ void ejecutar_team(char** linea_split, t_config* config){
 	free(mensaje);
 }
 
-
 void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
 	char* ip = config_get_string_value(config,IP_GAMECARD);
 	char* puerto = config_get_string_value(config,PUERTO_GAMECARD);
@@ -484,9 +483,18 @@ char** argumentos(char** linea_split, tipo_id flag_id){
 	char** lista_argumentos = malloc(sizeof(char*)*(cantidad+2));
 	int k;
 
-	for(k = 0; k < cantidad; k++){
-		lista_argumentos[k] = linea_split[i_linea_split];
-		i_linea_split++;
+	if(string_equals_ignore_case(linea_split[1], "CAUGHT_POKEMON")){
+		if(string_equals_ignore_case(linea_split[3], "OK")){
+			lista_argumentos[0] = "1";
+		}else if(string_equals_ignore_case(linea_split[3], "FAIL")){
+			lista_argumentos[0] = "0";
+		}
+		k = 1;
+	}else{
+		for(k = 0; k < cantidad; k++){
+			lista_argumentos[k] = linea_split[i_linea_split];
+			i_linea_split++;
+		}
 	}
 
 	lista_argumentos[k] = id;
