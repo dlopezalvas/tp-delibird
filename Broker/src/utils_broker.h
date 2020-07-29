@@ -45,14 +45,17 @@ typedef struct{
   void* buffer; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
   int suscriptor;
   uint32_t id;
+  uint32_t tamanio;
 }t_mensaje_broker;
 
 typedef struct{
 	uint32_t id;
 	uint32_t correlation_id;
+	uint32_t tamanio;
 	void* buffer;
-	int compactacion_intentos_fallidos;
+//	int compactacion_intentos_fallidos;
 }t_buffer_broker;
+
 
 typedef struct{
 	uint32_t base;
@@ -60,6 +63,22 @@ typedef struct{
 	uint32_t id_mensaje;
 	uint32_t ultimo_acceso;
 }t_particion;
+
+typedef struct{
+	uint32_t base;
+	int tamanio;
+	uint32_t id;
+	bool ocupado;
+	uint32_t ultimo_acceso;
+}t_particion_buddy;
+
+typedef struct{
+	uint32_t id;
+	uint32_t correlation_id;
+	t_particion* particion;
+	t_particion_buddy* particion_buddy;
+}t_bloque_broker;
+
 
 typedef enum{
 	BS = 1,
@@ -145,7 +164,7 @@ int proceso_valido(char*,char*);
 int queue_valida(char*,char*);
 
 //Suscribe un mensaje pasandole el tipo de mensaje y el buffer
-int suscribir_mensaje(int cod_op,void* buffer,int client_fd);
+int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size);
 
 //Inicializa todas las queues
 void crear_queues();
@@ -179,7 +198,7 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor);
 void ordenar_particiones_libres();
 void iniciar_memoria(t_config* config);
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
-void almacenar_dato(void* datos, int tamanio);
+void* almacenar_dato(void* datos, int tamanio);
 void almacenar_dato_particiones(void* datos, int tamanio);
 t_particion* buscar_particion_ff(int tamanio_a_almacenar);
 t_particion* buscar_particion_bf(int tamanio_a_almacenar);
@@ -191,21 +210,15 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
 void eliminar_particion(t_particion* particion_a_liberar);
 
 
-t_buffer_broker* deserializar_broker(void* buffer, int size);
+t_buffer_broker* deserializar_broker(void* buffer, uint32_t size);
 
 //buddy
-typedef struct{
-	uint32_t base;
-	int tamanio;
-	uint32_t id;
-	bool ocupado;
-	uint32_t ultimo_acceso;
-}t_particion_buddy;
+
 t_list* memoria_buddy;
 
 uint32_t buddy_id;
 
-void almacenar_datos_buddy(void* datos, int tamanio);
+t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio);
 void eleccion_victima_fifo_buddy(int tamanio);
 void eleccion_victima_lru_buddy();
 void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio);
@@ -219,6 +232,9 @@ void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_bud
 bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover);
 void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
 bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
+t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio);
+bool encontrar_bloque_valido_buddy(t_particion_buddy* bloque_buddy,int tamanio);
+bool ordenar_menor_a_mayor(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
 
 //
 

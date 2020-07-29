@@ -127,7 +127,7 @@ void process_request(int cod_op, int cliente_fd) {
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_conexion_proceso);
 	pthread_mutex_unlock(&logger_mutex);
-	suscribir_mensaje(cod_op,buffer,cliente_fd);
+	suscribir_mensaje(cod_op,buffer,cliente_fd,size);
 //	op_code codigo_operacion = APPEARED_POKEMON;
 //	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 //
@@ -141,7 +141,7 @@ void process_request(int cod_op, int cliente_fd) {
 	//reenviar id
 }
 
-int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
+int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 //	t_new_pokemon* new_pokemon;
 //	t_position_and_name* appeared_pokemon;
@@ -149,67 +149,88 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 //	t_caught_pokemon* caught_pokemon;
 //	t_get_pokemon* get_pokemon;
 
-	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
-	mensaje->buffer = malloc(sizeof(t_buffer));
-	mensaje->buffer = buffer;
-	mensaje->tipo_mensaje = cod_op;
-	pthread_mutex_lock(&unique_id_mutex);
-	mensaje->id = unique_message_id++;
-	pthread_mutex_unlock(&unique_id_mutex);
-
-	mensaje->suscriptor = cliente_fd;
+//	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
+//	mensaje->buffer = malloc(sizeof(t_buffer));
+//	mensaje->buffer = buffer;
+//	mensaje->tamanio = size;
+//	mensaje->tipo_mensaje = cod_op;
+//	pthread_mutex_lock(&unique_id_mutex);
+//	mensaje->id = unique_message_id++;
+//	pthread_mutex_unlock(&unique_id_mutex);
+//
+//	mensaje->suscriptor = cliente_fd;
 //	puts("Despues del t_mensaje_broker");
+
+	//almacenar en memoria
+
+	t_buffer_broker* buffer_broker;
+	pthread_mutex_lock(&unique_id_mutex);
+	uint32_t mensaje_id = unique_message_id++;
+	pthread_mutex_unlock(&unique_id_mutex);
+	buffer_broker = deserializar_broker(buffer,size);
+//	buffer_broker->id = mensaje_id;
+	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio);
+	//
+	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
+	switch(configuracion_cache->algoritmo_memoria){
+	case BS:
+		bloque_broker->particion_buddy = particion_en_memoria;
+		break;
+	case PARTICIONES:
+		bloque_broker->particion = particion_en_memoria;
+		break;
+	}
+
+	bloque_broker->id = mensaje_id;
+	bloque_broker->correlation_id = buffer_broker->correlation_id;
+
 	switch (cod_op) {
 	case NEW_POKEMON:
 		//ejecutar_new_pokemon(mensaje);
 		pthread_mutex_lock(&new_pokemon_mutex);
-		queue_push(NEW_POKEMON_COLA,mensaje);
+		queue_push(NEW_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&new_pokemon_mutex);
 		sem_post(&new_pokemon_sem);
 		break;
 	case APPEARED_POKEMON:
-
 		//ejecutar_appeared_pokemon(mensaje);
 		pthread_mutex_lock(&appeared_pokemon_mutex);
-		queue_push(APPEARED_POKEMON_COLA,mensaje);
+		queue_push(APPEARED_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&appeared_pokemon_mutex);
 		sem_post(&appeared_pokemon_sem);
 		break;
 	case CATCH_POKEMON:
-
 		//ejecutar_catch_pokemon(mensaje);
 		pthread_mutex_lock(&catch_pokemon_mutex);
-		queue_push(CATCH_POKEMON_COLA,mensaje);
+		queue_push(CATCH_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&catch_pokemon_mutex);
 		sem_post(&catch_pokemon_sem);
 		break;
 	case CAUGHT_POKEMON:
-
 		//ejecutar_caught_pokemon(mensaje);
 		pthread_mutex_lock(&caught_pokemon_mutex);
-		queue_push(CAUGHT_POKEMON_COLA,mensaje);
+		queue_push(CAUGHT_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&caught_pokemon_mutex);
 		sem_post(&caught_pokemon_sem);
 		break;
 	case GET_POKEMON:
-
 		//ejecutar_get_pokemon(mensaje);
 		pthread_mutex_lock(&get_pokemon_mutex);
-		queue_push(GET_POKEMON_COLA,mensaje);
+		queue_push(GET_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&get_pokemon_mutex);
 		sem_post(&get_pokemon_sem);
 		break;
 	case LOCALIZED_POKEMON:
 		//ejecutar_localized_pokemon(mensaje);
 		pthread_mutex_lock(&localized_pokemon_mutex);
-		queue_push(LOCALIZED_POKEMON_COLA,mensaje);
+		queue_push(LOCALIZED_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&localized_pokemon_mutex);
 		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
 		//ejecutar_suscripcion(mensaje);
 		pthread_mutex_lock(&suscripcion_mutex);
-		queue_push(SUSCRIPCION_COLA,mensaje);
+		queue_push(SUSCRIPCION_COLA,bloque_broker);
 		pthread_mutex_unlock(&suscripcion_mutex);
 		sem_post(&suscripcion_sem);
 		break;
@@ -221,7 +242,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd){
 		pthread_exit(NULL);
 	}
 
-	return mensaje->id;
+	return bloque_broker->id;
 }
 
 void socketEscucha(char*ip, char* puerto){
@@ -259,56 +280,66 @@ void ejecutar_new_pokemon(){
 
 	while(1){
 
-		sem_wait(&new_pokemon_sem);
-		pthread_mutex_lock(&new_pokemon_mutex);
-		t_mensaje_broker* mensaje = queue_pop(NEW_POKEMON_COLA);
-		pthread_mutex_unlock(&new_pokemon_mutex);
-
-		t_new_pokemon* new_pokemon;
-		new_pokemon = deserializar_new_pokemon(mensaje->buffer);
-		uint32_t mensaje_id;
-		mensaje_id = mensaje->id;
-		new_pokemon->id = mensaje_id;
-
-		char* llegada_new_pokemon_log = string_new();
-		string_append_with_format(&llegada_new_pokemon_log ,"Llego un mensaje: NEW_POKEMON %s %d %d %d del cliente: %d",new_pokemon->nombre.nombre,new_pokemon->coordenadas.pos_x,new_pokemon->coordenadas.pos_y,new_pokemon->cantidad,new_pokemon->id,mensaje->suscriptor);
-		pthread_mutex_lock(&logger_mutex);
-		log_info(logger,llegada_new_pokemon_log);
-		pthread_mutex_unlock(&logger_mutex);
-
-		pthread_mutex_lock(&new_pokemon_queue_mutex);
-		list_add(NEW_POKEMON_QUEUE,new_pokemon);
-		pthread_mutex_unlock(&new_pokemon_queue_mutex);
-		//Envio ack
-		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-		//
-
-		op_code codigo_operacion = NEW_POKEMON;
-		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-
-		//arma mensaje para enviar
-		char* linea_split = "";
-		char* nombre;
-
-		nombre = new_pokemon->nombre.nombre;
-		int coordenadas_x = new_pokemon->coordenadas.pos_x;
-		int coordenadas_y = new_pokemon->coordenadas.pos_y;
-
-		sprintf(linea_split, "%s,%d,%d,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
-		mensaje_enviar -> tipo_mensaje = codigo_operacion;
-		mensaje_enviar -> parametros = string_split(linea_split,",");
-		//
-
-		//envia y loguea mensaje
-		char* log_envio_new_pokemon = string_new();
-		string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
-
-		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_new_pokemon);
-		}
-		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
-		free(mensaje->buffer);
-		free(mensaje);
+//		sem_wait(&new_pokemon_sem);
+//		pthread_mutex_lock(&new_pokemon_mutex);
+//		t_mensaje_broker* mensaje = queue_pop(NEW_POKEMON_COLA);
+//		pthread_mutex_unlock(&new_pokemon_mutex);
+//
+//		t_bloque_broker* new_pokemon_broker;
+//		pthread_mutex_lock(&unique_id_mutex);
+//		uint32_t mensaje_id = unique_message_id++;
+//		pthread_mutex_unlock(&unique_id_mutex);
+//		new_pokemon_broker = deserializar_broker(mensaje->buffer,mensaje->tamanio);
+//		new_pokemon_broker-> = mensaje_id;
+//		almacenar_dato(new_pokemon_broker->buffer,new_pokemon_broker->tamanio);
+//
+//		char* llegada_new_pokemon_log = string_new();
+//		string_append_with_format(&llegada_new_pokemon_log ,"Llego un mensaje: NEW_POKEMON %s %d %d %d del cliente: %d",new_pokemon->nombre.nombre,new_pokemon->coordenadas.pos_x,new_pokemon->coordenadas.pos_y,new_pokemon->cantidad,new_pokemon->id,mensaje->suscriptor);
+//		pthread_mutex_lock(&logger_mutex);
+//		log_info(logger,llegada_new_pokemon_log);
+//		pthread_mutex_unlock(&logger_mutex);
+//
+////		pthread_mutex_lock(&new_pokemon_queue_mutex);
+//
+////		pthread_mutex_unlock(&new_pokemon_queue_mutex);
+//		//Envio ack
+//		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
+//		//
+//
+//		op_code codigo_operacion = NEW_POKEMON;
+//		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
+//
+//		t_buffer_broker* new_pokemon_broker;
+//		pthread_mutex_lock(&unique_id_mutex);
+//		uint32_t mensaje_id = unique_message_id++;
+//		pthread_mutex_unlock(&unique_id_mutex);
+//		new_pokemon_broker = deserializar_broker(mensaje->buffer,mensaje->tamanio);
+//		new_pokemon_broker->id = mensaje_id;
+//
+//
+//		//arma mensaje para enviar
+//		char* linea_split = "";
+//		char* nombre;
+//
+//		nombre = new_pokemon->nombre.nombre;
+//		int coordenadas_x = new_pokemon->coordenadas.pos_x;
+//		int coordenadas_y = new_pokemon->coordenadas.pos_y;
+//
+//		sprintf(linea_split, "%s,%d,%d,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
+//		mensaje_enviar -> tipo_mensaje = codigo_operacion;
+//		mensaje_enviar -> parametros = string_split(linea_split,",");
+//		//
+//
+//		//envia y loguea mensaje
+//		char* log_envio_new_pokemon = string_new();
+//		string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
+//
+//		void _enviar_mensaje_broker(int cliente_a_enviar){
+//			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_new_pokemon);
+//		}
+//		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+//		free(mensaje->buffer);
+//		free(mensaje);
 	}
 }
 
@@ -721,10 +752,10 @@ void iniciar_memoria(t_config* config){
 	//claramente faltan semaforos
 }
 
-void almacenar_dato(void* datos, int tamanio){
+void* almacenar_dato(void* datos, int tamanio){
 	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
-	//	almacenar_dato_bs(datos, tamanio);
+		almacenar_datos_buddy(datos, tamanio);
 		break;
 	case PARTICIONES:
 		almacenar_dato_particiones(datos, tamanio);
@@ -969,14 +1000,14 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 //----------TRANSFORMAR MENSAJES EN VOID*????----------//
 
 
-t_buffer_broker* deserializar_broker(void* buffer, int size){ //eso hay que probarlo que onda
+t_buffer_broker* deserializar_broker(void* buffer, uint32_t size){ //eso hay que probarlo que onda
 
 	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 
-	int tamanio_mensaje = size - sizeof(uint32_t) * 2;
+	uint32_t tamanio_mensaje = size - sizeof(uint32_t) * 2;
 
 	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje)); //??????
-
+	buffer_broker->tamanio = tamanio_mensaje;
 	int offset = 0;
 	memcpy(&buffer_broker->id + offset, buffer, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
@@ -988,26 +1019,14 @@ t_buffer_broker* deserializar_broker(void* buffer, int size){ //eso hay que prob
 	return buffer_broker;
 }
 
-
-// Buddy
-
-
-void almacenar_datos_buddy(void* datos, int tamanio){
+t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio){
 
 	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
-	void _eleccion_particion_buddy(t_particion_buddy* bloque_buddy){
-		return eleccion_particion_buddy(bloque_buddy,bloque_buddy_particion,datos,tamanio);
-	}
+	bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
 
-	pthread_mutex_lock(&memoria_buddy_mutex);
-	list_iterate(memoria_buddy, (void*)_eleccion_particion_buddy);
-	pthread_mutex_unlock(&memoria_buddy_mutex);
+	while(bloque_buddy_particion == NULL){
 
-	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio);
-
-	if(bloque_buddy_particion == NULL){
-
-	switch(configuracion_cache->algoritmo_reemplazo){
+		switch(configuracion_cache->algoritmo_reemplazo){
 		case FIFO:
 			eleccion_victima_fifo_buddy(tamanio);
 			break;
@@ -1015,8 +1034,11 @@ void almacenar_datos_buddy(void* datos, int tamanio){
 			eleccion_victima_lru_buddy();
 			break;
 		}
-
+		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
 	}
+
+	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio);
+	return bloque_buddy_particion;
 }
 
 void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio){
@@ -1024,7 +1046,7 @@ void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* da
 //	bloque_buddy_particion->ocupado = true;
 
 	bool _mismo_id_buddy(void* elemento_lista){
-		return remove_by_id(elemento_lista, bloque_buddy_particion->id);
+		return remove_by_id(elemento_lista, bloque_buddy_particion->id);//TODO: Cambiar nombre remove a buscar
 	}
 
 	pthread_mutex_lock(&memoria_buddy_mutex);
@@ -1033,23 +1055,59 @@ void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* da
 	particion_buddy->ocupado = true;
 }
 
-void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio){
+t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 
-//	bool condicion_buddy = malloc(sizeof(bool));
-	bool condicion_buddy_particion = validar_condicion_buddy(bloque_buddy,tamanio);
+	//bloque_elegido = bloque que retorno para guardar los datos
+	//bloque_a_partir = bloque que voy a partir en mil pedacitos
+	t_particion_buddy* bloque_elegido = malloc(sizeof(t_particion_buddy));
+	t_particion_buddy* bloque_a_partir = malloc(sizeof(t_particion_buddy));
 
-	//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
-	//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
-	//O hasta llegar a que no entre.
-	//Si no entra, lo guardo en la ultima particion que entraba.
-
-	while(condicion_buddy_particion){
-		bloque_buddy_particion = generar_particion_buddy(bloque_buddy);
-		condicion_buddy_particion = validar_condicion_buddy(bloque_buddy_particion,tamanio);
+	bool _validar_condicion_buddy(void* bloque_buddy){
+		return encontrar_bloque_valido_buddy(bloque_buddy,tamanio);
 	}
 
-	if(bloque_buddy_particion != NULL && !bloque_buddy->ocupado && bloque_buddy->tamanio > tamanio)
-		bloque_buddy_particion = bloque_buddy;
+	pthread_mutex_lock(&memoria_buddy_mutex);
+	t_list* lista_bloques_validos = list_filter(memoria_buddy, (void*)_validar_condicion_buddy);
+	pthread_mutex_unlock(&memoria_buddy_mutex);
+
+	if(!list_is_empty(lista_bloques_validos))
+	{
+		bool _ordenar_menor_a_mayor(void* bloque_buddy,void* bloque_buddy2){
+			return ordenar_menor_a_mayor(bloque_buddy,bloque_buddy2);
+		}
+
+		pthread_mutex_lock(&memoria_buddy_mutex);
+		list_sort(memoria_buddy, _ordenar_menor_a_mayor);
+		bloque_a_partir = memoria_buddy->head->data;
+		pthread_mutex_unlock(&memoria_buddy_mutex);
+
+		bool condicion_buddy_particion = validar_condicion_buddy(bloque_a_partir,tamanio);
+
+		//Preguntar si me entra en el bloque, si esta disponible y si el bloque es > a tamanio minimo
+		//Si entra divido por 2 y vuelvo a preguntar lo mismo que antes asi hasta llegar al tamanio minimo
+		//O hasta llegar a que no entre.
+		//Si no entra, lo guardo en la ultima particion que entraba.
+
+		while(condicion_buddy_particion){
+			bloque_elegido = generar_particion_buddy(bloque_a_partir);
+			condicion_buddy_particion = validar_condicion_buddy(bloque_elegido,tamanio);
+		}
+
+		if(bloque_elegido != NULL && !bloque_a_partir->ocupado && bloque_a_partir->tamanio > tamanio)
+			bloque_elegido = bloque_a_partir;
+	}
+
+	//TODO: Verificar que devuelva null
+	return bloque_elegido;
+}
+
+bool encontrar_bloque_valido_buddy(t_particion_buddy* bloque_buddy,int tamanio){
+	return bloque_buddy->tamanio >= tamanio
+			&& !bloque_buddy->ocupado;
+}
+
+bool ordenar_menor_a_mayor(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+	return bloque_buddy->tamanio < bloque_buddy2->tamanio ;
 }
 
 bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio){
