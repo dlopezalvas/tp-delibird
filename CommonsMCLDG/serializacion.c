@@ -238,9 +238,10 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	new_pokemon.coordenadas.pos_y = pos_y;
 	new_pokemon.cantidad = cantidad;
 	new_pokemon.id = atoi(parametros[4]);
+
 	//free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre) + 1;
+	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre)+1;
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -254,7 +255,7 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	offset += sizeof(uint32_t);
 	memcpy(stream + offset, &new_pokemon.nombre.largo_nombre, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(stream + offset, new_pokemon.nombre.nombre, strlen(new_pokemon.nombre.nombre) + 1);
+	memcpy(stream + offset, new_pokemon.nombre.nombre, strlen(new_pokemon.nombre.nombre)+1);
 
 	//free(new_pokemon.nombre.nombre);
 
