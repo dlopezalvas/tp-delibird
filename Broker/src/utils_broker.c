@@ -127,18 +127,16 @@ void process_request(int cod_op, int cliente_fd) {
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,log_conexion_proceso);
 	pthread_mutex_unlock(&logger_mutex);
-	suscribir_mensaje(cod_op,buffer,cliente_fd,size);
-//	op_code codigo_operacion = APPEARED_POKEMON;
-//	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-//
-//	char* linea_split = "PIKACHU,2,2";
-//	mensaje -> tipo_mensaje = codigo_operacion;
-//	mensaje -> parametros = string_split(linea_split,",");
-//	puts(mensaje->parametros[0]);
-//
-//	enviar_mensaje(mensaje,cliente_fd);
+	if(cod_op == SUSCRIPCION){
+		pthread_mutex_lock(&suscripcion_mutex);
+		queue_push(SUSCRIPCION_COLA,bloque_broker);
+		pthread_mutex_unlock(&suscripcion_mutex);
+		sem_post(&suscripcion_sem);
+	}else{
+		suscribir_mensaje(cod_op,buffer,cliente_fd,size);
+	}
 
-	//reenviar id
+
 }
 
 int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
@@ -217,10 +215,10 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 		break;
 	case SUSCRIPCION:
 		//ejecutar_suscripcion(mensaje);
-		pthread_mutex_lock(&suscripcion_mutex);
-		queue_push(SUSCRIPCION_COLA,bloque_broker);
-		pthread_mutex_unlock(&suscripcion_mutex);
-		sem_post(&suscripcion_sem);
+//		pthread_mutex_lock(&suscripcion_mutex);
+//		queue_push(SUSCRIPCION_COLA,bloque_broker);
+//		pthread_mutex_unlock(&suscripcion_mutex);
+//		sem_post(&suscripcion_sem);
 		break;
 	case 0:
 		puts("mata al hilo");
@@ -273,31 +271,46 @@ void ejecutar_new_pokemon(){
 		t_bloque_broker* bloque_broker = queue_pop(NEW_POKEMON_COLA);
 		pthread_mutex_unlock(&new_pokemon_mutex);
 
+		//TODO verificar (con identificadores de los procesos) si se mando el mensaje a ese proceso especifico (esperar mail ayudante)
+		op_code codigo_operacion = NEW_POKEMON;
+
+		t_paquete* paquete = malloc(sizeof(t_paquete));
+
+		paquete -> codigo_operacion = codigo_operacion;
+
+		t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
+
+		buffer_cargado->size = bloque_broker->particion->tamanio + sizeof(uint32_t);
+
+		void* stream = malloc(buffer_cargado->size); //tamaño del mensaje + id
+
+		int offset = 0;
+		memcpy(stream + offset, &bloque_broker->id, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(stream + offset, (void*)bloque_broker->particion->base, sizeof(uint32_t)); //TODO switch para buddy
+		offset += sizeof(uint32_t);
+
+		buffer_cargado->stream = stream;
+
+		paquete -> buffer = buffer_cargado;
+
+		int bytes = 0;
+
+		void* a_enviar = serializar_paquete(paquete, &bytes);
+
+
+		void _enviar_mensaje_broker(int cliente_a_enviar){ //esto funca?
+			send(cliente_a_enviar,a_enviar,bytes,0);
+		}
+		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+
 
 //		char* llegada_new_pokemon_log = string_new();
 //		string_append_with_format(&llegada_new_pokemon_log ,"Llego un mensaje: NEW_POKEMON %s %d %d %d del cliente: %d",new_pokemon->nombre.nombre,new_pokemon->coordenadas.pos_x,new_pokemon->coordenadas.pos_y,new_pokemon->cantidad,new_pokemon->id,mensaje->suscriptor);
 //		pthread_mutex_lock(&logger_mutex);
 //		log_info(logger,llegada_new_pokemon_log);
 //		pthread_mutex_unlock(&logger_mutex);
-//
-////		pthread_mutex_lock(&new_pokemon_queue_mutex);
-//
-////		pthread_mutex_unlock(&new_pokemon_queue_mutex);
-//		//Envio ack
-//		send(mensaje->suscriptor,&mensaje_id,sizeof(uint32_t),0);
-//		//
-//
-//		op_code codigo_operacion = NEW_POKEMON;
-//		t_mensaje* mensaje_enviar = malloc(sizeof(t_mensaje));
-//
-//		t_buffer_broker* new_pokemon_broker;
-//		pthread_mutex_lock(&unique_id_mutex);
-//		uint32_t mensaje_id = unique_message_id++;
-//		pthread_mutex_unlock(&unique_id_mutex);
-//		new_pokemon_broker = deserializar_broker(mensaje->buffer,mensaje->tamanio);
-//		new_pokemon_broker->id = mensaje_id;
-//
-//
+
 //		//arma mensaje para enviar
 //		char* linea_split = "";
 //		char* nombre;
@@ -315,10 +328,7 @@ void ejecutar_new_pokemon(){
 //		char* log_envio_new_pokemon = string_new();
 //		string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
 //
-//		void _enviar_mensaje_broker(int cliente_a_enviar){
-//			return enviar_mensaje_broker(cliente_a_enviar, mensaje_enviar,mensaje_id,log_envio_new_pokemon);
-//		}
-//		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+
 //		free(mensaje->buffer);
 //		free(mensaje);
 	}
