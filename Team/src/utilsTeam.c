@@ -10,6 +10,7 @@ t_queue* colaAppearedPokemon;
 t_queue* colaLocalizedPokemon;
 t_queue* colaCaughtPokemon;
 
+
 pthread_mutex_t objetivo, requeridos, mutex_ready, mutex_cola_appeared_pokemon, mutex_cola_caught_pokemon, mutex_cola_localized_pokemon,
 log_mutex, mutex_lista_entrenadores, mutex_deadlock, mutex_ejecutar, repuesto;
 sem_t conexiones, sem_deteccionDeadlock,  sem_ejecutar,  semAppeared, semCaught, semLocalized, entrenadoresPlanificados,
@@ -1013,8 +1014,7 @@ void connect_localized_pokemon(){
 	void _get_pokemon(void* especie){
 		return get_pokemon(especie, socket_broker, IDs_get_pokemon);
 	}
-
-	list_iterate(especiesNecesarias, (void*)_get_pokemon); //poner if es la primera vez que lo ejecuta??
+	if(list_is_empty(IDs_get_pokemon))	list_iterate(especiesNecesarias, (void*)_get_pokemon); //ver si funciona esa condicion
 	int size = 0;
 	t_localized_pokemon* localized = malloc(sizeof(t_localized_pokemon));
 	bool _mismaEspecie(char* especie1){
