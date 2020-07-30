@@ -41,11 +41,11 @@
 t_log* logger;
 
 typedef struct{
-  op_code tipo_mensaje;
-  void* buffer; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
+//  op_code tipo_mensaje;
+  void* buffer;
   int suscriptor;
-  uint32_t id;
-  uint32_t tamanio;
+//  uint32_t id;
+//  uint32_t tamanio;
 }t_mensaje_broker;
 
 typedef struct{
@@ -199,7 +199,7 @@ void ordenar_particiones_libres();
 void iniciar_memoria(t_config* config);
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
 void* almacenar_dato(void* datos, int tamanio);
-void almacenar_dato_particiones(void* datos, int tamanio);
+t_particion* almacenar_dato_particiones(void* datos, int tamanio);
 t_particion* buscar_particion_ff(int tamanio_a_almacenar);
 t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);
@@ -210,7 +210,7 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
 void eliminar_particion(t_particion* particion_a_liberar);
 
 
-t_buffer_broker* deserializar_broker(void* buffer, uint32_t size);
+t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size);
 
 //buddy
 
