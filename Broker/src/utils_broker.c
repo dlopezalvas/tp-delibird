@@ -143,32 +143,14 @@ void process_request(int cod_op, int cliente_fd) {
 
 int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
-//	t_new_pokemon* new_pokemon;
-//	t_position_and_name* appeared_pokemon;
-//	t_position_and_name* catch_pokemon;
-//	t_caught_pokemon* caught_pokemon;
-//	t_get_pokemon* get_pokemon;
-
-//	t_mensaje_broker* mensaje = malloc(sizeof(t_mensaje_broker));
-//	mensaje->buffer = malloc(sizeof(t_buffer));
-//	mensaje->buffer = buffer;
-//	mensaje->tamanio = size;
-//	mensaje->tipo_mensaje = cod_op;
-//	pthread_mutex_lock(&unique_id_mutex);
-//	mensaje->id = unique_message_id++;
-//	pthread_mutex_unlock(&unique_id_mutex);
-//
-//	mensaje->suscriptor = cliente_fd;
-//	puts("Despues del t_mensaje_broker");
-
-	//almacenar en memoria
-
 	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 	pthread_mutex_lock(&unique_id_mutex);
 	unique_message_id++;
 	pthread_mutex_unlock(&unique_id_mutex);
 
 	uint32_t mensaje_id = unique_message_id;
+
+	send(cliente_fd,&mensaje_id,sizeof(uint32_t),0); //envio ack
 
 	buffer_broker = deserializar_broker_ida(buffer,size);
 

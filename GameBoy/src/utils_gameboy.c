@@ -329,6 +329,8 @@ void ejecutar_broker(char** linea_split, t_config* config, tipo_id flag_id){
 	int _recv;
 	_recv = recv(socket_broker, &id, sizeof(uint32_t), 0);
 	if(_recv == 0 || _recv == -1){
+		puts("murio");
+	}else{
 		log_info(logger,"DEBUG: recibio el ack %d",id);
 	}
 	liberar_conexion(socket_broker);
@@ -354,12 +356,14 @@ void ejecutar_team(char** linea_split, t_config* config){
 	log_info(logger,"Se ha establecido una conexion con el proceso Team");
 
 	enviar_mensaje(mensaje, socket_team);
-//	uint32_t id;
-//	int _recv;
-//	_recv = recv(socket_team, &id, sizeof(uint32_t), 0);
-//	if(_recv == 0 || _recv == -1){
-//		log_info(logger,"DEBUG: recibio el ack %d",id);
-//	}
+	uint32_t id;
+	int _recv;
+	_recv = recv(socket_team, &id, sizeof(uint32_t), 0);
+	if(_recv == 0 || _recv == -1){
+		puts("murio");
+	}else{
+		log_info(logger,"DEBUG: recibio el ack %d",id);
+	}
 	liberar_conexion(socket_team);
 
 	free(mensaje -> parametros);
@@ -386,12 +390,14 @@ void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
 
 	enviar_mensaje(mensaje, socket_gamecard);
 
-//	uint32_t id;
-//	int _recv;
-//	_recv = recv(socket_gamecard, &id, sizeof(uint32_t), 0);
-//	if(_recv == 0 || _recv == -1){
-//		log_info(logger,"DEBUG: recibio el ack %d",id);
-//	}
+	uint32_t id;
+	int _recv;
+	_recv = recv(socket_gamecard, &id, sizeof(uint32_t), 0);
+	if(_recv == 0 || _recv == -1){
+		puts("murio");
+	}else{
+		log_info(logger,"DEBUG: recibio el ack %d",id);
+	}
 	liberar_conexion(socket_gamecard);
 
 	free(mensaje -> parametros);
