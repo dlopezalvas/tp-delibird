@@ -165,11 +165,8 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 		break;
 	case PARTICIONES:
 		bloque_broker->particion = particion_en_memoria;
-		puts("coso");
-		puts(string_itoa(bloque_broker->particion->base));
 		break;
 	}
-
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 
@@ -286,8 +283,6 @@ void ejecutar_new_pokemon(){
 
 		t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
 
-		puts(string_itoa(bloque_broker->particion->base));
-
 		buffer_cargado->size = bloque_broker->particion->tamanio + sizeof(uint32_t);
 
 		void* stream = malloc(buffer_cargado->size); //tamaño del mensaje + id
@@ -295,7 +290,7 @@ void ejecutar_new_pokemon(){
 		int offset = 0;
 		memcpy(stream + offset, &bloque_broker->id, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		memcpy(stream + offset, (void*)bloque_broker->particion->base, sizeof(uint32_t)); //TODO switch para buddy
+		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio); //TODO switch para buddy
 		offset += sizeof(uint32_t);
 
 		buffer_cargado->stream = stream;
@@ -309,6 +304,7 @@ void ejecutar_new_pokemon(){
 
 		void _enviar_mensaje_broker(int cliente_a_enviar){ //esto funca?
 			send(cliente_a_enviar,a_enviar,bytes,0);
+			puts("envie un mensaje");
 		}
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 
