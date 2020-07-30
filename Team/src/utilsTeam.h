@@ -28,6 +28,8 @@
 #define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Team/TEAM.config"
 
 
+
+
 typedef enum
 {
 	NEW = 1,
@@ -36,6 +38,20 @@ typedef enum
 	BLOCK = 4,
 	EXIT = 5,
 }t_estado;
+
+typedef enum{
+	FIFO = 1,
+	RR = 2,
+	SJFCD =3,
+	SJFSD = 4,
+}tipo_algoritmo;
+
+typedef struct t_algoritmo_planificacion{
+	tipo_algoritmo tipoAlgoritmo;
+	int quantum;
+	float alpha;
+	float estimacion_inicial;
+}t_algoritmo_planificacion;
 
 
 typedef struct t_pokemon
@@ -62,6 +78,7 @@ typedef struct t_entrenador
 	pthread_mutex_t mutex;
 	uint32_t catch_id;
 	bool respuesta_catch;
+	int quantum_usado;
 } t_entrenador;
 
 typedef struct t_intercambio{
@@ -120,9 +137,12 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y);
 void intercambiarPokemon(t_entrenador** entrenador);
 //
 //void atraparPokemon(t_entrenador* entrenador);
-//planifica a los entrenadores con FIFO
-void planificarFIFO();
+//planifica a los entrenadores
+
 void planificar();
+
+//replanifica segun algoritmo de planificacion
+void replanificar();
 //Devuelve true si el primer entrenador esta mas cerca del pokemon que el segundo
 bool menorDistancia(t_entrenador* elem1, t_entrenador* elem2, t_pokemon* pokemon);
 //Planifica al entrenador mas cercano al pokemon y lo agrega a la cola ready
