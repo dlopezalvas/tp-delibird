@@ -210,7 +210,7 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
 void eliminar_particion(t_particion* particion_a_liberar);
 
 
-t_buffer_broker* deserializar_broker(void* buffer, uint32_t size);
+t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size);
 
 //buddy
 

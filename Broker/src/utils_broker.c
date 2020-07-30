@@ -163,11 +163,15 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	//almacenar en memoria
 
-	t_buffer_broker* buffer_broker;
+	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 	pthread_mutex_lock(&unique_id_mutex);
 	uint32_t mensaje_id = unique_message_id++;
 	pthread_mutex_unlock(&unique_id_mutex);
-	buffer_broker = deserializar_broker(buffer,size);
+	puts("size");
+	puts(string_itoa(size));
+	buffer_broker = deserializar_broker_ida(buffer,size);
+
+	puts(string_itoa(buffer_broker->id));
 //	buffer_broker->id = mensaje_id;
 	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio);
 	//
@@ -183,6 +187,8 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
+
+	printf("id: %d cid: %d\n");
 
 	switch (cod_op) {
 	case NEW_POKEMON:
@@ -280,19 +286,15 @@ void ejecutar_new_pokemon(){
 
 	while(1){
 
-//		sem_wait(&new_pokemon_sem);
-//		pthread_mutex_lock(&new_pokemon_mutex);
-//		t_mensaje_broker* mensaje = queue_pop(NEW_POKEMON_COLA);
-//		pthread_mutex_unlock(&new_pokemon_mutex);
-//
-//		t_bloque_broker* new_pokemon_broker;
-//		pthread_mutex_lock(&unique_id_mutex);
-//		uint32_t mensaje_id = unique_message_id++;
-//		pthread_mutex_unlock(&unique_id_mutex);
-//		new_pokemon_broker = deserializar_broker(mensaje->buffer,mensaje->tamanio);
-//		new_pokemon_broker-> = mensaje_id;
-//		almacenar_dato(new_pokemon_broker->buffer,new_pokemon_broker->tamanio);
-//
+		sem_wait(&new_pokemon_sem);
+		pthread_mutex_lock(&new_pokemon_mutex);
+		t_bloque_broker* bloque_broker = queue_pop(NEW_POKEMON_COLA);
+		pthread_mutex_unlock(&new_pokemon_mutex);
+
+		pthread_mutex_lock(&unique_id_mutex);
+		uint32_t mensaje_id = unique_message_id++;
+		pthread_mutex_unlock(&unique_id_mutex);
+
 //		char* llegada_new_pokemon_log = string_new();
 //		string_append_with_format(&llegada_new_pokemon_log ,"Llego un mensaje: NEW_POKEMON %s %d %d %d del cliente: %d",new_pokemon->nombre.nombre,new_pokemon->coordenadas.pos_x,new_pokemon->coordenadas.pos_y,new_pokemon->cantidad,new_pokemon->id,mensaje->suscriptor);
 //		pthread_mutex_lock(&logger_mutex);
@@ -709,6 +711,8 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 //------------MEMORIA------------//
 void iniciar_memoria(t_config* config){
 
+	configuracion_cache = malloc(sizeof(t_config_cache));
+
 	configuracion_cache->tamanio_memoria = config_get_int_value(config, TAMANO_MEMORIA);
 	configuracion_cache->tamanio_minimo_p = config_get_int_value(config, TAMANO_MINIMO_PARTICION);
 
@@ -726,9 +730,12 @@ void iniciar_memoria(t_config* config){
 	memoria_cache = malloc(configuracion_cache->tamanio_memoria);
 
 	particiones_libres = list_create();
-	t_particion* aux;
+	t_particion* aux = malloc(sizeof(t_particion));
 
-	aux->base = memoria_cache;
+	aux->base = (int)memoria_cache;
+
+	printf("la memoria empieza en %d\n", memoria_cache);
+	printf("la primer particion empieza en %d\n", aux->base);
 
 	aux->tamanio = configuracion_cache->tamanio_memoria;
 
@@ -736,19 +743,23 @@ void iniciar_memoria(t_config* config){
 
 	particiones_ocupadas = list_create();
 
+	t_particion* particion_libre = list_get(particiones_libres, 0);
+
+	puts(string_itoa(particion_libre->base));
+
 	buddy_id = 0;
 
 	t_particion_buddy* bloque_buddy = malloc(sizeof(t_particion_buddy));
 
-	bloque_buddy->base = memoria_cache;
+	bloque_buddy->base = (int) memoria_cache;
 	bloque_buddy->ocupado = false;
 	bloque_buddy->tamanio = configuracion_cache->tamanio_memoria;
 	bloque_buddy->id = buddy_id;
 
 	memoria_buddy = list_create();
-	pthread_mutex_lock(&memoria_buddy_mutex);
+//	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_add(memoria_buddy,bloque_buddy);
-	pthread_mutex_lock(&memoria_buddy_mutex);
+//	pthread_mutex_lock(&memoria_buddy_mutex);
 	//claramente faltan semaforos
 }
 
@@ -775,6 +786,7 @@ void almacenar_dato_particiones(void* datos, int tamanio){
 		particion_libre = particion_libre_bf(tamanio);
 	}
 
+	puts(string_itoa(particion_libre->base));
 	asignar_particion(datos, particion_libre, tamanio);
 }
 
@@ -824,6 +836,8 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
+	puts(string_itoa(particion_libre->base));
+
 	return particion_libre;
 }
 
@@ -842,6 +856,8 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar){
 			contador = 0;
 		}
 	}
+
+
 
 	return particion_libre;
 }
@@ -976,7 +992,7 @@ void eliminar_particion(t_particion* particion_a_liberar){
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 
-	memcpy(memoria_cache + particion_libre->base, datos, tamanio); //copio a la memoria
+	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
 
 	bool _es_la_particion(t_particion* particion){
 		return particion == particion_libre;
@@ -1000,21 +1016,28 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 //----------TRANSFORMAR MENSAJES EN VOID*????----------//
 
 
-t_buffer_broker* deserializar_broker(void* buffer, uint32_t size){ //eso hay que probarlo que onda
+t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size){ //eso hay que probarlo que onda
+
 
 	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 
-	uint32_t tamanio_mensaje = size - sizeof(uint32_t) * 2;
+	uint32_t tamanio_mensaje = size - sizeof(uint32_t);
 
 	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje)); //??????
 	buffer_broker->tamanio = tamanio_mensaje;
 	int offset = 0;
-	memcpy(&buffer_broker->id + offset, buffer, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(&buffer_broker->correlation_id + offset, buffer, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(buffer_broker->buffer, buffer, tamanio_mensaje);
+	int a = 0;
 
+	void* stream = malloc(tamanio_mensaje);
+
+	memcpy(&a, buffer + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+//	memcpy(&buffer_broker->correlation_id + offset, buffer, sizeof(uint32_t));
+//	offset += sizeof(uint32_t);
+	memcpy(stream, buffer + offset, tamanio_mensaje);
+
+	buffer_broker->id = a;
+	buffer_broker->buffer = stream;
 
 	return buffer_broker;
 }
