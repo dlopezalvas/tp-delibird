@@ -165,17 +165,17 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 	pthread_mutex_lock(&unique_id_mutex);
-	uint32_t mensaje_id = unique_message_id++;
+	unique_message_id++;
 	pthread_mutex_unlock(&unique_id_mutex);
-	puts("size");
-	puts(string_itoa(size));
+
+	uint32_t mensaje_id = unique_message_id;
+
 	buffer_broker = deserializar_broker_ida(buffer,size);
 
-	puts(string_itoa(buffer_broker->id));
-//	buffer_broker->id = mensaje_id;
 	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio);
-	//
+
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
+
 	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
 		bloque_broker->particion_buddy = particion_en_memoria;
@@ -188,7 +188,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 
-	printf("id: %d cid: %d\n");
+	printf("id: %d cid: %d\n", bloque_broker->id, bloque_broker->correlation_id);
 
 	switch (cod_op) {
 	case NEW_POKEMON:
@@ -291,9 +291,6 @@ void ejecutar_new_pokemon(){
 		t_bloque_broker* bloque_broker = queue_pop(NEW_POKEMON_COLA);
 		pthread_mutex_unlock(&new_pokemon_mutex);
 
-		pthread_mutex_lock(&unique_id_mutex);
-		uint32_t mensaje_id = unique_message_id++;
-		pthread_mutex_unlock(&unique_id_mutex);
 
 //		char* llegada_new_pokemon_log = string_new();
 //		string_append_with_format(&llegada_new_pokemon_log ,"Llego un mensaje: NEW_POKEMON %s %d %d %d del cliente: %d",new_pokemon->nombre.nombre,new_pokemon->coordenadas.pos_x,new_pokemon->coordenadas.pos_y,new_pokemon->cantidad,new_pokemon->id,mensaje->suscriptor);
