@@ -146,7 +146,11 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	send(cliente_fd,&mensaje_id,sizeof(uint32_t),0); //envio ack
 
-	buffer_broker = deserializar_broker_ida(buffer,size);
+	if(es_mensaje_respuesta(cod_op)){
+		buffer_broker = deserializar_broker_vuelta(buffer,size);
+	}else{
+		buffer_broker = deserializar_broker_ida(buffer,size); //si no es de respuesta no tiene correlation id
+	}
 
 	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio);
 
@@ -167,65 +171,56 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	switch (cod_op) {
 	case NEW_POKEMON:
-		//ejecutar_new_pokemon(mensaje);
 		pthread_mutex_lock(&new_pokemon_mutex);
 		queue_push(NEW_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&new_pokemon_mutex);
 		sem_post(&new_pokemon_sem);
 		break;
 	case APPEARED_POKEMON:
-		//ejecutar_appeared_pokemon(mensaje);
 		pthread_mutex_lock(&appeared_pokemon_mutex);
 		queue_push(APPEARED_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&appeared_pokemon_mutex);
 		sem_post(&appeared_pokemon_sem);
 		break;
 	case CATCH_POKEMON:
-		//ejecutar_catch_pokemon(mensaje);
 		pthread_mutex_lock(&catch_pokemon_mutex);
 		queue_push(CATCH_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&catch_pokemon_mutex);
 		sem_post(&catch_pokemon_sem);
 		break;
 	case CAUGHT_POKEMON:
-		//ejecutar_caught_pokemon(mensaje);
 		pthread_mutex_lock(&caught_pokemon_mutex);
 		queue_push(CAUGHT_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&caught_pokemon_mutex);
 		sem_post(&caught_pokemon_sem);
 		break;
 	case GET_POKEMON:
-		//ejecutar_get_pokemon(mensaje);
 		pthread_mutex_lock(&get_pokemon_mutex);
 		queue_push(GET_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&get_pokemon_mutex);
 		sem_post(&get_pokemon_sem);
 		break;
 	case LOCALIZED_POKEMON:
-		//ejecutar_localized_pokemon(mensaje);
 		pthread_mutex_lock(&localized_pokemon_mutex);
 		queue_push(LOCALIZED_POKEMON_COLA,bloque_broker);
 		pthread_mutex_unlock(&localized_pokemon_mutex);
 		sem_post(&localized_pokemon_sem);
 		break;
 	case SUSCRIPCION:
-		//ejecutar_suscripcion(mensaje);
-//		pthread_mutex_lock(&suscripcion_mutex);
-//		queue_push(SUSCRIPCION_COLA,bloque_broker);
-//		pthread_mutex_unlock(&suscripcion_mutex);
-//		sem_post(&suscripcion_sem);
 		break;
 	case 0:
-		puts("mata al hilo");
 		pthread_exit(NULL);
 	case -1:
-		puts("mata al hilo por -1");
 		pthread_exit(NULL);
 	}
 
 	return bloque_broker->id;
 }
 
+
+bool es_mensaje_respuesta(op_code cod_op){
+	return cod_op == APPEARED_POKEMON || cod_op == LOCALIZED_POKEMON || cod_op == CAUGHT_POKEMON;
+}
 
 void socketEscucha(char*ip, char* puerto){
 	int servidor = iniciar_servidor(ip,puerto);
@@ -236,25 +231,21 @@ void socketEscucha(char*ip, char* puerto){
 }
 
 
-void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,uint32_t mensaje_id,char* mensaje_log){
-//	puts(string_itoa(cliente_a_enviar));
-	enviar_mensaje(mensaje_enviar,cliente_a_enviar);
-//	uint32_t id;
-//	int _recv;
-//	_recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
-//	if(_recv == 0 || _recv == -1){
-//		pthread_mutex_lock(&logger_mutex);
-//		log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
-//		pthread_mutex_unlock(&logger_mutex);
-//	}else{
-//		string_append_with_format(&mensaje_log ," y recibio ack: %d",id);
-//		pthread_mutex_lock(&logger_mutex);
-//		log_info(logger,mensaje_log);
-//		pthread_mutex_unlock(&logger_mutex);
-//	}
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,mensaje_log);
-	pthread_mutex_unlock(&logger_mutex);
+void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
+
+	send(cliente_a_enviar,a_enviar,bytes,0);
+	uint32_t id;
+	int _recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
+	if(_recv == 0 || _recv == -1){
+		pthread_mutex_lock(&logger_mutex);
+		//log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
+		pthread_mutex_unlock(&logger_mutex);
+	}else{
+		pthread_mutex_lock(&logger_mutex);
+		log_info(logger,"recibio ack: %d",id);
+		pthread_mutex_unlock(&logger_mutex);
+	}
+
 }
 
 
@@ -295,15 +286,8 @@ void ejecutar_new_pokemon(){
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
 
-		void _enviar_mensaje_broker(int cliente_a_enviar){ //esto funca?
-			send(cliente_a_enviar,a_enviar,bytes,0);
-			uint32_t id;
-			int _recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
-			if(_recv == 0 || _recv == -1){
-				puts("no se recibio ack");
-			}else{
-				printf("se recibio el ack con id %d", id); //TODO logs
-			}
+		void _enviar_mensaje_broker(int cliente_a_enviar){
+			return enviar_mensaje_broker(cliente_a_enviar,a_enviar,bytes);
 
 		}
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
@@ -945,6 +929,8 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	eliminar_particion(particion);
 
+	return particion;
+
 }
 
 void eliminar_particion(t_particion* particion_a_liberar){
@@ -1001,21 +987,49 @@ t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size){ //eso hay
 	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje)); //??????
 	buffer_broker->tamanio = tamanio_mensaje;
 	int offset = 0;
-	int a = 0;
+	int id = 0;
 
 	void* stream = malloc(tamanio_mensaje);
 
-	memcpy(&a, buffer + offset, sizeof(uint32_t));
+	memcpy(&id, buffer + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-//	memcpy(&buffer_broker->correlation_id + offset, buffer, sizeof(uint32_t));
-//	offset += sizeof(uint32_t);
 	memcpy(stream, buffer + offset, tamanio_mensaje);
 
-	buffer_broker->id = a;
+	buffer_broker->id = id;
+	buffer_broker->correlation_id = 0; //no tiene corr id
 	buffer_broker->buffer = stream;
 
 	return buffer_broker;
 }
+
+t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size){
+
+
+	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
+
+	uint32_t tamanio_mensaje = size - sizeof(uint32_t)*2;
+
+	buffer_broker->buffer = malloc(sizeof(tamanio_mensaje));
+	buffer_broker->tamanio = tamanio_mensaje;
+	int offset = 0;
+	int id = 0;
+	int cid = 0;
+
+	void* stream = malloc(tamanio_mensaje);
+
+	memcpy(&id, buffer + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(&cid, buffer + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(stream, buffer + offset, tamanio_mensaje);
+
+	buffer_broker->id = id;
+	buffer_broker->id = cid;
+	buffer_broker->buffer = stream;
+
+	return buffer_broker;
+}
+
 
 t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio){
 
