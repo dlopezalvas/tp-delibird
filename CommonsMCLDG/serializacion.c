@@ -25,7 +25,7 @@ void enviar_mensaje(t_mensaje* mensaje, int socket){
 
 }
 
-void* serializar_paquete(t_paquete* paquete, int *bytes){ //id == 0 NO TIENE ID
+void* serializar_paquete(t_paquete* paquete, int *bytes){
 
 	int size = sizeof(uint32_t) + paquete->buffer->size + sizeof(paquete->codigo_operacion);
 
@@ -37,11 +37,6 @@ void* serializar_paquete(t_paquete* paquete, int *bytes){ //id == 0 NO TIENE ID
 	*bytes += sizeof(int);
 	memcpy(a_enviar  + *bytes, paquete -> buffer -> stream, paquete -> buffer -> size);
 	*bytes += paquete->buffer->size;
-//	if(id != 0){
-//		memcpy(a_enviar + *bytes, &id, sizeof(uint32_t));
-//		*bytes +=sizeof(uint32_t);
-//	}
-
 
 	return a_enviar;
 }
@@ -60,6 +55,7 @@ t_buffer* cargar_buffer(t_mensaje* mensaje){
 		case(CAUGHT_POKEMON): return buffer_caught_pokemon(parametros);
 		case(LOCALIZED_POKEMON): return buffer_localized_pokemon(parametros);
 		case(SUSCRIPCION): return buffer_suscripcion(parametros);
+		case(ACK): return buffer_ack(parametros);
 	}
 	return 0;
 }
@@ -79,7 +75,7 @@ t_buffer* buffer_localized_pokemon(char** parametros){
 	localized_pokemon.nombre.largo_nombre = strlen(localized_pokemon.nombre.nombre);
 	localized_pokemon.cantidad = cantidad;
 
-	buffer -> size = sizeof(uint32_t)*(cantidadParametros+4) + strlen(localized_pokemon.nombre.nombre);
+	buffer -> size = sizeof(uint32_t)*(cantidadParametros+4) + strlen(localized_pokemon.nombre.nombre) + 1;
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
 
@@ -111,6 +107,7 @@ t_buffer* buffer_localized_pokemon(char** parametros){
 	buffer -> stream = stream;
 	return buffer;
 }
+
 t_buffer* buffer_caught_pokemon(char** parametros){
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
@@ -203,7 +200,7 @@ t_buffer* buffer_get_pokemon(char** parametros){
 	get_pokemon.id = atoi(parametros[1]);
 	//free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*2 + strlen(get_pokemon.nombre.nombre);
+	buffer -> size = sizeof(uint32_t)*2 + strlen(get_pokemon.nombre.nombre) + 1;
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -241,7 +238,7 @@ t_buffer* buffer_new_pokemon(char** parametros){
 
 	//free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre);
+	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre) + 1;
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -287,7 +284,40 @@ t_buffer* buffer_suscripcion(char** parametros){
 	return buffer;
 
 }
+
+t_buffer* buffer_ack(char** parametros){
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+
+	t_ack ack;
+	ack.id_mensaje = atoi(parametros[0]);
+	ack.id_proceso = atoi(parametros[1]);
+
+	buffer->size = sizeof(uint32_t) * 2;
+
+	void* stream = malloc(buffer->size);
+
+	int offset = 0;
+
+	memcpy(stream + offset, &ack.id_mensaje, sizeof(uint32_t));
+	offset+= sizeof(uint32_t);
+	memcpy(stream + offset, &ack.id_proceso, sizeof(uint32_t));
+
+	buffer->stream = stream;
+
+	return buffer;
+}
+
 ///////////////////////////DESERIALIZAR/////////////////////////////////
+
+t_ack* deserializar_ack(void* buffer){
+	t_ack* ack = malloc(sizeof(t_ack));
+
+	memcpy(&ack->id_mensaje, buffer, sizeof(uint32_t));
+	buffer+= sizeof(uint32_t);
+	memcpy(&ack->id_proceso, buffer, sizeof(uint32_t));
+
+	return ack;
+}
 
 t_get_pokemon* deserializar_get_pokemon(void* buffer){
 
@@ -306,7 +336,6 @@ t_get_pokemon* deserializar_get_pokemon(void* buffer){
 t_localized_pokemon* deserializar_localized_pokemon(void*buffer){
 
 	t_localized_pokemon* localized_pokemon = malloc(sizeof(t_localized_pokemon));
-
 
 	localized_pokemon->listaCoordenadas = list_create();
 
@@ -399,6 +428,20 @@ t_suscripcion* deserializar_suscripcion(void* buffer){
 	memcpy(&suscripcion->cola, buffer, sizeof(op_code));
 
 	return suscripcion;
+}
+
+void enviar_ack(int socket, uint32_t id, int id_proceso){
+	op_code codigo_ack = ACK;
+
+	t_mensaje* ack = malloc(sizeof(t_mensaje));
+
+	char* parametros_ack = string_new();
+	string_append_with_format(&parametros_ack, "%d,%d", id, id_proceso);
+
+	ack -> tipo_mensaje = codigo_ack;
+	ack -> parametros = string_split(parametros_ack, ",");
+
+	enviar_mensaje(ack, socket);
 }
 
 

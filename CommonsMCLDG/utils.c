@@ -55,4 +55,3 @@ op_code codigo_mensaje(char* tipo_mensaje){
 	}
 }
 
-

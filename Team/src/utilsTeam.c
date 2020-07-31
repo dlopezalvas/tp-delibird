@@ -984,6 +984,8 @@ void connect_appeared(){
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 
@@ -1017,7 +1019,11 @@ void connect_appeared(){
 
 			puts("recibe mensaje");
 			appeared = deserializar_position_and_name(buffer);
-			send(socket_broker, &(appeared->id), sizeof(uint32_t), 0);
+
+			uint32_t id_ack = appeared->id;
+
+			enviar_ack(socket_broker, id_ack, id_proceso);
+
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
 				pthread_mutex_lock(&log_mutex);
 				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
@@ -1069,6 +1075,8 @@ void connect_localized_pokemon(){
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
@@ -1111,7 +1119,11 @@ void connect_localized_pokemon(){
 			puts("recibe mensaje");
 
 			localized = deserializar_localized_pokemon(buffer);
-//			send(socket_broker,&(localized->id),sizeof(uint32_t),0);
+
+			uint32_t id_ack = localized->id;
+
+			enviar_ack(socket_broker, id_ack, id_proceso);
+
 			if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie) && list_any_satisfy(IDs_get_pokemon, (void*)mismoIdMensaje)){
 				printf("cantidad de ids recibidos %d", IDs_get_pokemon->elements_count);
 				if(list_any_satisfy(especiesNecesarias, (void*)_mismaEspecie)) puts("es espcie necesaria");
@@ -1151,6 +1163,8 @@ void connect_caught_pokemon(){
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
@@ -1181,6 +1195,11 @@ void connect_caught_pokemon(){
 		if(cod_op == CAUGHT_POKEMON){
 			puts("recibe mensaje");
 			caught = deserializar_caught_pokemon(buffer);
+
+			uint32_t id_ack = caught->id;
+
+			enviar_ack(socket_broker, id_ack, id_proceso);
+
 			if(list_any_satisfy(entrenadores, (void*)_tieneMismoIDCatch)){
 				pthread_mutex_lock(&log_mutex);
 				log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->id);
@@ -1234,7 +1253,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 	uint32_t ID;
 	char* linea_split = string_new();
-	string_append_with_format(&linea_split, "%s,%d,%d", (*entrenador)->pokemonACapturar->especie,(*entrenador)->pokemonACapturar->coordx, (*entrenador)->pokemonACapturar->coordy);
+	string_append_with_format(&linea_split, "%s,%d,%d,%d,%d", (*entrenador)->pokemonACapturar->especie,(*entrenador)->pokemonACapturar->coordx, (*entrenador)->pokemonACapturar->coordy, 0,0);
 
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");;

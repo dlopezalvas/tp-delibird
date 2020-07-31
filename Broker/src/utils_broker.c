@@ -40,6 +40,7 @@ void crear_queues(void){
 	GET_POKEMON_COLA = queue_create();
 	LOCALIZED_POKEMON_COLA = queue_create();
 	SUSCRIPCION_COLA = queue_create();
+	ACK_COLA = queue_create();
 	pthread_mutex_init(&new_pokemon_mutex,NULL);
 	pthread_mutex_init(&appeared_pokemon_mutex,NULL);
 	pthread_mutex_init(&catch_pokemon_mutex,NULL);
@@ -63,6 +64,7 @@ void crear_queues(void){
 	pthread_mutex_init(&logger_mutex,NULL);
 	pthread_mutex_init(&memoria_buddy_mutex,NULL);
 	pthread_mutex_init(&buddy_id_mutex,NULL);
+	pthread_mutex_init(&ack_queue_mutex,NULL);
 }
 
 void terminar_queues(void){
@@ -98,20 +100,23 @@ void esperar_cliente(int servidor){
 
 }
 
-void serve_client(int socket)
-{	int rec;
-int cod_op;
-while(1){
-	rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
-	if(rec == -1 || rec == 0 ){
-		cod_op = -1;
-		pthread_mutex_lock(&logger_mutex);
-		log_info(logger,"Se desconecto el proceso con id: %d",socket);
-		pthread_mutex_unlock(&logger_mutex);
-		pthread_exit(NULL);
+void serve_client(int socket){
+	int rec;
+	int cod_op;
+	while(1){
+		rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
+		if(rec == -1 || rec == 0 ){
+			cod_op = -1;
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se desconecto el proceso con id: %d",socket);
+			pthread_mutex_unlock(&logger_mutex);
+			pthread_exit(NULL);
+		}
+		puts("recibi un mensaje");
+		printf("codigo: %d\n", cod_op);
+		//	puts(string_itoa(cod_op));
+		process_request(cod_op, socket);
 	}
-	process_request(cod_op, socket);
-}
 }
 
 void process_request(int cod_op, int cliente_fd) {
@@ -128,6 +133,14 @@ void process_request(int cod_op, int cliente_fd) {
 		queue_push(SUSCRIPCION_COLA, mensaje_suscripcion);
 		pthread_mutex_unlock(&suscripcion_mutex);
 		sem_post(&suscripcion_sem);
+	}else if(cod_op == ACK){
+		puts("entra a ack");
+		t_ack* ack = deserializar_ack(buffer);
+		printf("id %d, proceso %d\n", ack->id_mensaje, ack->id_proceso);
+		pthread_mutex_lock(&ack_queue_mutex);
+		queue_push(ACK_COLA, ack);
+		pthread_mutex_unlock(&ack_queue_mutex);
+		sem_post(&ack_sem);
 	}else{
 		suscribir_mensaje(cod_op,buffer,cliente_fd,size);
 	}
@@ -230,22 +243,32 @@ void socketEscucha(char*ip, char* puerto){
 	}
 }
 
+void ejecutar_ACK(){
+	while(1){
+		sem_wait(&ack_sem);
+		pthread_mutex_lock(&ack_queue_mutex);
+		t_ack* ack = queue_pop(ACK_COLA);
+		pthread_mutex_unlock(&ack_queue_mutex);
+		printf("el id que llego %d", ack->id_mensaje);
+	}
+}
 
 void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
 	printf("cliente al que se le envia es %d", cliente_a_enviar);
 	send(cliente_a_enviar,a_enviar,bytes,0);
-	uint32_t id;
-	int _recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
-	if(_recv == 0 || _recv == -1){
-		puts("no recibio ack");
-		pthread_mutex_lock(&logger_mutex);
-		//log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
-		pthread_mutex_unlock(&logger_mutex);
-	}else{
-		pthread_mutex_lock(&logger_mutex);
-		log_info(logger,"recibio ack: %d",id);
-		pthread_mutex_unlock(&logger_mutex);
-	}
+	//	uint32_t id;
+	//	int _recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
+	//	if(_recv == 0 || _recv == -1){
+	//		puts("no recibio ack");
+	//		pthread_mutex_lock(&logger_mutex);
+	//		//log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
+	//		pthread_mutex_unlock(&logger_mutex);
+	//	}else{
+	//		printf("recibi el ack %d", id);
+	//		pthread_mutex_lock(&logger_mutex);
+	//		log_info(logger,"recibio ack: %d",id);
+	//		pthread_mutex_unlock(&logger_mutex);
+	//	}
 
 }
 
@@ -305,6 +328,7 @@ void ejecutar_new_pokemon(){
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
+		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}

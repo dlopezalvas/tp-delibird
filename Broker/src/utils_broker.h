@@ -130,11 +130,12 @@ t_queue* CAUGHT_POKEMON_COLA;
 t_queue* GET_POKEMON_COLA;
 t_queue* LOCALIZED_POKEMON_COLA;
 t_queue* SUSCRIPCION_COLA;
+t_queue* ACK_COLA;
 
 
-sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem;
+sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem, ack_sem;
 pthread_mutex_t new_pokemon_mutex,appeared_pokemon_mutex, catch_pokemon_mutex, caught_pokemon_mutex,localized_pokemon_mutex, get_pokemon_mutex, suscripcion_mutex;
-pthread_mutex_t new_pokemon_queue_mutex,appeared_pokemon_queue_mutex, catch_pokemon_queue_mutex, caught_pokemon_queue_mutex,localized_pokemon_queue_mutex, get_pokemon_queue_mutex;
+pthread_mutex_t new_pokemon_queue_mutex,appeared_pokemon_queue_mutex, catch_pokemon_queue_mutex, caught_pokemon_queue_mutex,localized_pokemon_queue_mutex, get_pokemon_queue_mutex, ack_queue_mutex;
 pthread_mutex_t
 suscripcion_new_queue_mutex,
 suscripcion_get_queue_mutex,
@@ -185,6 +186,7 @@ void ejecutar_caught_pokemon();
 void ejecutar_get_pokemon();
 void ejecutar_localized_pokemon();
 void ejecutar_suscripcion();
+void ejecutar_ACK();
 void ejecutar_new_pokemon_suscripcion(int suscriptor);
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor);
 void ejecutar_catch_pokemon_suscripcion(int suscriptor);

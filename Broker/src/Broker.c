@@ -47,34 +47,39 @@ void iniciar_broker(){
 	sem_init(&localized_pokemon_sem,0,0);
 	sem_init(&get_pokemon_sem,0,0);
 	sem_init(&suscripcion_sem,0,0);
+	sem_init(&ack_sem,0,0);
 
 	pthread_t new_pokemon_thread;
 	pthread_create(&new_pokemon_thread, NULL, (void*)ejecutar_new_pokemon, NULL);
 	pthread_detach(new_pokemon_thread);
 
-//	pthread_t appeared_pokemon_thread;
-//	pthread_create(&appeared_pokemon_thread, NULL, (void*)ejecutar_appeared_pokemon, NULL);
-//	pthread_detach(appeared_pokemon_thread);
-//
-//	pthread_t catch_pokemon_thread;
-//	pthread_create(&catch_pokemon_thread, NULL, (void*)ejecutar_catch_pokemon, NULL);
-//	pthread_detach(catch_pokemon_thread);
-//
-//	pthread_t caught_pokemon_thread;
-//	pthread_create(&caught_pokemon_thread, NULL, (void*)ejecutar_caught_pokemon, NULL);
-//	pthread_detach(caught_pokemon_thread);
-//
-//	pthread_t localized_pokemon_thread;
-//	pthread_create(&localized_pokemon_thread, NULL, (void*)ejecutar_localized_pokemon, NULL);
-//	pthread_detach(localized_pokemon_thread);
-//
-//	pthread_t get_pokemon_thread;
-//	pthread_create(&get_pokemon_thread, NULL, (void*)ejecutar_get_pokemon, NULL);
-//	pthread_detach(get_pokemon_thread);
+	pthread_t appeared_pokemon_thread;
+	pthread_create(&appeared_pokemon_thread, NULL, (void*)ejecutar_appeared_pokemon, NULL);
+	pthread_detach(appeared_pokemon_thread);
+
+	pthread_t catch_pokemon_thread;
+	pthread_create(&catch_pokemon_thread, NULL, (void*)ejecutar_catch_pokemon, NULL);
+	pthread_detach(catch_pokemon_thread);
+
+	pthread_t caught_pokemon_thread;
+	pthread_create(&caught_pokemon_thread, NULL, (void*)ejecutar_caught_pokemon, NULL);
+	pthread_detach(caught_pokemon_thread);
+
+	pthread_t localized_pokemon_thread;
+	pthread_create(&localized_pokemon_thread, NULL, (void*)ejecutar_localized_pokemon, NULL);
+	pthread_detach(localized_pokemon_thread);
+
+	pthread_t get_pokemon_thread;
+	pthread_create(&get_pokemon_thread, NULL, (void*)ejecutar_get_pokemon, NULL);
+	pthread_detach(get_pokemon_thread);
 
 	pthread_t suscripcion_thread;
 	pthread_create(&suscripcion_thread, NULL, (void*)ejecutar_suscripcion, NULL);
 	pthread_detach(suscripcion_thread);
+
+	pthread_t ack_thread;
+	pthread_create(&ack_thread, NULL, (void*)ejecutar_ACK, NULL);
+	pthread_detach(ack_thread);
 
 	crear_queues();
 
