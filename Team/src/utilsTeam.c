@@ -988,6 +988,7 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 	puts("antes enviar");
 	enviar_mensaje(mensaje, (socket_broker));
 	uint32_t id;
+	puts("manda get pokemon");
 	_recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
 	if(_recv == 0 || _recv == -1) puts("error al recibir id get pokemon");
 	else{
