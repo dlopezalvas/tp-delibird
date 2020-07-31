@@ -163,7 +163,7 @@ t_buffer* buffer_position_and_name(char** parametros){ //para mensajes APPEARED_
 
 //	free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*5 + strlen(position_and_name.nombre.nombre);
+	buffer -> size = sizeof(uint32_t)*5 + strlen(position_and_name.nombre.nombre)+1;
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;

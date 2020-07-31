@@ -79,6 +79,8 @@ typedef struct t_entrenador
 	uint32_t catch_id;
 	bool respuesta_catch;
 	int quantum_usado;
+	float estimacion;
+	float estimacionAnterior;
 } t_entrenador;
 
 typedef struct t_intercambio{
@@ -212,5 +214,7 @@ void localized_pokemon();
 bool tieneEspacioYEstaEnExec(t_entrenador* entrenador);
 
 bool puedeSerPlanificado(t_entrenador* entrenador);
+
+char* stringEstado(t_estado estado);
 
 #endif /* UTILSTEAM_H_ */
