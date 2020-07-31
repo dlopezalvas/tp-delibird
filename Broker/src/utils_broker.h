@@ -39,6 +39,7 @@
 #define FRECUENCIA_COMPACTACION "FRECUENCIA_COMPACTACION"
 
 t_log* logger;
+t_config* config;
 
 typedef struct{
   void* buffer;
@@ -194,6 +195,7 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor);
 
 bool es_mensaje_respuesta(op_code cod_op);
 t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size);
+t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion);
 
 void ordenar_particiones_libres();
 void iniciar_memoria(t_config* config);

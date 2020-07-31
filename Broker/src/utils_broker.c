@@ -91,7 +91,7 @@ void esperar_cliente(int servidor){
 	list_add(multihilos, &hilo);
 	pthread_mutex_unlock(&multhilos_mutex);
 
-//	puts(string_itoa(multihilos->elements_count));
+	//	puts(string_itoa(multihilos->elements_count));
 
 	pthread_create(&hilo,NULL,(void*)serve_client,cliente);
 	pthread_detach(hilo);
@@ -100,18 +100,18 @@ void esperar_cliente(int servidor){
 
 void serve_client(int socket)
 {	int rec;
-	int cod_op;
-	while(1){
-		rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
-		if(rec == -1 || rec == 0 ){
-			cod_op = -1;
-			pthread_mutex_lock(&logger_mutex);
-			log_info(logger,"Se desconecto el proceso con id: %d",socket);
-			pthread_mutex_unlock(&logger_mutex);
-			pthread_exit(NULL);
-		}
-		process_request(cod_op, socket);
+int cod_op;
+while(1){
+	rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
+	if(rec == -1 || rec == 0 ){
+		cod_op = -1;
+		pthread_mutex_lock(&logger_mutex);
+		log_info(logger,"Se desconecto el proceso con id: %d",socket);
+		pthread_mutex_unlock(&logger_mutex);
+		pthread_exit(NULL);
 	}
+	process_request(cod_op, socket);
+}
 }
 
 void process_request(int cod_op, int cliente_fd) {
@@ -232,11 +232,12 @@ void socketEscucha(char*ip, char* puerto){
 
 
 void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
-
+	printf("cliente al que se le envia es %d", cliente_a_enviar);
 	send(cliente_a_enviar,a_enviar,bytes,0);
 	uint32_t id;
 	int _recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
 	if(_recv == 0 || _recv == -1){
+		puts("no recibio ack");
 		pthread_mutex_lock(&logger_mutex);
 		//log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
 		pthread_mutex_unlock(&logger_mutex);
@@ -248,6 +249,44 @@ void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
 
 }
 
+t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion){
+	puts("preparando paquete");
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+
+	paquete -> codigo_operacion = codigo_operacion;
+
+	t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
+	int size = bloque_broker->particion->tamanio + sizeof(uint32_t);
+
+	if(es_mensaje_respuesta(codigo_operacion)){
+		size+= sizeof(uint32_t);
+	}
+
+	buffer_cargado->size = size;
+	void* stream = malloc(buffer_cargado->size);
+
+	int offset = 0;
+	memcpy(stream + offset, &bloque_broker->id, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	if(es_mensaje_respuesta(codigo_operacion)){
+		memcpy(stream + offset, &bloque_broker->correlation_id, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+	}
+
+	switch(configuracion_cache->algoritmo_memoria){
+	case BS:
+		memcpy(stream + offset, (void*)bloque_broker->particion_buddy->base, bloque_broker->particion_buddy->tamanio);
+		break;
+	case PARTICIONES:
+		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio);
+	}
+
+	buffer_cargado->stream = stream;
+
+	paquete -> buffer = buffer_cargado;
+
+	return paquete;
+}
 
 void ejecutar_new_pokemon(){
 
@@ -260,65 +299,37 @@ void ejecutar_new_pokemon(){
 
 		//TODO verificar (con identificadores de los procesos) si se mando el mensaje a ese proceso especifico (esperar mail ayudante)
 		op_code codigo_operacion = NEW_POKEMON;
-
-		t_paquete* paquete = malloc(sizeof(t_paquete));
-
-		paquete -> codigo_operacion = codigo_operacion;
-
-		t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
-
-		buffer_cargado->size = bloque_broker->particion->tamanio + sizeof(uint32_t);
-
-		void* stream = malloc(buffer_cargado->size); //tamaño del mensaje + id
-
-		int offset = 0;
-		memcpy(stream + offset, &bloque_broker->id, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio); //TODO switch para buddy
-		offset += sizeof(uint32_t);
-
-		buffer_cargado->stream = stream;
-
-		paquete -> buffer = buffer_cargado;
+//
+//		t_paquete* paquete = malloc(sizeof(t_paquete));
+//
+//		paquete -> codigo_operacion = codigo_operacion;
+//
+//		t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
+//
+//		buffer_cargado->size = bloque_broker->particion->tamanio + sizeof(uint32_t);
+//
+//		void* stream = malloc(buffer_cargado->size); //tamaño del mensaje + id
+//
+//		int offset = 0;
+//		memcpy(stream + offset, &bloque_broker->id, sizeof(uint32_t));
+//		offset += sizeof(uint32_t);
+//		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio); //TODO switch para buddy
+//		offset += sizeof(uint32_t);
+//
+//		buffer_cargado->stream = stream;
+//
+//		paquete -> buffer = buffer_cargado;
 
 		int bytes = 0;
+		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
-
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar,a_enviar,bytes);
-
+			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 
-
-//		char* llegada_new_pokemon_log = string_new();
-//		string_append_with_format(&llegada_new_pokemon_log ,"Llego un mensaje: NEW_POKEMON %s %d %d %d del cliente: %d",new_pokemon->nombre.nombre,new_pokemon->coordenadas.pos_x,new_pokemon->coordenadas.pos_y,new_pokemon->cantidad,new_pokemon->id,mensaje->suscriptor);
-//		pthread_mutex_lock(&logger_mutex);
-//		log_info(logger,llegada_new_pokemon_log);
-//		pthread_mutex_unlock(&logger_mutex);
-
-//		//arma mensaje para enviar
-//		char* linea_split = "";
-//		char* nombre;
-//
-//		nombre = new_pokemon->nombre.nombre;
-//		int coordenadas_x = new_pokemon->coordenadas.pos_x;
-//		int coordenadas_y = new_pokemon->coordenadas.pos_y;
-//
-//		sprintf(linea_split, "%s,%d,%d,%d", nombre ,coordenadas_x,coordenadas_y, mensaje_id);
-//		mensaje_enviar -> tipo_mensaje = codigo_operacion;
-//		mensaje_enviar -> parametros = string_split(linea_split,",");
-//		//
-//
-//		//envia y loguea mensaje
-//		char* log_envio_new_pokemon = string_new();
-//		string_append_with_format(&log_envio_new_pokemon,"Se envio el mensaje NEW_POKEMON con id: %d, al socket, %d",mensaje_id,mensaje->suscriptor);
-//
-
-//		free(mensaje->buffer);
-//		free(mensaje);
 	}
 }
 
@@ -578,6 +589,7 @@ void ejecutar_suscripcion(){
 		t_suscripcion* mensaje_suscripcion = deserializar_suscripcion(buffer);
 
 		int suscriptor = mensaje->suscriptor;
+		puts(string_itoa(mensaje->suscriptor));
 		char* log_debug_suscripcion = string_new();
 		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
 		pthread_mutex_lock(&logger_mutex);
@@ -585,6 +597,7 @@ void ejecutar_suscripcion(){
 		pthread_mutex_unlock(&logger_mutex);
 		switch (mensaje_suscripcion->cola) {
 		case NEW_POKEMON:
+			puts("se suscribio a new_pokemon");
 			ejecutar_new_pokemon_suscripcion(suscriptor);
 			break;
 		case APPEARED_POKEMON:
@@ -602,10 +615,10 @@ void ejecutar_suscripcion(){
 		case LOCALIZED_POKEMON:
 			ejecutar_localized_pokemon_suscripcion(suscriptor);
 			break;
-//		case 0:
-//			pthread_exit(NULL);
-//		case -1:
-//			pthread_exit(NULL);
+			//		case 0:
+			//			pthread_exit(NULL);
+			//		case -1:
+			//			pthread_exit(NULL);
 		}
 	}
 }
@@ -710,9 +723,9 @@ void iniciar_memoria(t_config* config){
 	bloque_buddy->id = buddy_id;
 
 	memoria_buddy = list_create();
-//	pthread_mutex_lock(&memoria_buddy_mutex);
+	//	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_add(memoria_buddy,bloque_buddy);
-//	pthread_mutex_lock(&memoria_buddy_mutex);
+	//	pthread_mutex_lock(&memoria_buddy_mutex);
 	//claramente faltan semaforos
 }
 
@@ -722,7 +735,7 @@ void* almacenar_dato(void* datos, int tamanio){
 
 	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
-	//	lugar_donde_esta = almacenar_datos_buddy(datos, tamanio);
+		//	lugar_donde_esta = almacenar_datos_buddy(datos, tamanio);
 		break;
 	case PARTICIONES:
 		lugar_donde_esta = almacenar_dato_particiones(datos, tamanio);
@@ -907,7 +920,7 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 	case LRU:
 		return elegir_victima_particiones_LRU(tamanio_a_almacenar);
 
-	//case fifo
+		//case fifo
 	}
 }
 
@@ -1055,7 +1068,7 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio){
 
 void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio){
 	memcpy(memoria_cache + bloque_buddy_particion->base, datos, tamanio); //copio a la memoria
-//	bloque_buddy_particion->ocupado = true;
+	//	bloque_buddy_particion->ocupado = true;
 
 	bool _mismo_id_buddy(void* elemento_lista){
 		return remove_by_id(elemento_lista, bloque_buddy_particion->id);//TODO: Cambiar nombre remove a buscar
@@ -1259,7 +1272,7 @@ void eleccion_victima_lru_buddy(){
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_sort(memoria_buddy,(void*)sort_by_acceso_memoria_buddy);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
-//	t_particion_buddy bloque_a_eliminar = memoria_buddy->head->data;
+	//	t_particion_buddy bloque_a_eliminar = memoria_buddy->head->data;
 
 }
 
