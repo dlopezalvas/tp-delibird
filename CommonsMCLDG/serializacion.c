@@ -79,7 +79,7 @@ t_buffer* buffer_localized_pokemon(char** parametros){
 	localized_pokemon.nombre.largo_nombre = strlen(localized_pokemon.nombre.nombre);
 	localized_pokemon.cantidad = cantidad;
 
-	buffer -> size = sizeof(uint32_t)*(cantidadParametros+4) + strlen(localized_pokemon.nombre.nombre) + 1;
+	buffer -> size = sizeof(uint32_t)*(cantidadParametros+4) + strlen(localized_pokemon.nombre.nombre);
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
 
@@ -163,7 +163,7 @@ t_buffer* buffer_position_and_name(char** parametros){ //para mensajes APPEARED_
 
 //	free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*5 + strlen(position_and_name.nombre.nombre) + 1;
+	buffer -> size = sizeof(uint32_t)*5 + strlen(position_and_name.nombre.nombre);
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -203,7 +203,7 @@ t_buffer* buffer_get_pokemon(char** parametros){
 	get_pokemon.id = atoi(parametros[1]);
 	//free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*2 + strlen(get_pokemon.nombre.nombre) + 1;
+	buffer -> size = sizeof(uint32_t)*2 + strlen(get_pokemon.nombre.nombre);
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -241,7 +241,7 @@ t_buffer* buffer_new_pokemon(char** parametros){
 
 	//free(nombre);
 
-	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre)+1;
+	buffer -> size = sizeof(uint32_t)*5 + strlen(new_pokemon.nombre.nombre);
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;

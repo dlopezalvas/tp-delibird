@@ -902,7 +902,7 @@ void connect_new_pokemon(){
 		if(cod_op == NEW_POKEMON){
 
 			_new_pokemon = deserializar_new_pokemon(buffer);
-//			send(socket_broker,&_new_pokemon->id,sizeof(uint32_t),0);
+			send(socket_broker,&_new_pokemon->id,sizeof(uint32_t),0);
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);
 			pthread_mutex_unlock(&solicitudes_mtx);
@@ -952,7 +952,7 @@ void connect_catch_pokemon(){
 		if(cod_op == CATCH_POKEMON){
 
 			_catch_pokemon = deserializar_position_and_name(buffer);
-//			send(socket_broker,&_catch_pokemon->id,sizeof(uint32_t),0);
+			send(socket_broker,&_catch_pokemon->id,sizeof(uint32_t),0);
 
 //			catch_pokemon(_catch_pokemon);
 			pthread_mutex_lock(&solicitudes_mtx);
