@@ -28,24 +28,17 @@ t_list* multihilos;
 
 int main() {
 //	signal(SIGUSR1, dump_cache);
-
-	t_config* config = leer_config(PATH);
-	logger = iniciar_logger(config);
-//
-//	t_list* prueba = list_create();
-//
-//	list_add(prueba, 6);
-
-
-	iniciar_broker(&config,&logger);
+	iniciar_broker();
 //	recibir_mensaje_broker(config);
 //	terminar_broker(logger,config);
 	return EXIT_SUCCESS;
 }
 
-void iniciar_broker(t_config** config, t_log** logger){
-	char* ip = config_get_string_value(*config,IP_BROKER);
-	char* puerto = config_get_string_value(*config,PUERTO_BROKER);
+void iniciar_broker(){
+	config = leer_config(PATH);
+	logger = iniciar_logger(config);
+	char* ip = config_get_string_value(config,IP_BROKER);
+	char* puerto = config_get_string_value(config,PUERTO_BROKER);
 
 	sem_init(&new_pokemon_sem,0,0);
 	sem_init(&appeared_pokemon_sem,0,0);
@@ -83,12 +76,11 @@ void iniciar_broker(t_config** config, t_log** logger){
 	pthread_create(&suscripcion_thread, NULL, (void*)ejecutar_suscripcion, NULL);
 	pthread_detach(suscripcion_thread);
 
-	*logger = iniciar_logger(*config);
 	crear_queues();
 
 	multihilos = list_create();
 
-	iniciar_memoria(*config);
+	iniciar_memoria(config);
 
 	socketEscucha(ip,puerto);
 }
