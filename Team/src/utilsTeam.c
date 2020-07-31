@@ -512,9 +512,9 @@ void ejecutaEntrenadores(){ //agregar semaforos y probar
 	while(!cumpleObjetivoGlobal()){
 			sem_wait(&sem_ejecutar);
 			puts("entra a ejecutar");
-
 			pthread_mutex_lock(&mutex_ejecutar);
 //			sem_wait(&mutex_ejecutar);
+
 			pthread_mutex_lock(&mutex_ready);
 			t_entrenador* entrenador = ready->head->data;//list_get(ready, 0);
 			pthread_mutex_unlock(&mutex_ready);
@@ -538,7 +538,7 @@ void replanificar(){
 		break;
 	case RR:
 		entrenadorActual->quantum_usado ++;
-		if(entrenadorActual->quantum_usado >= algoritmoPlanificacion.quantum){
+		if(entrenadorActual->quantum_usado >= algoritmoPlanificacion.quantum && ready->elements_count>1){
 			puts("replanifica por fin de quantum");
 			pthread_mutex_lock(&mutex_ready);
 			entrenadorActual->quantum_usado = 0;
@@ -647,15 +647,13 @@ void* entrenadorMaster(void* entre){// Probar y agregar semaforos
 			//ver si cambiar a block
 			replanificar();
 			sem_post(&sem_ejecutar);
-//			sem_post(&mutex_ejecutar);
 			pthread_mutex_unlock(&mutex_ejecutar);
 					}
 		pthread_mutex_lock(&((entrenador)->mutex));
-		if(tieneEspacioYEstaEnExec(entrenador)) puts("-------DEVUELVE TRUE-----------");
 		if(tieneEspacioYEstaEnExec(entrenador)){
 			puts("entra al if tiene espacio y esta en exec");
 
-			cambiarEstado(&entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
+//			cambiarEstado(&entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
 			catch_pokemon(config_get_string_value(config, "IP_BROKER"), config_get_string_value(config, "PUERTO_BROKER"), &entrenador);
 			puts("mando catch");
 			pthread_mutex_unlock(&mutex_ejecutar);
@@ -956,6 +954,7 @@ void connect_appeared(){
 
 			puts("recibe mensaje");
 			appeared = deserializar_position_and_name(buffer);
+			send(socket_broker, &(appeared->id), sizeof(uint32_t), 0);
 			if(list_any_satisfy(objetivoGlobal, (void*)_mismaEspecie)){
 				pthread_mutex_lock(&log_mutex);
 				log_info(logger, "Mensaje Appeared_pokemon %s %d %d", appeared->nombre.nombre, appeared->coordenadas.pos_x, appeared->coordenadas.pos_y);
@@ -1183,6 +1182,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Atrapar %s en la posicion (%d,%d)", (*entrenador)->pokemonACapturar->especie, (*entrenador)->pokemonACapturar->coordx,(*entrenador)->pokemonACapturar->coordy);
 	pthread_mutex_unlock(&log_mutex);
+	cambiarEstado(entrenador, BLOCK, "esta esperando el resultado de intentar atrapar pokemon");
 	puts("va a atrapar pokemon");
 	sleep(config_get_int_value(config, "RETARDO_CICLO_CPU"));
 	(*entrenador)->CiclosCPU ++;
