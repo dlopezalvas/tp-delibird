@@ -169,8 +169,11 @@ void ver_estado_cache_buddy(){
 	bool _orden(t_particion_buddy* particion1, t_particion_buddy* particion2){
 			return particion1->base < particion2->base;
 		}
-	//TODO: Poner mutex memoria_buddy_mutex
-	list_sort(memoria_buddy, (void*)_orden);
+	t_list* dump_buddy = list_create();
+	pthread_mutex_lock(&memoria_buddy_mutex);
+	list_add_all(dump_buddy,memoria_buddy);
+	pthread_mutex_unlock(&memoria_buddy_mutex);
+	list_sort(dump_buddy, (void*)_orden);
 
 	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
 
@@ -195,7 +198,7 @@ void ver_estado_cache_buddy(){
 		i++;
 	}
 
-	list_iterate(memoria_buddy, (void*)_imprimir_datos);
+	list_iterate(dump_buddy, (void*)_imprimir_datos);
 
 	fprintf(dump_cache, "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 
