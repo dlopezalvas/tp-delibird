@@ -55,6 +55,7 @@ typedef struct{
 
 
 typedef struct{
+	op_code cola;
 	uint32_t base;
 	uint32_t tamanio;
 	uint32_t id_mensaje;
@@ -201,9 +202,9 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 
 void ordenar_particiones_libres();
 void iniciar_memoria(t_config* config);
-void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
-void* almacenar_dato(void* datos, int tamanio);
-t_particion* almacenar_dato_particiones(void* datos, int tamanio);
+void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id);
+void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id);
+t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo_op, uint32_t id);
 t_particion* buscar_particion_ff(int tamanio_a_almacenar);
 t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);

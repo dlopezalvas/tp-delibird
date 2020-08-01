@@ -3,8 +3,6 @@
 
 extern t_list* multihilos;
 
-
-
 int proceso_valido(char*procesos_validos,char* proceso){
 
 	char* s = strstr(procesos_validos,proceso);
@@ -134,7 +132,6 @@ void process_request(int cod_op, int cliente_fd) {
 		pthread_mutex_unlock(&suscripcion_mutex);
 		sem_post(&suscripcion_sem);
 	}else if(cod_op == ACK){
-		puts("entra a ack");
 		t_ack* ack = deserializar_ack(buffer);
 		printf("id %d, proceso %d\n", ack->id_mensaje, ack->id_proceso);
 		pthread_mutex_lock(&ack_queue_mutex);
@@ -165,13 +162,13 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 		buffer_broker = deserializar_broker_ida(buffer,size); //si no es de respuesta no tiene correlation id
 	}
 
-	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio);
+	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio,cod_op, mensaje_id);
 
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
 
 	switch(configuracion_cache->algoritmo_memoria){
 	case BS:
-		bloque_broker->particion_buddy = particion_en_memoria;
+		//bloque_broker->particion_buddy = particion_en_memoria;
 		break;
 	case PARTICIONES:
 		bloque_broker->particion = particion_en_memoria;
@@ -219,8 +216,6 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 		pthread_mutex_unlock(&localized_pokemon_mutex);
 		sem_post(&localized_pokemon_sem);
 		break;
-	case SUSCRIPCION:
-		break;
 	case 0:
 		pthread_exit(NULL);
 	case -1:
@@ -256,20 +251,6 @@ void ejecutar_ACK(){
 void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
 	printf("cliente al que se le envia es %d", cliente_a_enviar);
 	send(cliente_a_enviar,a_enviar,bytes,0);
-	//	uint32_t id;
-	//	int _recv = recv(cliente_a_enviar, &id, sizeof(uint32_t), MSG_WAITALL);
-	//	if(_recv == 0 || _recv == -1){
-	//		puts("no recibio ack");
-	//		pthread_mutex_lock(&logger_mutex);
-	//		//log_info(logger,"Fallo al recibir el ack para el mensaje con id %d",mensaje_id);
-	//		pthread_mutex_unlock(&logger_mutex);
-	//	}else{
-	//		printf("recibi el ack %d", id);
-	//		pthread_mutex_lock(&logger_mutex);
-	//		log_info(logger,"recibio ack: %d",id);
-	//		pthread_mutex_unlock(&logger_mutex);
-	//	}
-
 }
 
 t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion){
@@ -401,6 +382,7 @@ void ejecutar_caught_pokemon(){
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
+		puts("aca envio un caught");
 
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
@@ -585,8 +567,9 @@ void iniciar_memoria(t_config* config){
 	t_particion* aux = malloc(sizeof(t_particion));
 
 	aux->base = (int)memoria_cache;
-
 	aux->tamanio = configuracion_cache->tamanio_memoria;
+	aux->id_mensaje = 0;
+	aux->ultimo_acceso = time(NULL);
 
 	list_add(particiones_libres, aux);
 
@@ -612,7 +595,7 @@ void iniciar_memoria(t_config* config){
 	//claramente faltan semaforos
 }
 
-void* almacenar_dato(void* datos, int tamanio){
+void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id){
 
 	void* lugar_donde_esta;
 
@@ -621,14 +604,14 @@ void* almacenar_dato(void* datos, int tamanio){
 		//	lugar_donde_esta = almacenar_datos_buddy(datos, tamanio);
 		break;
 	case PARTICIONES:
-		lugar_donde_esta = almacenar_dato_particiones(datos, tamanio);
+		lugar_donde_esta = almacenar_dato_particiones(datos, tamanio, codigo_op, id);
 		break;
 	}
 
 	return lugar_donde_esta;
 }
 
-t_particion* almacenar_dato_particiones(void* datos, int tamanio){
+t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo_op, uint32_t id){
 
 	t_particion* particion_libre;
 
@@ -640,7 +623,7 @@ t_particion* almacenar_dato_particiones(void* datos, int tamanio){
 		particion_libre = particion_libre_bf(tamanio);
 	}
 
-	asignar_particion(datos, particion_libre, tamanio);
+	asignar_particion(datos, particion_libre, tamanio, codigo_op, id);
 
 	return particion_libre;
 }
@@ -847,7 +830,7 @@ void eliminar_particion(t_particion* particion_a_liberar){
 
 }
 
-void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
+void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
 
 	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
 
@@ -866,12 +849,11 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio){
 	}
 
 	particion_libre->ultimo_acceso = time(NULL);
+	particion_libre->cola = codigo_op;
+	particion_libre->id_mensaje = id;
 	list_add(particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
 
 }
-
-//----------TRANSFORMAR MENSAJES EN VOID*????----------//
-
 
 t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size){ //eso hay que probarlo que onda
 

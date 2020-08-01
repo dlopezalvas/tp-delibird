@@ -148,14 +148,57 @@ void ver_estado_cache_particiones(){
 	int i = 1;
 
 	void _imprimir_datos(t_particion_dump* particion){
-		fprintf(dump_cache, "Partición %d: %p - %p [%c]   Size: %db\n", i, (void*)particion->particion->base, (void*)(particion->particion->base + particion->particion->tamanio), particion->ocupado, particion->particion->tamanio);
+		char* cola = cola_segun_cod(particion->particion->cola);
+		fprintf(dump_cache, "Partición %d: %p - %p [%c]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
+				i, (void*)particion->particion->base, (void*)(particion->particion->base + particion->particion->tamanio), particion->ocupado, particion->particion->tamanio,
+				transformar_a_fecha(particion->particion->ultimo_acceso), cola, particion->particion->id_mensaje);
 		i++;
 	}
 
 	list_iterate(particiones, (void*)_imprimir_datos);
 
-	fprintf(dump_cache, "--------------------------------------------------------------------------------\n\n");
+	fprintf(dump_cache, "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 
 	fclose(dump_cache);
+}
+
+char* transformar_a_fecha(uint32_t nro_fecha){
+	char* fecha = string_new();
+
+	time_t aux = (time_t) nro_fecha;
+	struct tm *tlocal = localtime(&aux);
+	char output[128];
+
+	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
+
+	string_append(&fecha, output);
+
+	return fecha;
+}
+
+char* cola_segun_cod(op_code cod_op){
+	char* cola = string_new();
+	switch(cod_op){
+	case NEW_POKEMON:
+		string_append(&cola, "NEW_POKEMON");
+		break;
+	case GET_POKEMON:
+		string_append(&cola, "GET_POKEMON");
+		break;
+	case LOCALIZED_POKEMON:
+		string_append(&cola, "LOCALIZED_POKEMON");
+		break;
+	case CATCH_POKEMON:
+		string_append(&cola, "CATCH_POKEMON");
+		break;
+	case CAUGHT_POKEMON:
+		string_append(&cola, "CAUGHT_POKEMON");
+		break;
+	case APPEARED_POKEMON:
+		string_append(&cola, "APPEARED_POKEMON");
+		break;
+	}
+
+	return cola;
 }
 
