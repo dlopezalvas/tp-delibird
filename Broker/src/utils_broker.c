@@ -954,6 +954,10 @@ void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* da
 	t_particion_buddy* particion_buddy = list_find(memoria_buddy,_mismo_id_buddy);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 	particion_buddy->ocupado = true;
+	pthread_mutex_lock(&buddy_id_mutex);
+	buddy_id++;
+	pthread_mutex_unlock(&buddy_id_mutex);
+	particion_buddy->id = buddy_id;
 	particion_buddy->id_mensaje = id_mensaje;
 	particion_buddy->cola = cod_op;
 	particion_buddy->ultimo_acceso = time(NULL);
