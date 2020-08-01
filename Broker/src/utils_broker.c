@@ -283,7 +283,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 		break;
 	case PARTICIONES:
 		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio);
-		bloque_broker->particion->ultimo_acceso = time(NULL); //TODO fijarse si aca hay que cambiarle o no (?
+		bloque_broker->particion->ultimo_acceso = time(NULL);
 	}
 
 	buffer_cargado->stream = stream;
@@ -463,7 +463,6 @@ void ejecutar_suscripcion(){
 		pthread_mutex_unlock(&logger_mutex);
 		switch (mensaje_suscripcion->cola) {
 		case NEW_POKEMON:
-			puts("se suscribio a new_pokemon");
 			ejecutar_new_pokemon_suscripcion(suscriptor);
 			break;
 		case APPEARED_POKEMON:
@@ -481,10 +480,6 @@ void ejecutar_suscripcion(){
 		case LOCALIZED_POKEMON:
 			ejecutar_localized_pokemon_suscripcion(suscriptor);
 			break;
-			//		case 0:
-			//			pthread_exit(NULL);
-			//		case -1:
-			//			pthread_exit(NULL);
 		}
 	}
 }
@@ -729,6 +724,10 @@ void consolidar(t_particion* particion_liberada){
 		return particion_liberada->base + particion_liberada->tamanio == particion->base;
 	}
 
+	bool _es_la_particion(t_particion* particion){
+		return particion_liberada == particion;
+	}
+
 	t_particion* p_antes = list_find(particiones_libres, _es_la_anterior); //para no confundir izq y derecha
 	t_particion* p_despues = list_find(particiones_libres, _es_la_siguiente);
 
@@ -736,9 +735,8 @@ void consolidar(t_particion* particion_liberada){
 	if(particion_liberada != NULL){
 		if(p_antes != NULL && p_despues != NULL){ //si alguna es null es porque no existe una particion libre que sea anterior/posterior a la que libere
 			p_antes->tamanio += particion_liberada->tamanio + p_despues->tamanio; //directamente hago la anterior mas grande (?
-			//TODO aca hay que sacar las particiones p_despues y particion_liberada de la lista de particiones liberadas pero ya tengo sueño jaja salu2
-
-
+			list_remove_by_condition(particiones_libres, (void*) _es_la_siguiente);
+			list_remove_by_condition(particiones_libres, (void*) _es_la_particion);
 		}
 	}
 }
