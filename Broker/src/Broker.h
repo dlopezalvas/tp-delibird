@@ -14,5 +14,7 @@
 
 void iniciar_broker();
 void terminar_broker(t_log*, t_config*);
+void dump_cache (int n);
+void ver_estado_cache_particiones();
 
 #endif /* BROKER_H_ */

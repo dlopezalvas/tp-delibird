@@ -16,18 +16,11 @@
 #define LOG_NOMBRE_APLICACION "NOMBRE_APLICACION"
 #define BROKER_CONFIG "Broker.config"
 
-
-void dump_cache (int n){
-	switch(n){
-	case SIGUSR1: puts("acá hay que poner lo de la dump de cache"); //para usarla en cosola kill -SIGUSR1 <pidof Broker>
-	break;
-	}
-}
-
 t_list* multihilos;
 
 int main() {
-//	signal(SIGUSR1, dump_cache);
+	signal(SIGUSR1, dump_cache);
+
 	iniciar_broker();
 //	recibir_mensaje_broker(config);
 //	terminar_broker(logger,config);
@@ -95,5 +88,38 @@ void terminar_broker(t_log* logger, t_config* config)
 {
 	config_destroy(config);
 	log_destroy(logger);
+}
+
+void dump_cache (int n){		//para usarla en cosola kill -SIGUSR1 <pidof Broker>
+	switch(n){
+	case SIGUSR1:
+		switch(configuracion_cache->algoritmo_memoria){
+		case BS:
+		//	ver_estado_cache_bs();
+			break;
+		case PARTICIONES:
+			ver_estado_cache_particiones();
+			break;
+		}
+	break;
+	}
+}
+
+void ver_estado_cache_particiones(){
+
+	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "w+");
+
+	fseek(dump_cache, 0, SEEK_END); //me paro al final
+
+	time_t fecha = time(NULL);
+
+	struct tm *tlocal = localtime(&fecha);
+	char output[128];
+
+	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
+
+	fprintf(dump_cache, "Dump:%s\n", output);
+
+	fclose(dump_cache);
 }
 
