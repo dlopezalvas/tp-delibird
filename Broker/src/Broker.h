@@ -21,6 +21,7 @@ void iniciar_broker();
 void terminar_broker(t_log*, t_config*);
 void dump_cache (int n);
 void ver_estado_cache_particiones();
+void ver_estado_cache_buddy();
 char* cola_segun_cod(op_code cod_op);
 char* transformar_a_fecha(uint32_t nro_fecha);
 

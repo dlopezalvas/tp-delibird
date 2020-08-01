@@ -95,7 +95,7 @@ void dump_cache (int n){		//para usarla en cosola kill -SIGUSR1 <pidof Broker>
 	case SIGUSR1:
 		switch(configuracion_cache->algoritmo_memoria){
 		case BS:
-		//	ver_estado_cache_bs();
+			ver_estado_cache_buddy();
 			break;
 		case PARTICIONES:
 			ver_estado_cache_particiones();
@@ -104,6 +104,7 @@ void dump_cache (int n){		//para usarla en cosola kill -SIGUSR1 <pidof Broker>
 	break;
 	}
 }
+
 
 void ver_estado_cache_particiones(){
 
@@ -156,6 +157,45 @@ void ver_estado_cache_particiones(){
 	}
 
 	list_iterate(particiones, (void*)_imprimir_datos);
+
+	fprintf(dump_cache, "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
+
+	fclose(dump_cache);
+}
+
+
+void ver_estado_cache_buddy(){
+
+	bool _orden(t_particion_buddy* particion1, t_particion_buddy* particion2){
+			return particion1->base < particion2->base;
+		}
+	//TODO: Poner mutex memoria_buddy_mutex
+	list_sort(memoria_buddy, (void*)_orden);
+
+	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
+
+	fseek(dump_cache, 0, SEEK_END); //me paro al final
+
+	time_t fecha = time(NULL);
+
+	struct tm *tlocal = localtime(&fecha);
+	char output[128];
+
+	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
+
+	fprintf(dump_cache, "Dump:%s\n\n", output);
+
+	int i = 1;
+
+	void _imprimir_datos(t_particion_buddy* particion){
+		char* cola = cola_segun_cod(particion->cola);
+		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
+				i, (void*)particion->base, (void*)(particion->base + particion->tamanio), particion->ocupado, particion->tamanio,
+				transformar_a_fecha(particion->ultimo_acceso), cola, particion->id_mensaje);
+		i++;
+	}
+
+	list_iterate(memoria_buddy, (void*)_imprimir_datos);
 
 	fprintf(dump_cache, "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 
