@@ -636,21 +636,21 @@ void compactar(){
 
 	ordenar_particiones_libres(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
 
-	int cantidad_particiones = list_size(particiones_ocupadas) - 1;
+	int cantidad_particiones = list_size(particiones_ocupadas);
 
 	t_particion* aux;
 
 	for(int i = 0; i < cantidad_particiones; i++){
 		aux = list_get(particiones_ocupadas, i);
 		memcpy(memoria_cache + offset, (void*)aux->base, aux->tamanio);
-		aux->base = offset;
+		aux->base = (int)memoria_cache + offset;
 		offset+= aux->tamanio;
 	}
 
 	list_clean(particiones_libres);
 
 	t_particion* particion_unica = malloc(sizeof(t_particion));
-	particion_unica->base = offset;
+	particion_unica->base = (int) memoria_cache + offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 	particion_unica->id_mensaje = 0;
 	particion_unica->ultimo_acceso = time(NULL);
@@ -728,8 +728,8 @@ void consolidar(t_particion* particion_liberada){
 		return particion_liberada == particion;
 	}
 
-	t_particion* p_antes = list_find(particiones_libres, _es_la_anterior); //para no confundir izq y derecha
-	t_particion* p_despues = list_find(particiones_libres, _es_la_siguiente);
+	t_particion* p_antes = list_find(particiones_libres,(void*) _es_la_anterior); //para no confundir izq y derecha
+	t_particion* p_despues = list_find(particiones_libres,(void*) _es_la_siguiente);
 
 
 	if(particion_liberada != NULL){
@@ -795,11 +795,7 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 
 	list_sort(particiones_ocupadas, (void*)_orden);
 
-	bool _puede_guardar(t_particion* particion){
-		return particion->tamanio >= tamanio_a_almacenar;
-	}
-
-	particion = list_find(particiones_ocupadas, (void*)_puede_guardar);
+	particion = particiones_ocupadas->head->data;
 
 	eliminar_particion(particion);
 
@@ -816,12 +812,11 @@ void eliminar_particion(t_particion* particion_a_liberar){
 
 	list_add(particiones_libres, particion_nueva_libre);
 
-	bool _es_la_particion(void* particion){
-		return particion == particion_a_liberar;
+	bool _es_la_particion(t_particion* particion){
+		return particion->base == particion_a_liberar->base;
 	}
 
-	//TODO: Diana, ver si esta bien con el null (?
-	list_remove_and_destroy_by_condition(particiones_libres,_es_la_particion,NULL);
+	list_remove_by_condition(particiones_ocupadas, (void*)_es_la_particion);
 
 }
 
