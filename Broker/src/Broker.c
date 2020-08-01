@@ -107,7 +107,7 @@ void dump_cache (int n){		//para usarla en cosola kill -SIGUSR1 <pidof Broker>
 
 void ver_estado_cache_particiones(){
 
-	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "w+");
+	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
 
 	fseek(dump_cache, 0, SEEK_END); //me paro al final
 
