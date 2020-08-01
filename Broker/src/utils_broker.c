@@ -921,18 +921,18 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 
 	bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
 
-	while(bloque_buddy_particion == NULL){
-
-		switch(configuracion_cache->algoritmo_reemplazo){
-		case FIFO:
-			eleccion_victima_fifo_buddy(tamanio);
-			break;
-		case LRU:
-			eleccion_victima_lru_buddy();
-			break;
-		}
-		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
-	}
+//	while(bloque_buddy_particion == NULL){
+//
+//		switch(configuracion_cache->algoritmo_reemplazo){
+//		case FIFO:
+//			eleccion_victima_fifo_buddy(tamanio);
+//			break;
+//		case LRU:
+//			eleccion_victima_lru_buddy();
+//			break;
+//		}
+//		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
+//	}
 
 	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio,cod_op,id_mensaje);
 
@@ -940,7 +940,9 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 }
 
 void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
-
+	if(bloque_buddy_particion == NULL) puts("null");
+	if(datos == NULL) puts("null");
+	printf("%p",bloque_buddy_particion->base);
 	memcpy((void*)bloque_buddy_particion->base, datos, tamanio); //copio a la memoria
 	//	bloque_buddy_particion->ocupado = true;
 
@@ -970,6 +972,7 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	t_list* lista_bloques_validos = list_filter(memoria_buddy, (void*)_validar_condicion_buddy);
+
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 
 	if(!list_is_empty(lista_bloques_validos))
@@ -980,8 +983,9 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 		}
 
 		pthread_mutex_lock(&memoria_buddy_mutex);
-		list_sort(memoria_buddy, _ordenar_menor_a_mayor);
+		list_sort(lista_bloques_validos, _ordenar_menor_a_mayor);
 		bloque_a_partir = memoria_buddy->head->data;
+
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 
 		bool condicion_buddy_particion = validar_condicion_buddy(bloque_a_partir,tamanio);
@@ -992,7 +996,7 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 		//Si no entra, lo guardo en la ultima particion que entraba.
 
 		while(condicion_buddy_particion){
-			puts("entra while");
+
 			bloque_elegido = generar_particion_buddy(bloque_a_partir);
 			condicion_buddy_particion = validar_condicion_buddy(bloque_elegido,tamanio);
 		}
@@ -1002,6 +1006,8 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 	}
 
 	//TODO: Verificar que devuelva null
+
+	if(bloque_elegido->base == NULL) puts("nullllll2");
 	return bloque_elegido;
 }
 
@@ -1024,6 +1030,8 @@ bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio){
 
 t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy){
 	uint32_t id_viejo = bloque_buddy->id;
+	uint32_t base_vieja = bloque_buddy->base;
+//	puts(string_itoa(base_vieja));
 
 	bool _mismo_id_buddy(t_particion_buddy* bloque_buddy){
 		return mismo_id_buddy(bloque_buddy,id_viejo);
@@ -1037,8 +1045,9 @@ t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy){
 	uint32_t nuevo_tamanio = bloque_buddy->tamanio / 2;
 	bloque_buddy->tamanio = nuevo_tamanio;
 	bloque_buddy2->tamanio = nuevo_tamanio;
-	bloque_buddy2->base = bloque_buddy->base + nuevo_tamanio;
+	bloque_buddy2->base = base_vieja + nuevo_tamanio;
 	bloque_buddy->ocupado = false;
+	bloque_buddy->base = base_vieja;
 	bloque_buddy2->ocupado = false;
 	pthread_mutex_lock(&buddy_id_mutex);
 	buddy_id++;
