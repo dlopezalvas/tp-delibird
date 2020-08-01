@@ -283,6 +283,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 		break;
 	case PARTICIONES:
 		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio);
+		bloque_broker->particion->ultimo_acceso = time(NULL); //TODO fijarse si aca hay que cambiarle o no (?
 	}
 
 	buffer_cargado->stream = stream;
@@ -577,8 +578,6 @@ void iniciar_memoria(t_config* config){
 
 	t_particion* particion_libre = list_get(particiones_libres, 0);
 
-	puts(string_itoa(particion_libre->base));
-
 	buddy_id = 0;
 
 	t_particion_buddy* bloque_buddy = malloc(sizeof(t_particion_buddy));
@@ -648,7 +647,7 @@ void compactar(){
 
 	for(int i = 0; i < cantidad_particiones; i++){
 		aux = list_get(particiones_ocupadas, i);
-		memcpy(memoria_cache + offset, memoria_cache + aux->base, aux->tamanio);
+		memcpy(memoria_cache + offset, (void*)aux->base, aux->tamanio);
 		aux->base = offset;
 		offset+= aux->tamanio;
 	}
@@ -658,6 +657,8 @@ void compactar(){
 	t_particion* particion_unica = malloc(sizeof(t_particion));
 	particion_unica->base = offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
+	particion_unica->id_mensaje = 0;
+	particion_unica->ultimo_acceso = time(NULL);
 	list_add(particiones_libres, particion_unica);
 
 }
@@ -674,8 +675,6 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
-	puts(string_itoa(particion_libre->base));
-
 	return particion_libre;
 }
 
@@ -686,7 +685,8 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar){
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
-			//particion_libre = elegir_victima_particiones(tamanio_a_almacenar);
+			consolidar(elegir_victima_particiones(tamanio_a_almacenar)); //aca se elimina la particion (se pone como libre), se consolida y se vuelve a buscar una particion
+			particion_libre = buscar_particion_ff(tamanio_a_almacenar);
 			contador++;
 		}else{
 			compactar();
@@ -694,8 +694,6 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar){
 			contador = 0;
 		}
 	}
-
-
 
 	return particion_libre;
 }
@@ -709,7 +707,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
 			consolidar(elegir_victima_particiones(tamanio_a_almacenar)); //aca se elimina la particion (se pone como libre), se consolida y se vuelve a buscar una particion
-			particion_libre = buscar_particion_bf;
+			particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 			contador++;
 		}else{
 			compactar();
@@ -730,7 +728,6 @@ void consolidar(t_particion* particion_liberada){
 	bool _es_la_siguiente(t_particion* particion){
 		return particion_liberada->base + particion_liberada->tamanio == particion->base;
 	}
-
 
 	t_particion* p_antes = list_find(particiones_libres, _es_la_anterior); //para no confundir izq y derecha
 	t_particion* p_despues = list_find(particiones_libres, _es_la_siguiente);
@@ -843,6 +840,8 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		t_particion* particion_nueva = malloc(sizeof(t_particion));
 		particion_nueva->base = particion_libre->base + tamanio;
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
+		particion_nueva->id_mensaje = 0;
+		particion_nueva->ultimo_acceso = time(NULL);
 		particion_libre->tamanio = tamanio;
 
 		list_add(particiones_libres, particion_nueva);
