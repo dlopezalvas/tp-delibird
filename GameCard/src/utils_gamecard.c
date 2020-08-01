@@ -902,9 +902,13 @@ void connect_new_pokemon(){
 		if(cod_op == NEW_POKEMON){
 
 			_new_pokemon = deserializar_new_pokemon(buffer);
-			send(socket_broker,&_new_pokemon->id,sizeof(uint32_t),0);
 
-			new_pokemon(_new_pokemon);
+			int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+			uint32_t id_ack = _new_pokemon->id;
+
+			enviar_ack(socket_broker, id_ack, id_proceso);
+
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);
 			pthread_mutex_unlock(&solicitudes_mtx);
@@ -954,9 +958,13 @@ void connect_catch_pokemon(){
 		if(cod_op == CATCH_POKEMON){
 
 			_catch_pokemon = deserializar_position_and_name(buffer);
-			send(socket_broker,&_catch_pokemon->id,sizeof(uint32_t),0);
 
-//			catch_pokemon(_catch_pokemon);
+			int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+			uint32_t id_ack = _catch_pokemon->id;
+
+			enviar_ack(socket_broker, id_ack, id_proceso);
+
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);
 			pthread_mutex_unlock(&solicitudes_mtx);
@@ -1007,7 +1015,12 @@ void connect_get_pokemon(){
 
 		if(cod_op == GET_POKEMON){
 			_get_pokemon = deserializar_get_pokemon(buffer);
-//			send(socket_broker,&(_get_pokemon)->id,sizeof(uint32_t),0);
+
+			int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+			uint32_t id_ack = _get_pokemon->id;
+
+			enviar_ack(socket_broker, id_ack, id_proceso);
 
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);

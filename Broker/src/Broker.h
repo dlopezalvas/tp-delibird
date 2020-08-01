@@ -12,7 +12,16 @@
 
 #define PATH "/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/BROKER.config"
 
-void iniciar_broker(t_config**, t_log**);
+typedef struct{
+	t_particion* particion;
+	char ocupado;
+}t_particion_dump;
+
+void iniciar_broker();
 void terminar_broker(t_log*, t_config*);
+void dump_cache (int n);
+void ver_estado_cache_particiones();
+char* cola_segun_cod(op_code cod_op);
+char* transformar_a_fecha(uint32_t nro_fecha);
 
 #endif /* BROKER_H_ */

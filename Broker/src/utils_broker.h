@@ -39,13 +39,11 @@
 #define FRECUENCIA_COMPACTACION "FRECUENCIA_COMPACTACION"
 
 t_log* logger;
+t_config* config;
 
 typedef struct{
-  op_code tipo_mensaje;
-  void* buffer; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
+  void* buffer;
   int suscriptor;
-  uint32_t id;
-  uint32_t tamanio;
 }t_mensaje_broker;
 
 typedef struct{
@@ -53,11 +51,11 @@ typedef struct{
 	uint32_t correlation_id;
 	uint32_t tamanio;
 	void* buffer;
-//	int compactacion_intentos_fallidos;
 }t_buffer_broker;
 
 
 typedef struct{
+	op_code cola;
 	uint32_t base;
 	uint32_t tamanio;
 	uint32_t id_mensaje;
@@ -133,11 +131,12 @@ t_queue* CAUGHT_POKEMON_COLA;
 t_queue* GET_POKEMON_COLA;
 t_queue* LOCALIZED_POKEMON_COLA;
 t_queue* SUSCRIPCION_COLA;
+t_queue* ACK_COLA;
 
 
-sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem;
+sem_t new_pokemon_sem, appeared_pokemon_sem, catch_pokemon_sem, caught_pokemon_sem,localized_pokemon_sem, get_pokemon_sem, suscripcion_sem, ack_sem;
 pthread_mutex_t new_pokemon_mutex,appeared_pokemon_mutex, catch_pokemon_mutex, caught_pokemon_mutex,localized_pokemon_mutex, get_pokemon_mutex, suscripcion_mutex;
-pthread_mutex_t new_pokemon_queue_mutex,appeared_pokemon_queue_mutex, catch_pokemon_queue_mutex, caught_pokemon_queue_mutex,localized_pokemon_queue_mutex, get_pokemon_queue_mutex;
+pthread_mutex_t new_pokemon_queue_mutex,appeared_pokemon_queue_mutex, catch_pokemon_queue_mutex, caught_pokemon_queue_mutex,localized_pokemon_queue_mutex, get_pokemon_queue_mutex, ack_queue_mutex;
 pthread_mutex_t
 suscripcion_new_queue_mutex,
 suscripcion_get_queue_mutex,
@@ -180,7 +179,7 @@ void serve_client(int socket);
 void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
-void enviar_mensaje_broker(int cliente_a_enviar,t_mensaje* mensaje_enviar,uint32_t mensaje_id);
+void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes);
 void ejecutar_new_pokemon();
 void ejecutar_appeared_pokemon();
 void ejecutar_catch_pokemon();
@@ -188,6 +187,7 @@ void ejecutar_caught_pokemon();
 void ejecutar_get_pokemon();
 void ejecutar_localized_pokemon();
 void ejecutar_suscripcion();
+void ejecutar_ACK();
 void ejecutar_new_pokemon_suscripcion(int suscriptor);
 void ejecutar_appeared_pokemon_suscripcion(int suscriptor);
 void ejecutar_catch_pokemon_suscripcion(int suscriptor);
@@ -195,22 +195,30 @@ void ejecutar_caught_pokemon_suscripcion(int suscriptor);
 void ejecutar_get_pokemon_suscripcion(int suscriptor);
 void ejecutar_localized_pokemon_suscripcion(int suscriptor);
 
+
+bool es_mensaje_respuesta(op_code cod_op);
+t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size);
+t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion);
+
 void ordenar_particiones_libres();
 void iniciar_memoria(t_config* config);
-void asignar_particion(void* datos, t_particion* particion_libre, int tamanio);
-void* almacenar_dato(void* datos, int tamanio);
-void almacenar_dato_particiones(void* datos, int tamanio);
+void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id);
+void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id);
+t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo_op, uint32_t id);
 t_particion* buscar_particion_ff(int tamanio_a_almacenar);
 t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_ff(int tamanio_a_almacenar);
+
+void consolidar(t_particion* particion_liberada);
+void compactar();
 
 t_particion* elegir_victima_particiones(int tamanio_a_almacenar);
 t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
 void eliminar_particion(t_particion* particion_a_liberar);
 
 
-t_buffer_broker* deserializar_broker(void* buffer, uint32_t size);
+t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size);
 
 //buddy
 

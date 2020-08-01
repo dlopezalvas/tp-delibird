@@ -44,6 +44,7 @@ typedef enum{
 	CAUGHT_POKEMON=5,
 	GET_POKEMON=6,
 	LOCALIZED_POKEMON=7,
+	ACK=8,
 }op_code;
 
 
@@ -52,6 +53,7 @@ t_config* leer_config(char* proceso);
 void terminar_proceso(int, t_log*, t_config*);
 void liberar_vector (char** vector);
 op_code codigo_mensaje(char* tipo_mensaje);
+
 
 
 #endif /* UTILS_H_ */
