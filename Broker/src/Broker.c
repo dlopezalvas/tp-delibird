@@ -107,6 +107,31 @@ void dump_cache (int n){		//para usarla en cosola kill -SIGUSR1 <pidof Broker>
 
 void ver_estado_cache_particiones(){
 
+	t_list* particiones = list_create();
+
+	void _agregar_bit_ocupado(t_particion* particion){
+		t_particion_dump* p_dump = malloc(sizeof(t_particion_dump));
+		p_dump->particion = particion;
+		p_dump->ocupado = 'X';
+		list_add(particiones, p_dump);
+	}
+
+	void _agregar_bit_libre(t_particion* particion){
+		t_particion_dump* p_dump = malloc(sizeof(t_particion_dump));
+		p_dump->particion = particion;
+		p_dump->ocupado = 'L';
+		list_add(particiones, p_dump);
+	}
+
+	list_iterate(particiones_libres, (void*)_agregar_bit_libre);
+	list_iterate(particiones_ocupadas, (void*)_agregar_bit_ocupado);
+
+	bool _orden(t_particion_dump* particion1, t_particion_dump* particion2){
+			return particion1->particion->base < particion2->particion->base;
+		}
+
+	list_sort(particiones, (void*)_orden);
+
 	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
 
 	fseek(dump_cache, 0, SEEK_END); //me paro al final
@@ -118,7 +143,18 @@ void ver_estado_cache_particiones(){
 
 	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
 
-	fprintf(dump_cache, "Dump:%s\n", output);
+	fprintf(dump_cache, "Dump:%s\n\n", output);
+
+	int i = 1;
+
+	void _imprimir_datos(t_particion_dump* particion){
+		fprintf(dump_cache, "Partición %d: %p - %p [%c]   Size: %db\n", i, (void*)particion->particion->base, (void*)(particion->particion->base + particion->particion->tamanio), particion->ocupado, particion->particion->tamanio);
+		i++;
+	}
+
+	list_iterate(particiones, (void*)_imprimir_datos);
+
+	fprintf(dump_cache, "--------------------------------------------------------------------------------\n\n");
 
 	fclose(dump_cache);
 }
