@@ -921,18 +921,18 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 
 	bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
 
-//	while(bloque_buddy_particion == NULL){
-//
-//		switch(configuracion_cache->algoritmo_reemplazo){
-//		case FIFO:
-//			eleccion_victima_fifo_buddy(tamanio);
-//			break;
-//		case LRU:
-//			eleccion_victima_lru_buddy();
-//			break;
-//		}
-//		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
-//	}
+	while(bloque_buddy_particion == NULL){
+
+		switch(configuracion_cache->algoritmo_reemplazo){
+		case FIFO:
+			eleccion_victima_fifo_buddy(tamanio);
+			break;
+		case LRU:
+			eleccion_victima_lru_buddy();
+			break;
+		}
+		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
+	}
 
 	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio,cod_op,id_mensaje);
 
@@ -1008,8 +1008,6 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 	}
 
 	//TODO: Verificar que devuelva null
-
-	if(bloque_elegido->base == NULL) puts("nullllll2");
 	return bloque_elegido;
 }
 
