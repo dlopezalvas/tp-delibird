@@ -1003,6 +1003,8 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 
 		if(bloque_elegido != NULL && !bloque_a_partir->ocupado && bloque_a_partir->tamanio > tamanio)
 			bloque_elegido = bloque_a_partir;
+	}else{
+		bloque_elegido = NULL;
 	}
 
 	//TODO: Verificar que devuelva null
