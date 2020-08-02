@@ -923,6 +923,8 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 
 	while(bloque_buddy_particion == NULL){
 
+		puts("while reemplazo fifo");
+
 		switch(configuracion_cache->algoritmo_reemplazo){
 		case FIFO:
 			eleccion_victima_fifo_buddy(tamanio);
@@ -988,8 +990,7 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 
 		pthread_mutex_lock(&memoria_buddy_mutex);
 		list_sort(lista_bloques_validos, _ordenar_menor_a_mayor);
-		bloque_a_partir = memoria_buddy->head->data;
-
+		bloque_a_partir = lista_bloques_validos->head->data;
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 
 		bool condicion_buddy_particion = validar_condicion_buddy(bloque_a_partir,tamanio);
@@ -1000,14 +1001,19 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 		//Si no entra, lo guardo en la ultima particion que entraba.
 
 		while(condicion_buddy_particion){
-
 			bloque_elegido = generar_particion_buddy(bloque_a_partir);
 			condicion_buddy_particion = validar_condicion_buddy(bloque_elegido,tamanio);
+			puts("entra al while");
 		}
-
-		if(bloque_elegido != NULL && !bloque_a_partir->ocupado && bloque_a_partir->tamanio > tamanio)
+		// que pasa si nunca entra al while y no tiene ningun bloque elegido??
+		if(bloque_elegido != NULL && !bloque_a_partir->ocupado && bloque_a_partir->tamanio > tamanio){
+			puts("entra al iffffff");
 			bloque_elegido = bloque_a_partir;
-	}else{
+			puts(string_itoa(bloque_elegido->id_mensaje));
+		}
+	}
+	else{
+		puts("entra al elseeee");
 		bloque_elegido = NULL;
 	}
 
@@ -1016,8 +1022,8 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 }
 
 bool encontrar_bloque_valido_buddy(t_particion_buddy* bloque_buddy,int tamanio){
-	return (bloque_buddy->tamanio >= tamanio)
-			&& !(bloque_buddy->ocupado);
+	return ((!(bloque_buddy->ocupado)) &&
+			(bloque_buddy->tamanio) >= tamanio) ;
 }
 
 bool ordenar_menor_a_mayor(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
@@ -1098,7 +1104,7 @@ void eleccion_victima_fifo_buddy(int tamanio){
 	victima_elegida->ocupado = false;
 
 	//consolidar
-	consolidar_buddy(victima_elegida,memoria_buddy);
+	//consolidar_buddy(victima_elegida,memoria_buddy);
 }
 
 bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover){
