@@ -944,7 +944,8 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
 	if(bloque_buddy_particion == NULL) puts("null");
 	if(datos == NULL) puts("null");
-	printf("%p",bloque_buddy_particion->base);
+	printf("%p, %d",bloque_buddy_particion->base, bloque_buddy_particion->id);
+
 	memcpy((void*)bloque_buddy_particion->base, datos, tamanio); //copio a la memoria
 	//	bloque_buddy_particion->ocupado = true;
 
@@ -1091,20 +1092,30 @@ void eleccion_victima_fifo_buddy(int tamanio){
 	bool _sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
 		return sort_byId_memoria_buddy(bloque_buddy,bloque_buddy2);
 	}
+
+	bool _esta_ocupada(t_particion_buddy* bloque_buddy){
+		return bloque_buddy->ocupado;
+	}
+
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_sort(memoria_buddy,(void*)_sort_byId_memoria_buddy);
+	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
-	bool _eleccion_victima_fifo_a_eliminar(void* bloque_buddy){
-		return eleccion_victima_fifo_a_eliminar(bloque_buddy,tamanio);
-	}
+//	bool _eleccion_victima_fifo_a_eliminar(void* bloque_buddy){
+//		return eleccion_victima_fifo_a_eliminar(bloque_buddy,tamanio);
+//	}
 	//Busco la victima y "elimino"
-	pthread_mutex_lock(&memoria_buddy_mutex);
-	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_eleccion_victima_fifo_a_eliminar);
-	pthread_mutex_unlock(&memoria_buddy_mutex);
+//	pthread_mutex_lock(&memoria_buddy_mutex);
+//	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_eleccion_victima_fifo_a_eliminar);
+//	pthread_mutex_unlock(&memoria_buddy_mutex);
+
 	victima_elegida->ocupado = false;
+	victima_elegida->id_mensaje = 0;
+	victima_elegida->cola = 0;
+
 
 	//consolidar
-	//consolidar_buddy(victima_elegida,memoria_buddy);
+	consolidar_buddy(victima_elegida,memoria_buddy);
 }
 
 bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover){
@@ -1118,6 +1129,8 @@ void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_bud
 	}
 
 	list_iterate(lista_fifo_buddy, (void*)_encontrar_y_consolidar_buddy);
+
+
 }
 
 //TODO: Reveer esto Lucas
@@ -1127,25 +1140,36 @@ bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_bu
 }
 
 void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
+
 	bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
 
 	if(condition_for_buddy && !bloque_buddy->ocupado){
+
+		puts("encontro buddy libre");
+
 		t_particion_buddy* bloque_buddy_new = malloc(sizeof(t_particion_buddy));
-		bloque_buddy_new->tamanio = bloque_buddy->tamanio * 2;
+		bloque_buddy_new->tamanio = bloque_buddy_old->tamanio * 2;
 		bloque_buddy_new->ocupado = false;
-		pthread_mutex_lock(&buddy_id_mutex);
-		buddy_id++;
-		pthread_mutex_unlock(&buddy_id_mutex);
-		bloque_buddy_new->id = buddy_id;
+		bloque_buddy_new->id_mensaje = 0;
+		bloque_buddy_new->cola = 0;
+
+		puts("armo nuevo buddy");
+
+//		pthread_mutex_lock(&buddy_id_mutex);
+//		buddy_id++;
+//		pthread_mutex_unlock(&buddy_id_mutex);
+//		bloque_buddy_new->id = buddy_id;
 		bloque_buddy_new->base = bloque_buddy_old->base;
 
+		puts("puso la base del buddy");
+
 		//
-		bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy){
-			return mismo_id_buddy(bloque_buddy,bloque_buddy_old->id);
+		bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy_1){
+			return mismo_id_buddy(bloque_buddy_1,bloque_buddy_old->id);
 		}
 
-		bool _mismo_id_buddy2(t_particion_buddy* bloque_buddy){
-			return mismo_id_buddy(bloque_buddy,bloque_buddy->id);
+		bool _mismo_id_buddy2(t_particion_buddy* bloque_buddy_2){
+			return mismo_id_buddy(bloque_buddy_2,bloque_buddy->id);
 		}
 
 		pthread_mutex_lock(&memoria_buddy_mutex);
@@ -1158,12 +1182,16 @@ void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_bu
 		pthread_mutex_lock(&memoria_buddy_mutex);
 		list_add(memoria_buddy,bloque_buddy_new);
 		pthread_mutex_unlock(&memoria_buddy_mutex);
+
+		puts("termino consolidacion");
+		sleep(10);
+
 	}
 }
 
-bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio){
-	return bloque_buddy->tamanio > tamanio;
-}
+//bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio){
+//	return bloque_buddy->tamanio >= tamanio;
+//}
 
 bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
 	return bloque_buddy->id < bloque_buddy2->id;
