@@ -179,48 +179,48 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	printf("id: %d cid: %d\n", bloque_broker->id, bloque_broker->correlation_id);
 
-	switch (cod_op) {
-	case NEW_POKEMON:
-		pthread_mutex_lock(&new_pokemon_mutex);
-		queue_push(NEW_POKEMON_COLA,bloque_broker);
-		pthread_mutex_unlock(&new_pokemon_mutex);
-		sem_post(&new_pokemon_sem);
-		break;
-	case APPEARED_POKEMON:
-		pthread_mutex_lock(&appeared_pokemon_mutex);
-		queue_push(APPEARED_POKEMON_COLA,bloque_broker);
-		pthread_mutex_unlock(&appeared_pokemon_mutex);
-		sem_post(&appeared_pokemon_sem);
-		break;
-	case CATCH_POKEMON:
-		pthread_mutex_lock(&catch_pokemon_mutex);
-		queue_push(CATCH_POKEMON_COLA,bloque_broker);
-		pthread_mutex_unlock(&catch_pokemon_mutex);
-		sem_post(&catch_pokemon_sem);
-		break;
-	case CAUGHT_POKEMON:
-		pthread_mutex_lock(&caught_pokemon_mutex);
-		queue_push(CAUGHT_POKEMON_COLA,bloque_broker);
-		pthread_mutex_unlock(&caught_pokemon_mutex);
-		sem_post(&caught_pokemon_sem);
-		break;
-	case GET_POKEMON:
-		pthread_mutex_lock(&get_pokemon_mutex);
-		queue_push(GET_POKEMON_COLA,bloque_broker);
-		pthread_mutex_unlock(&get_pokemon_mutex);
-		sem_post(&get_pokemon_sem);
-		break;
-	case LOCALIZED_POKEMON:
-		pthread_mutex_lock(&localized_pokemon_mutex);
-		queue_push(LOCALIZED_POKEMON_COLA,bloque_broker);
-		pthread_mutex_unlock(&localized_pokemon_mutex);
-		sem_post(&localized_pokemon_sem);
-		break;
-	case 0:
-		pthread_exit(NULL);
-	case -1:
-		pthread_exit(NULL);
-	}
+//	switch (cod_op) {
+//	case NEW_POKEMON:
+//		pthread_mutex_lock(&new_pokemon_mutex);
+//		queue_push(NEW_POKEMON_COLA,bloque_broker);
+//		pthread_mutex_unlock(&new_pokemon_mutex);
+//		sem_post(&new_pokemon_sem);
+//		break;
+//	case APPEARED_POKEMON:
+//		pthread_mutex_lock(&appeared_pokemon_mutex);
+//		queue_push(APPEARED_POKEMON_COLA,bloque_broker);
+//		pthread_mutex_unlock(&appeared_pokemon_mutex);
+//		sem_post(&appeared_pokemon_sem);
+//		break;
+//	case CATCH_POKEMON:
+//		pthread_mutex_lock(&catch_pokemon_mutex);
+//		queue_push(CATCH_POKEMON_COLA,bloque_broker);
+//		pthread_mutex_unlock(&catch_pokemon_mutex);
+//		sem_post(&catch_pokemon_sem);
+//		break;
+//	case CAUGHT_POKEMON:
+//		pthread_mutex_lock(&caught_pokemon_mutex);
+//		queue_push(CAUGHT_POKEMON_COLA,bloque_broker);
+//		pthread_mutex_unlock(&caught_pokemon_mutex);
+//		sem_post(&caught_pokemon_sem);
+//		break;
+//	case GET_POKEMON:
+//		pthread_mutex_lock(&get_pokemon_mutex);
+//		queue_push(GET_POKEMON_COLA,bloque_broker);
+//		pthread_mutex_unlock(&get_pokemon_mutex);
+//		sem_post(&get_pokemon_sem);
+//		break;
+//	case LOCALIZED_POKEMON:
+//		pthread_mutex_lock(&localized_pokemon_mutex);
+//		queue_push(LOCALIZED_POKEMON_COLA,bloque_broker);
+//		pthread_mutex_unlock(&localized_pokemon_mutex);
+//		sem_post(&localized_pokemon_sem);
+//		break;
+//	case 0:
+//		pthread_exit(NULL);
+//	case -1:
+//		pthread_exit(NULL);
+//	}
 
 	return bloque_broker->id;
 }
@@ -931,7 +931,7 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 			puts("elimino victima fifo");
 			break;
 		case LRU:
-			eleccion_victima_lru_buddy();
+			eleccion_victima_lru_buddy(tamanio);
 			break;
 		}
 		puts("--------------lo que quieras---------------");
@@ -1153,11 +1153,7 @@ void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_bud
 	else buddy = NULL;
 	}
 
-
-
 	puts("--------list iterate------------");
-
-
 }
 
 //TODO: Reveer esto Lucas
@@ -1180,6 +1176,7 @@ t_particion_buddy*  encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy
 		bloque_buddy_new->ocupado = false;
 		bloque_buddy_new->id_mensaje = 0;
 		bloque_buddy_new->cola = 0;
+		bloque_buddy_new->ultimo_acceso = time(NULL);
 
 		puts("armo nuevo buddy");
 
@@ -1239,22 +1236,48 @@ bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* 
 	return bloque_buddy->id < bloque_buddy2->id;
 }
 
-void eleccion_victima_lru_buddy(){
-	bool _sort_by_acceso_memoria_buddy(void* bloque_buddy,void* bloque_buddy2){
-		return sort_by_acceso_memoria_buddy(bloque_buddy,bloque_buddy2);
-	}
-	pthread_mutex_lock(&memoria_buddy_mutex);
-	list_sort(memoria_buddy,(void*)sort_by_acceso_memoria_buddy);
-	pthread_mutex_unlock(&memoria_buddy_mutex);
-	//	t_particion_buddy bloque_a_eliminar = memoria_buddy->head->data;
-
-}
+//void eleccion_victima_lru_buddy(){
+//	bool _sort_by_acceso_memoria_buddy(void* bloque_buddy,void* bloque_buddy2){
+//		return sort_by_acceso_memoria_buddy(bloque_buddy,bloque_buddy2);
+//	}
+//	pthread_mutex_lock(&memoria_buddy_mutex);
+//	list_sort(memoria_buddy,(void*)sort_by_acceso_memoria_buddy);
+//	pthread_mutex_unlock(&memoria_buddy_mutex);
+//	//	t_particion_buddy bloque_a_eliminar = memoria_buddy->head->data;
+//
+//}
 
 bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
 	return (bloque_buddy->ultimo_acceso) < (bloque_buddy2->ultimo_acceso);
 }
 
-//
+void eleccion_victima_lru_buddy(int tamanio){
+
+	bool _orden(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+		return bloque_buddy->ultimo_acceso < bloque_buddy2->ultimo_acceso;
+	}
+
+	bool _esta_ocupada(t_particion_buddy* bloque_buddy){
+		return bloque_buddy->ocupado;
+	}
+
+	pthread_mutex_lock(&memoria_buddy_mutex);
+	list_sort(memoria_buddy,(void*)_orden);
+	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
+	pthread_mutex_unlock(&memoria_buddy_mutex);
+
+	puts("id victima----------------");
+	puts(string_itoa(victima_elegida->id_mensaje));
+
+	victima_elegida->ocupado = false;
+	victima_elegida->id_mensaje = 0;
+	victima_elegida->cola = 0;
+
+
+	//consolidar
+	consolidar_buddy(victima_elegida,memoria_buddy);
+
+}
 
 
 

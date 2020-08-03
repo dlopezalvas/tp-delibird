@@ -231,7 +231,7 @@ uint32_t buddy_id;
 t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
 void eleccion_victima_fifo_buddy(int tamanio);
 bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
-void eleccion_victima_lru_buddy();
+void eleccion_victima_lru_buddy(int tamanio);
 void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio);
 void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
 bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
