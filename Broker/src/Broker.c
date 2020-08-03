@@ -151,7 +151,7 @@ void ver_estado_cache_particiones(){
 	void _imprimir_datos(t_particion_dump* particion){
 		char* cola = cola_segun_cod(particion->particion->cola);
 		fprintf(dump_cache, "Partición %d: %p - %p [%c]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
-				i, (void*)particion->particion->base, (void*)(particion->particion->base + particion->particion->tamanio), particion->ocupado, particion->particion->tamanio,
+				i, (void*)particion->particion->base, (void*)(particion->particion->base + particion->particion->tamanio - 1), particion->ocupado, particion->particion->tamanio,
 				transformar_a_fecha(particion->particion->ultimo_acceso), cola, particion->particion->id_mensaje);
 		i++;
 	}
@@ -193,7 +193,7 @@ void ver_estado_cache_buddy(){
 	void _imprimir_datos(t_particion_buddy* particion){
 		char* cola = cola_segun_cod(particion->cola);
 		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
-				i, (void*)particion->base, (void*)(particion->base + particion->tamanio), particion->ocupado, particion->tamanio,
+				i, (void*)particion->base, (void*)(particion->base + particion->tamanio - 1), particion->ocupado, particion->tamanio,
 				transformar_a_fecha(particion->ultimo_acceso), cola, particion->id_mensaje);
 		i++;
 	}
