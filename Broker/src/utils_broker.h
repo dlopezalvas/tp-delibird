@@ -209,8 +209,8 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar);
 void consolidar(t_particion* particion_liberada);
 void compactar();
 
-t_particion* elegir_victima_particiones(int tamanio_a_almacenar);
-t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar);
+t_particion* elegir_victima_particiones();
+t_particion* elegir_victima_particiones_LRU();
 void eliminar_particion(t_particion* particion_a_liberar);
 
 

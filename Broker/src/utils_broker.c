@@ -696,7 +696,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
-			consolidar(elegir_victima_particiones(tamanio_a_almacenar)); //aca se elimina la particion (se pone como libre), se consolida y se vuelve a buscar una particion
+			consolidar(elegir_victima_particiones()); //aca se elimina la particion (se pone como libre), se consolida y se vuelve a buscar una particion
 			particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 			contador++;
 		}else{
@@ -725,7 +725,7 @@ void consolidar(t_particion* particion_liberada){
 		return particion_liberada->base == particion->base;
 	}
 
-	pthread_mutex_lock(&lista_particiones_mtx);
+	pthread_mutex_lock(&lista_particiones_mtx); //bloqueo aca porque puede pasar que otro hilo quiera ocupar una de las libres antes/mientras esta consolidando
 
 	t_particion* p_anterior = list_find(particiones,(void*) _es_la_anterior);
 	t_particion* p_siguiente = list_find(particiones,(void*) _es_la_siguiente);
@@ -744,6 +744,7 @@ void consolidar(t_particion* particion_liberada){
 			list_remove_by_condition(particiones, (void*) _es_la_siguiente);
 		}
 	}
+
 	pthread_mutex_unlock(&lista_particiones_mtx); // re largo el mutex, preguntar que onda aca (?
 
 }
@@ -786,13 +787,14 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 	switch(configuracion_cache->algoritmo_reemplazo){
 	case LRU:
-		return elegir_victima_particiones_LRU(tamanio_a_almacenar);
+		return elegir_victima_particiones_LRU();
 
-		//case fifo
+	case FIFO:
+		return;
 	}
 }
 
-t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
+t_particion* elegir_victima_particiones_LRU(){
 
 	t_particion* particion;
 
@@ -800,32 +802,43 @@ t_particion* elegir_victima_particiones_LRU(int tamanio_a_almacenar){
 		return particion1->ultimo_acceso > particion2->ultimo_acceso;
 	}
 
-	list_sort(particiones_ocupadas, (void*)_orden);
+	bool _esta_ocupada(t_particion* particion){
+		return particion->ocupado;
+	}
 
-	particion = particiones_ocupadas->head->data;
 
-	eliminar_particion(particion);
+	pthread_mutex_lock(&lista_particiones_mtx);
+	list_sort(particiones, (void*)_orden);
+
+	particion = list_find(particiones, (void*)_esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
+
+	particion->ocupado = false;
+	particion->cola = 0;
+	particion->id_mensaje = 0;
+	particion->ultimo_acceso = time(NULL); //importa esto aca??
+
+	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	return particion;
 
 }
 
-void eliminar_particion(t_particion* particion_a_liberar){
-
-	t_particion* particion_nueva_libre = malloc(sizeof(t_particion));
-
-	particion_nueva_libre->base = particion_a_liberar->base;
-	particion_nueva_libre->tamanio = particion_a_liberar->tamanio;
-
-	list_add(particiones_libres, particion_nueva_libre);
-
-	bool _es_la_particion(t_particion* particion){
-		return particion->base == particion_a_liberar->base;
-	}
-
-	list_remove_by_condition(particiones_ocupadas, (void*)_es_la_particion);
-
-}
+//void eliminar_particion(t_particion* particion_a_liberar){
+//
+//	t_particion* particion_nueva_libre = malloc(sizeof(t_particion));
+//
+//	particion_nueva_libre->base = particion_a_liberar->base;
+//	particion_nueva_libre->tamanio = particion_a_liberar->tamanio;
+//
+//	list_add(particiones_libres, particion_nueva_libre);
+//
+//	bool _es_la_particion(t_particion* particion){
+//		return particion->base == particion_a_liberar->base;
+//	}
+//
+//	list_remove_by_condition(particiones_ocupadas, (void*)_es_la_particion);
+//
+//}
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
 
