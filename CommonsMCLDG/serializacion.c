@@ -126,9 +126,8 @@ t_buffer* buffer_caught_pokemon(char** parametros){
 	offset += sizeof(uint32_t);
 	memcpy(stream + offset, &caught_pokemon.correlation_id, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(stream, &caught_pokemon.caught, sizeof(uint32_t));
+	memcpy(stream + offset, &caught_pokemon.caught, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-
 
 
 	buffer -> stream = stream;
@@ -155,7 +154,8 @@ t_buffer* buffer_position_and_name(char** parametros){ //para mensajes APPEARED_
 	position_and_name.coordenadas.pos_x = pos_x;
 	position_and_name.coordenadas.pos_y = pos_y;
 	position_and_name.id = atoi(parametros[3]);
-	position_and_name.correlation_id = atoi(parametros[4]);
+	if(parametros[4] == NULL) position_and_name.correlation_id = 0;
+	else position_and_name.correlation_id = atoi(parametros[4]);
 
 
 //	free(nombre);
