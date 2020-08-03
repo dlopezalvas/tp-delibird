@@ -1146,9 +1146,14 @@ void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_bud
 	t_particion_buddy* buddy = list_find(lista_fifo_buddy,(void*)_validar_condicion_fifo_buddy);
 
 	//list_iterate(lista_fifo_buddy, (void*)_encontrar_y_consolidar_buddy);
-	if(buddy != NULL){
-	encontrar_y_consolidar_buddy(buddy, bloque_buddy_old);
+	while(buddy != NULL){
+	bloque_buddy_old = encontrar_y_consolidar_buddy(buddy, bloque_buddy_old);
+	if(bloque_buddy_old != NULL)
+	buddy = list_find(lista_fifo_buddy,(void*)_validar_condicion_fifo_buddy);
+	else buddy = NULL;
 	}
+
+
 
 	puts("--------list iterate------------");
 
@@ -1162,7 +1167,7 @@ bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_bu
 			((bloque_buddy_old->base - (int)memoria_cache) == (((bloque_buddy->base - (int)memoria_cache)) ^ bloque_buddy_old->tamanio));
 }
 
-void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
+t_particion_buddy*  encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
 
 	//bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
 
@@ -1218,11 +1223,12 @@ void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_bu
 		list_add(memoria_buddy,bloque_buddy_new);
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 
-
+		return bloque_buddy_new;
 		puts("termino consolidacion");
 
-
 	}
+
+	return NULL;
 }
 
 //bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio){

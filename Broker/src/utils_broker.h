@@ -241,7 +241,7 @@ bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
 bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
 void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_buddy);
 bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover);
-void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
+t_particion_buddy* encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
 bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
 t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio);
 bool encontrar_bloque_valido_buddy(t_particion_buddy* bloque_buddy,int tamanio);
