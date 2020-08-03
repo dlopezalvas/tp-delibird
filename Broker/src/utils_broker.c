@@ -162,18 +162,10 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 		buffer_broker = deserializar_broker_ida(buffer,size); //si no es de respuesta no tiene correlation id
 	}
 
-	void* particion_en_memoria = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio,cod_op, mensaje_id);
-
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
 
-	switch(configuracion_cache->algoritmo_memoria){
-	case BS:
-		bloque_broker->particion_buddy = particion_en_memoria;
-		break;
-	case PARTICIONES:
-		bloque_broker->particion = particion_en_memoria;
-		break;
-	}
+	bloque_broker->particion = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio,cod_op, mensaje_id);
+
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 
@@ -264,15 +256,9 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 //	puts(string_itoa(bloque_broker->particion->base));
 //	puts(string_itoa(bloque_broker->particion->tamanio));
 	int size = 0;
-	switch(configuracion_cache->algoritmo_memoria){
-		case BS:
-			size = bloque_broker->particion_buddy->tamanio + sizeof(uint32_t);
-			bloque_broker->particion_buddy->ultimo_acceso = time(NULL);
-			break;
-		case PARTICIONES:
-			size = bloque_broker->particion->tamanio + sizeof(uint32_t);
-			bloque_broker->particion->ultimo_acceso = time(NULL);
-		}
+
+	size = bloque_broker->particion->tamanio + sizeof(uint32_t);
+	bloque_broker->particion->ultimo_acceso = time(NULL);
 
 	if(es_mensaje_respuesta(codigo_operacion)){
 		size+= sizeof(uint32_t);
@@ -288,15 +274,9 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 		memcpy(stream + offset, &bloque_broker->correlation_id, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 	}
+	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio);
+	bloque_broker->particion->ultimo_acceso = time(NULL);
 
-	switch(configuracion_cache->algoritmo_memoria){
-	case BS:
-		memcpy(stream + offset, (void*)bloque_broker->particion_buddy->base, bloque_broker->particion_buddy->tamanio);
-		break;
-	case PARTICIONES:
-		memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio);
-		bloque_broker->particion->ultimo_acceso = time(NULL);
-	}
 
 	buffer_cargado->stream = stream;
 
@@ -588,7 +568,7 @@ void iniciar_memoria(t_config* config){
 
 	buddy_id = 0;
 
-	t_particion_buddy* bloque_buddy = malloc(sizeof(t_particion_buddy));
+	t_particion* bloque_buddy = malloc(sizeof(t_particion));
 
 	bloque_buddy->base = (int) memoria_cache;
 	bloque_buddy->ocupado = false;
@@ -916,9 +896,9 @@ t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size){
 }
 
 
-t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
+t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
 
-	t_particion_buddy* bloque_buddy_particion = malloc(sizeof(t_particion_buddy));
+	t_particion* bloque_buddy_particion = malloc(sizeof(t_particion));
 
 	bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
 
@@ -952,7 +932,7 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 	return bloque_buddy_particion;
 }
 
-void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
+void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
 	if(bloque_buddy_particion == NULL) puts("null");
 	if(datos == NULL) puts("null");
 	printf("%p, %d",bloque_buddy_particion->base, bloque_buddy_particion->id);
@@ -965,7 +945,7 @@ void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* da
 	}
 
 	pthread_mutex_lock(&memoria_buddy_mutex);
-	t_particion_buddy* particion_buddy = list_find(memoria_buddy,_mismo_id_buddy);
+	t_particion* particion_buddy = list_find(memoria_buddy,_mismo_id_buddy);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 	particion_buddy->ocupado = true;
 	pthread_mutex_lock(&buddy_id_mutex);
@@ -977,12 +957,12 @@ void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* da
 	particion_buddy->ultimo_acceso = time(NULL);
 }
 
-t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
+t_particion* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 
 	//bloque_elegido = bloque que retorno para guardar los datos
 	//bloque_a_partir = bloque que voy a partir en mil pedacitos
-	t_particion_buddy* bloque_elegido = malloc(sizeof(t_particion_buddy));
-	t_particion_buddy* bloque_a_partir = malloc(sizeof(t_particion_buddy));
+	t_particion* bloque_elegido = malloc(sizeof(t_particion));
+	t_particion* bloque_a_partir = malloc(sizeof(t_particion));
 
 	bool _validar_condicion_buddy(void* bloque_buddy){
 		return encontrar_bloque_valido_buddy(bloque_buddy,tamanio);
@@ -1033,16 +1013,16 @@ t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 	return bloque_elegido;
 }
 
-bool encontrar_bloque_valido_buddy(t_particion_buddy* bloque_buddy,int tamanio){
+bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio){
 	return ((!(bloque_buddy->ocupado)) &&
 			(bloque_buddy->tamanio) >= tamanio) ;
 }
 
-bool ordenar_menor_a_mayor(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2){
 	return bloque_buddy->tamanio < bloque_buddy2->tamanio ;
 }
 
-bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio){
+bool validar_condicion_buddy(t_particion* bloque_buddy,int tamanio){
 
 	int bloque_tamanio_siguiente = bloque_buddy->tamanio / 2;
 	return bloque_tamanio_siguiente > tamanio
@@ -1050,19 +1030,19 @@ bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio){
 			&& bloque_tamanio_siguiente >= configuracion_cache->tamanio_minimo_p;
 }
 
-t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy){
+t_particion* generar_particion_buddy(t_particion* bloque_buddy){
 	uint32_t id_viejo = bloque_buddy->id;
 	uint32_t base_vieja = bloque_buddy->base;
 //	puts(string_itoa(base_vieja));
 
-	bool _mismo_id_buddy(t_particion_buddy* bloque_buddy){
+	bool _mismo_id_buddy(t_particion* bloque_buddy){
 		return mismo_id_buddy(bloque_buddy,id_viejo);
 	}
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 
-	t_particion_buddy* bloque_buddy2 = malloc(sizeof(t_particion_buddy));
+	t_particion* bloque_buddy2 = malloc(sizeof(t_particion));
 
 	uint32_t nuevo_tamanio = bloque_buddy->tamanio / 2;
 	bloque_buddy->tamanio = nuevo_tamanio;
@@ -1094,30 +1074,30 @@ t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy){
 }
 
 
-bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo){
+bool mismo_id_buddy(t_particion* bloque_buddy,uint32_t id_viejo){
 	return bloque_buddy->id == id_viejo;
 }
 
 void eleccion_victima_fifo_buddy(int tamanio){
 
-	bool _sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+	bool _sort_byId_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2){
 		return sort_byId_memoria_buddy(bloque_buddy,bloque_buddy2);
 	}
 
-	bool _esta_ocupada(t_particion_buddy* bloque_buddy){
+	bool _esta_ocupada(t_particion* bloque_buddy){
 		return bloque_buddy->ocupado;
 	}
 
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_sort(memoria_buddy,(void*)_sort_byId_memoria_buddy);
-	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
+	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 //	bool _eleccion_victima_fifo_a_eliminar(void* bloque_buddy){
 //		return eleccion_victima_fifo_a_eliminar(bloque_buddy,tamanio);
 //	}
 	//Busco la victima y "elimino"
 //	pthread_mutex_lock(&memoria_buddy_mutex);
-//	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_eleccion_victima_fifo_a_eliminar);
+//	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_eleccion_victima_fifo_a_eliminar);
 //	pthread_mutex_unlock(&memoria_buddy_mutex);
 
 	victima_elegida->ocupado = false;
@@ -1129,22 +1109,22 @@ void eleccion_victima_fifo_buddy(int tamanio){
 	consolidar_buddy(victima_elegida,memoria_buddy);
 }
 
-bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover){
+bool remove_by_id(t_particion* bloque_buddy,uint32_t id_remover){
 	return bloque_buddy->id == id_remover;
 }
 
-void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_buddy){
+void consolidar_buddy(t_particion* bloque_buddy_old,t_list* lista_fifo_buddy){
 
-//	void _encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy){
+//	void _encontrar_y_consolidar_buddy(t_particion* bloque_buddy){
 //		return encontrar_y_consolidar_buddy(bloque_buddy,bloque_buddy_old);
 //	}
 
-	bool _validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy){
+	bool _validar_condicion_fifo_buddy(t_particion* bloque_buddy){
 
 		return validar_condicion_fifo_buddy(bloque_buddy, bloque_buddy_old);
 	}
 
-	t_particion_buddy* buddy = list_find(lista_fifo_buddy,(void*)_validar_condicion_fifo_buddy);
+	t_particion* buddy = list_find(lista_fifo_buddy,(void*)_validar_condicion_fifo_buddy);
 
 	//list_iterate(lista_fifo_buddy, (void*)_encontrar_y_consolidar_buddy);
 	while(buddy != NULL){
@@ -1153,18 +1133,16 @@ void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_bud
 	buddy = list_find(lista_fifo_buddy,(void*)_validar_condicion_fifo_buddy);
 	else buddy = NULL;
 	}
-
-	puts("--------list iterate------------");
 }
 
 //TODO: Reveer esto Lucas
-bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
+bool validar_condicion_fifo_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old){
 	return (bloque_buddy->tamanio == bloque_buddy_old->tamanio)
 			&& ((bloque_buddy->base - (int)memoria_cache) == ((bloque_buddy_old->base -(int)memoria_cache) ^ bloque_buddy->tamanio)) &&
 			((bloque_buddy_old->base - (int)memoria_cache) == (((bloque_buddy->base - (int)memoria_cache)) ^ bloque_buddy_old->tamanio));
 }
 
-t_particion_buddy*  encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
+t_particion*  encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old){
 
 	//bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
 
@@ -1172,7 +1150,7 @@ t_particion_buddy*  encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy
 
 		puts("encontro buddy libre");
 
-		t_particion_buddy* bloque_buddy_new = malloc(sizeof(t_particion_buddy));
+		t_particion* bloque_buddy_new = malloc(sizeof(t_particion));
 		bloque_buddy_new->tamanio = bloque_buddy_old->tamanio * 2;
 		bloque_buddy_new->ocupado = false;
 		bloque_buddy_new->id_mensaje = 0;
@@ -1199,17 +1177,17 @@ t_particion_buddy*  encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy
 		puts("puso la base del buddy");
 
 		//
-		bool _mismo_id_buddy1(t_particion_buddy* bloque_buddy_1){
+		bool _mismo_id_buddy1(t_particion* bloque_buddy_1){
 			return mismo_id_buddy(bloque_buddy_1,bloque_buddy_old->id);
 		}
 
-		bool _mismo_id_buddy2(t_particion_buddy* bloque_buddy_2){
+		bool _mismo_id_buddy2(t_particion* bloque_buddy_2){
 			return mismo_id_buddy(bloque_buddy_2,bloque_buddy->id);
 		}
 
 		pthread_mutex_lock(&memoria_buddy_mutex);
 
-		t_particion_buddy* bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
+		t_particion* bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
 		printf("base en entero: %d, tamaño: %d, base en hhhhexa: %p \n ", (bloque_a_remover_1->base - (int)memoria_cache) , bloque_a_remover_1->tamanio, bloque_a_remover_1->base );
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 		pthread_mutex_lock(&memoria_buddy_mutex);
@@ -1229,46 +1207,32 @@ t_particion_buddy*  encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy
 	return NULL;
 }
 
-//bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio){
+//bool eleccion_victima_fifo_a_eliminar(t_particion* bloque_buddy, int tamanio){
 //	return bloque_buddy->tamanio >= tamanio;
 //}
 
-bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+bool sort_byId_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2){
 	return bloque_buddy->id < bloque_buddy2->id;
 }
 
-//void eleccion_victima_lru_buddy(){
-//	bool _sort_by_acceso_memoria_buddy(void* bloque_buddy,void* bloque_buddy2){
-//		return sort_by_acceso_memoria_buddy(bloque_buddy,bloque_buddy2);
-//	}
-//	pthread_mutex_lock(&memoria_buddy_mutex);
-//	list_sort(memoria_buddy,(void*)sort_by_acceso_memoria_buddy);
-//	pthread_mutex_unlock(&memoria_buddy_mutex);
-//	//	t_particion_buddy bloque_a_eliminar = memoria_buddy->head->data;
-//
-//}
-
-bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+bool sort_by_acceso_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2){
 	return (bloque_buddy->ultimo_acceso) < (bloque_buddy2->ultimo_acceso);
 }
 
 void eleccion_victima_lru_buddy(int tamanio){
 
-	bool _orden(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2){
+	bool _orden(t_particion* bloque_buddy,t_particion* bloque_buddy2){
 		return bloque_buddy->ultimo_acceso < bloque_buddy2->ultimo_acceso;
 	}
 
-	bool _esta_ocupada(t_particion_buddy* bloque_buddy){
+	bool _esta_ocupada(t_particion* bloque_buddy){
 		return bloque_buddy->ocupado;
 	}
 
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_sort(memoria_buddy,(void*)_orden);
-	t_particion_buddy* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
+	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
-
-	puts("id victima----------------");
-	puts(string_itoa(victima_elegida->id_mensaje));
 
 	victima_elegida->ocupado = false;
 	victima_elegida->id_mensaje = 0;

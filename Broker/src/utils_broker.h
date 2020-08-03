@@ -60,23 +60,14 @@ typedef struct{
 	uint32_t tamanio;
 	uint32_t id_mensaje;
 	uint32_t ultimo_acceso;
-}t_particion;
-
-typedef struct{
-	uint32_t base;
-	int tamanio;
 	uint32_t id;
-	uint32_t id_mensaje;
-	op_code cola;
 	bool ocupado;
-	uint32_t ultimo_acceso;
-}t_particion_buddy;
+}t_particion;
 
 typedef struct{
 	uint32_t id;
 	uint32_t correlation_id;
 	t_particion* particion;
-	t_particion_buddy* particion_buddy;
 }t_bloque_broker;
 
 
@@ -228,24 +219,24 @@ t_list* memoria_buddy;
 
 uint32_t buddy_id;
 
-t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
+t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
 void eleccion_victima_fifo_buddy(int tamanio);
-bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
+bool validar_condicion_fifo_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old);
 void eleccion_victima_lru_buddy(int tamanio);
-void eleccion_particion_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_particion,void* datos,int tamanio);
-void asignar_particion_buddy(t_particion_buddy* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
-bool sort_byId_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
-bool mismo_id_buddy(t_particion_buddy* bloque_buddy,uint32_t id_viejo);
-t_particion_buddy* generar_particion_buddy(t_particion_buddy* bloque_buddy);
-bool validar_condicion_buddy(t_particion_buddy* bloque_buddy,int tamanio);
-bool eleccion_victima_fifo_a_eliminar(t_particion_buddy* bloque_buddy, int tamanio);
-void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_buddy);
-bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover);
-t_particion_buddy* encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old);
-bool sort_by_acceso_memoria_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
-t_particion_buddy* eleccion_particion_asignada_buddy(void* datos,int tamanio);
-bool encontrar_bloque_valido_buddy(t_particion_buddy* bloque_buddy,int tamanio);
-bool ordenar_menor_a_mayor(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy2);
+void eleccion_particion_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_particion,void* datos,int tamanio);
+void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
+bool sort_byId_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2);
+bool mismo_id_buddy(t_particion* bloque_buddy,uint32_t id_viejo);
+t_particion* generar_particion_buddy(t_particion* bloque_buddy);
+bool validar_condicion_buddy(t_particion* bloque_buddy,int tamanio);
+bool eleccion_victima_fifo_a_eliminar(t_particion* bloque_buddy, int tamanio);
+void consolidar_buddy(t_particion* bloque_buddy_old,t_list* lista_fifo_buddy);
+bool remove_by_id(t_particion* bloque_buddy,uint32_t id_remover);
+t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old);
+bool sort_by_acceso_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2);
+t_particion* eleccion_particion_asignada_buddy(void* datos,int tamanio);
+bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio);
+bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2);
 
 //
 

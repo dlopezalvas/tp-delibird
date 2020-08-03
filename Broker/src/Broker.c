@@ -166,7 +166,7 @@ void ver_estado_cache_particiones(){
 
 void ver_estado_cache_buddy(){
 
-	bool _orden(t_particion_buddy* particion1, t_particion_buddy* particion2){
+	bool _orden(t_particion* particion1, t_particion* particion2){
 			return particion1->base < particion2->base;
 		}
 	t_list* dump_buddy = list_create();
@@ -190,7 +190,7 @@ void ver_estado_cache_buddy(){
 
 	int i = 1;
 
-	void _imprimir_datos(t_particion_buddy* particion){
+	void _imprimir_datos(t_particion* particion){
 		char* cola = cola_segun_cod(particion->cola);
 		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
 				i, (void*)particion->base, (void*)(particion->base + particion->tamanio - 1), particion->ocupado, particion->tamanio,
