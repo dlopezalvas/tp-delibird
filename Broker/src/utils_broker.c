@@ -928,14 +928,24 @@ t_particion_buddy* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op
 		switch(configuracion_cache->algoritmo_reemplazo){
 		case FIFO:
 			eleccion_victima_fifo_buddy(tamanio);
+			puts("elimino victima fifo");
 			break;
 		case LRU:
 			eleccion_victima_lru_buddy();
 			break;
 		}
+		puts("--------------lo que quieras---------------");
+
 		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
+		puts("despues de la eleccion");
+
+		if(bloque_buddy_particion != NULL){
+			puts("la base es:");
+			puts(string_itoa(bloque_buddy_particion->base));
+		}
 	}
 
+	puts("--------------afuera del while---------------");
 	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio,cod_op,id_mensaje);
 
 	return bloque_buddy_particion;
@@ -1124,11 +1134,23 @@ bool remove_by_id(t_particion_buddy* bloque_buddy,uint32_t id_remover){
 
 void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_buddy){
 
-	void _encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy){
-		return encontrar_y_consolidar_buddy(bloque_buddy,bloque_buddy_old);
+//	void _encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy){
+//		return encontrar_y_consolidar_buddy(bloque_buddy,bloque_buddy_old);
+//	}
+
+	bool _validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy){
+
+		return validar_condicion_fifo_buddy(bloque_buddy, bloque_buddy_old);
 	}
 
-	list_iterate(lista_fifo_buddy, (void*)_encontrar_y_consolidar_buddy);
+	t_particion_buddy* buddy = list_find(lista_fifo_buddy,(void*)_validar_condicion_fifo_buddy);
+
+	//list_iterate(lista_fifo_buddy, (void*)_encontrar_y_consolidar_buddy);
+	if(buddy != NULL){
+	encontrar_y_consolidar_buddy(buddy, bloque_buddy_old);
+	}
+
+	puts("--------list iterate------------");
 
 
 }
@@ -1136,14 +1158,15 @@ void consolidar_buddy(t_particion_buddy* bloque_buddy_old,t_list* lista_fifo_bud
 //TODO: Reveer esto Lucas
 bool validar_condicion_fifo_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
 	return (bloque_buddy->tamanio == bloque_buddy_old->tamanio)
-			&& (bloque_buddy_old->base+bloque_buddy_old->tamanio == bloque_buddy->base);
+			&& ((bloque_buddy->base - (int)memoria_cache) == ((bloque_buddy_old->base -(int)memoria_cache) ^ bloque_buddy->tamanio)) &&
+			((bloque_buddy_old->base - (int)memoria_cache) == (((bloque_buddy->base - (int)memoria_cache)) ^ bloque_buddy_old->tamanio));
 }
 
 void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_buddy* bloque_buddy_old){
 
-	bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
+	//bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
 
-	if(condition_for_buddy && !bloque_buddy->ocupado){
+	if(!bloque_buddy->ocupado){
 
 		puts("encontro buddy libre");
 
@@ -1159,7 +1182,16 @@ void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_bu
 //		buddy_id++;
 //		pthread_mutex_unlock(&buddy_id_mutex);
 //		bloque_buddy_new->id = buddy_id;
+
+		if(bloque_buddy_old->base < bloque_buddy->base){
+
 		bloque_buddy_new->base = bloque_buddy_old->base;
+
+		}else{
+
+			bloque_buddy_new->base = bloque_buddy->base;
+
+		}
 
 		puts("puso la base del buddy");
 
@@ -1173,18 +1205,22 @@ void encontrar_y_consolidar_buddy(t_particion_buddy* bloque_buddy,t_particion_bu
 		}
 
 		pthread_mutex_lock(&memoria_buddy_mutex);
-		list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
+
+		t_particion_buddy* bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
+		printf("base en entero: %d, tamaño: %d, base en hhhhexa: %p \n ", (bloque_a_remover_1->base - (int)memoria_cache) , bloque_a_remover_1->tamanio, bloque_a_remover_1->base );
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 		pthread_mutex_lock(&memoria_buddy_mutex);
-		list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy2);
+		bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy2);
+		printf("base en entero: %d, tamaño: %d, base en hhhhexa: %p \n ", (bloque_a_remover_1->base - (int)memoria_cache) , bloque_a_remover_1->tamanio, bloque_a_remover_1->base );
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 		//
 		pthread_mutex_lock(&memoria_buddy_mutex);
 		list_add(memoria_buddy,bloque_buddy_new);
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 
+
 		puts("termino consolidacion");
-		sleep(10);
+
 
 	}
 }
