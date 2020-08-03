@@ -80,10 +80,10 @@ void crear_bitmap(char* punto_montaje){
 	//ver errores en mapeo
 
 	bitarray = bitarray_create_with_mode(mapeo_bitarray, blocks, LSB_FIRST);
-//
-//	for(int i = 0; i < blocks; i++){
-//		bitarray_clean_bit(bitarray, i);
-//	}
+	//
+	//	for(int i = 0; i < blocks; i++){
+	//		bitarray_clean_bit(bitarray, i);
+	//	}
 
 	msync(bitarray, sizeof(bitarray), MS_SYNC);
 
@@ -384,8 +384,8 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	pthread_mutex_unlock(&log_mtx);
 
 	//liberar_vector(bloques_a_escribir);
-//	free(datos);
-//	free(path_pokemon);
+	//	free(datos);
+	//	free(path_pokemon);
 }
 
 void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
@@ -519,8 +519,8 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 			guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 		}
 
-//		liberar_vector(blocks);
-//		liberar_vector(datos);
+		//		liberar_vector(blocks);
+		//		liberar_vector(datos);
 		//list_destroy
 		config_destroy(config_datos);
 
@@ -569,8 +569,8 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		}
 
 		if(bloques[0] != NULL){
-		escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
-		string_append_with_format(&bloques_guardar, "%s", bloques[i]);
+			escribir_bloque(&offset, datos, bloques[i], &tamanio_nuevo);
+			string_append_with_format(&bloques_guardar, "%s", bloques[i]);
 		}
 
 		if(cantidad_bloques_antes < cantidad_bloques_actuales){ //si es mayor tamanio tengo que pedir mas bloques
@@ -603,9 +603,9 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		}
 
 		if(cantidad_bloques_actuales != 0){
-		escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
-		string_append_with_format(&bloques_guardar, "%s", bloques[k]);
-		k++;
+			escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
+			string_append_with_format(&bloques_guardar, "%s", bloques[k]);
+			k++;
 		}
 		while(bloques_a_borrar!=0){
 			pthread_mutex_lock(&bitarray_mtx);
@@ -640,21 +640,21 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 
 void escribir_bloque(int* offset, char* datos, char* bloque, int* tamanio){
 
-		char* path_blocks = string_new();
-		string_append_with_format(&path_blocks, "%s/Blocks/%s.bin", pto_montaje, bloque);
+	char* path_blocks = string_new();
+	string_append_with_format(&path_blocks, "%s/Blocks/%s.bin", pto_montaje, bloque);
 
-		int tamanio_a_escribir = minimo_entre(metadata_fs->block_size, *tamanio); //si es mayor o igual al block_size escribo el bloque entero, si es menor escribo los bytes que quedan por escribir
+	int tamanio_a_escribir = minimo_entre(metadata_fs->block_size, *tamanio); //si es mayor o igual al block_size escribo el bloque entero, si es menor escribo los bytes que quedan por escribir
 
-		FILE* fd_bloque = fopen(path_blocks, "w+");
+	FILE* fd_bloque = fopen(path_blocks, "w+");
 
-		fseek(fd_bloque, 0, SEEK_SET);
+	fseek(fd_bloque, 0, SEEK_SET);
 
-		fwrite(datos + *offset, tamanio_a_escribir, 1, fd_bloque);
-		*offset += tamanio_a_escribir;
-		*tamanio -= tamanio_a_escribir;
+	fwrite(datos + *offset, tamanio_a_escribir, 1, fd_bloque);
+	*offset += tamanio_a_escribir;
+	*tamanio -= tamanio_a_escribir;
 
-		fclose(fd_bloque);
-		free(path_blocks);
+	fclose(fd_bloque);
+	free(path_blocks);
 }
 
 char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, si su tamanio es mayor a block_size del metadata tall grass, leo esa cantidad, si no leo el tamanio que tiene
@@ -757,9 +757,9 @@ char* transformar_a_dato(t_list* lista_datos, int tamanio){
 		string_append_with_format(&datos, "%s\n", list_get(lista_datos, i));
 	}
 
-//	if(!list_is_empty(lista_datos)){
-//	string_append(&datos, list_get(lista_datos, i)); //ultima linea
-//	}
+	//	if(!list_is_empty(lista_datos)){
+	//	string_append(&datos, list_get(lista_datos, i)); //ultima linea
+	//	}
 	datos[tamanio] = '\0';
 
 	return datos;
@@ -956,7 +956,7 @@ void connect_catch_pokemon(){
 		pthread_t solicitud_mensaje;
 		puts("recibi mensaje");
 		if(cod_op == CATCH_POKEMON){
-			 puts("catch pokemon");
+			puts("catch pokemon");
 			_catch_pokemon = deserializar_position_and_name(buffer);
 			printf("catch pokemon %s", _catch_pokemon->nombre.nombre);
 			int id_proceso = config_get_int_value(config, "ID_PROCESO");
@@ -1107,24 +1107,42 @@ void process_request(int cod_op, int cliente_fd) {
 	t_position_and_name* _catch_pokemon = malloc(sizeof(t_position_and_name));
 	t_get_pokemon* _get_pokemon = malloc(sizeof(t_get_pokemon));
 
-		switch (cod_op) {
-		case NEW_POKEMON:
-			_new_pokemon = deserializar_new_pokemon(buffer);
-			new_pokemon(_new_pokemon);
-			break;
-		case CATCH_POKEMON:
-			_catch_pokemon = deserializar_position_and_name(buffer);
-			catch_pokemon(_catch_pokemon);
-			break;
-		case GET_POKEMON:
-			_get_pokemon = deserializar_get_pokemon(buffer);
-			get_pokemon(_get_pokemon);
-			break;
-		case 0:
-			pthread_exit(NULL);
-		case -1:
-			pthread_exit(NULL);
-		}
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+	uint32_t id_ack;
+
+	switch (cod_op) {
+	case NEW_POKEMON:
+		_new_pokemon = deserializar_new_pokemon(buffer);
+
+		id_ack = _new_pokemon->id;
+		enviar_ack(cliente_fd, id_ack, id_proceso);
+
+		puts(string_itoa(id_ack));
+
+		new_pokemon(_new_pokemon);
+		break;
+	case CATCH_POKEMON:
+		_catch_pokemon = deserializar_position_and_name(buffer);
+
+		id_ack = _new_pokemon->id;
+		enviar_ack(cliente_fd, id_ack, id_proceso);
+
+		catch_pokemon(_catch_pokemon);
+		break;
+	case GET_POKEMON:
+		_get_pokemon = deserializar_get_pokemon(buffer);
+
+		id_ack = _new_pokemon->id;
+		enviar_ack(cliente_fd, id_ack, id_proceso);
+
+		get_pokemon(_get_pokemon);
+		break;
+	case 0:
+		pthread_exit(NULL);
+	case -1:
+		pthread_exit(NULL);
+	}
 }
 
 //-------------------AUXILIARES------------------//
