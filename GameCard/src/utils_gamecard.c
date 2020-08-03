@@ -596,7 +596,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		int bloques_a_borrar = cantidad_bloques_antes - cantidad_bloques_actuales;
 		char* aux_borrar = string_new();
 
-		int k;
+		int k = 0;
 		for(k = 0; k < cantidad_bloques_actuales -1; k++){
 			escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
 			string_append_with_format(&bloques_guardar, "%s,", bloques[k]);
@@ -606,14 +606,13 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
 		string_append_with_format(&bloques_guardar, "%s", bloques[k]);
 		}
-
 		while(bloques_a_borrar!=0){
 			pthread_mutex_lock(&bitarray_mtx);
-			bitarray_clean_bit(bitarray,atoi(bloques[k+1]));
+			bitarray_clean_bit(bitarray,atoi(bloques[k]));
 			msync(bitarray, sizeof(bitarray), MS_SYNC);
 			pthread_mutex_unlock(&bitarray_mtx);
 
-			string_append_with_format(&aux_borrar,"%s/Blocks/%s.bin", pto_montaje, bloques[k+1]);
+			string_append_with_format(&aux_borrar,"%s/Blocks/%s.bin", pto_montaje, bloques[k]);
 			remove(aux_borrar);
 			k++;
 			bloques_a_borrar--;
@@ -954,16 +953,17 @@ void connect_catch_pokemon(){
 		}
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		pthread_t solicitud_mensaje;
-
+		puts("recibi mensaje");
 		if(cod_op == CATCH_POKEMON){
-
+			 puts("catch pokemon");
 			_catch_pokemon = deserializar_position_and_name(buffer);
-
+			printf("catch pokemon %s", _catch_pokemon->nombre.nombre);
 			int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 			uint32_t id_ack = _catch_pokemon->id;
 
 			enviar_ack(socket_broker, id_ack, id_proceso);
+			puts("MANDA ACK");
 
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);

@@ -353,6 +353,7 @@ void ejecutar_appeared_pokemon(){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
 		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		puts("envio appeared_pokemon");
 	}
 }
 

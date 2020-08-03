@@ -1077,8 +1077,8 @@ void connect_appeared(){
 	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
-
-	liberar_vector(mensaje->parametros);
+	enviar_mensaje(mensaje, socket_broker);
+//	liberar_vector(mensaje->parametros);
 	free(mensaje);
 	puts("envia mensaje");
 
@@ -1173,7 +1173,7 @@ void connect_localized_pokemon(){
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
 //	liberar_vector(linea_split);
-	liberar_vector(mensaje -> parametros);
+//	liberar_vector(mensaje -> parametros);
 	free(mensaje);
 
 
@@ -1263,7 +1263,7 @@ void connect_caught_pokemon(){
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 	enviar_mensaje(mensaje, socket_broker);
-	liberar_vector(mensaje -> parametros);
+//	liberar_vector(mensaje -> parametros);
 	free(mensaje);
 	puts("envia mensaje");
 
@@ -1289,6 +1289,9 @@ void connect_caught_pokemon(){
 			pthread_exit(NULL);
 
 		}
+		printf("codigo de operacion: %d", cod_op);
+		puts("recibe un mensaje adentro de caught pokemon");
+
 		void* buffer = recibir_mensaje(socket_broker,&size);
 		if(cod_op == CAUGHT_POKEMON){
 			puts("recibe mensaje");
@@ -1300,7 +1303,7 @@ void connect_caught_pokemon(){
 
 			if(list_any_satisfy(entrenadores, (void*)_tieneMismoIDCatch)){
 				pthread_mutex_lock(&log_mutex);
-				log_info(logger, "Mensaje Caught_pokemon %d %d", caught->caught, caught->id);
+				log_info(logger, "Mensaje Caught_pokemon %d %d correlation id: %d", caught->caught, caught->id, caught->correlation_id);
 				pthread_mutex_unlock(&log_mutex);
 				pthread_mutex_lock(&mutex_cola_caught_pokemon);
 				queue_push(colaCaughtPokemon,caught);
@@ -1412,6 +1415,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 			return;
 		}
 		(*entrenador)->catch_id = ID;
+		printf("Id del catch pokemon : %d o %d", (*entrenador)->catch_id, ID);
 		liberar_conexion(socket_broker);
 	}
 	liberar_vector(mensaje->parametros);
@@ -1553,7 +1557,7 @@ void caught_pokemon(){
 		entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
 //		pthread_mutex_unlock(&mutex_lista_entrenadores);
 		entrenador->ID = 0;
-		if(caught->caught){
+		if(caught->caught == 1){
 //			entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
 //			capturoPokemon(&entrenador);
 			entrenador->respuesta_catch =true;
@@ -1575,6 +1579,7 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 
 	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
 	printf("Se agrego al pokemon %s a la lista", (*entrenador)->pokemonACapturar->especie);
+
 	pthread_mutex_lock(&objetivo);
 	removerPokemon((*entrenador)->pokemonACapturar->especie,objetivoGlobal);
 	pthread_mutex_unlock(&objetivo);
