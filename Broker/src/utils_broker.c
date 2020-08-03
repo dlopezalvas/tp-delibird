@@ -217,7 +217,6 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	return bloque_broker->id;
 }
 
-
 bool es_mensaje_respuesta(op_code cod_op){
 	return cod_op == APPEARED_POKEMON || cod_op == LOCALIZED_POKEMON || cod_op == CAUGHT_POKEMON;
 }
@@ -253,8 +252,6 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 
 	t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
 
-//	puts(string_itoa(bloque_broker->particion->base));
-//	puts(string_itoa(bloque_broker->particion->tamanio));
 	int size = 0;
 
 	size = bloque_broker->particion->tamanio + sizeof(uint32_t);
@@ -310,7 +307,6 @@ void ejecutar_new_pokemon(){
 
 	}
 }
-
 
 void ejecutar_appeared_pokemon(){
 
@@ -578,9 +574,7 @@ void iniciar_memoria(t_config* config){
 	bloque_buddy->ultimo_acceso = time(NULL);
 
 	memoria_buddy = list_create();
-	//	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_add(memoria_buddy,bloque_buddy);
-	//	pthread_mutex_lock(&memoria_buddy_mutex);
 	//claramente faltan semaforos
 }
 
@@ -617,19 +611,19 @@ t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo
 	return particion_libre;
 }
 
-void ordenar_particiones_libres(){ //no se si anda esto
+void ordenar_particiones(){ //no se si anda esto
 
 	bool _orden(t_particion* particion1, t_particion* particion2){
 		return particion1->base < particion2->base;
 	}
 
-	list_sort(particiones_libres, (void*)_orden);
+	list_sort(particiones, (void*)_orden);
 }
 
 void compactar(){
 	int offset = 0;
 
-	ordenar_particiones_libres(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
+	ordenar_particiones(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
 
 	int cantidad_particiones = list_size(particiones_ocupadas);
 
@@ -657,14 +651,20 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	t_particion* particion_libre;
 
-	bool _puede_almacenar(t_particion* particion){
-		return particion->tamanio>= tamanio_a_almacenar;
+	bool _puede_almacenar_y_esta_libre(t_particion* particion){
+		return particion->tamanio>= tamanio_a_almacenar && !particion->ocupado;
 	}
 
-	ordenar_particiones_libres();
+	pthread_mutex_lock(&lista_particiones_mtx);
+	ordenar_particiones();
 
-	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
+	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar_y_esta_libre); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
+	if(particion_libre != NULL){
+		particion_libre->ocupado = true; //si devuelve algo ya lo pongo como ocupado asi ningun otro hilo puede agarrar la misma particion
+	}
+
+	pthread_mutex_unlock(&lista_particiones_mtx);
 	return particion_libre;
 }
 
@@ -711,29 +711,41 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 void consolidar(t_particion* particion_liberada){
 
+	//cuando busco la anterior y la siguiente tambien me fijo que esten libres, si no la encuentra (porque no tiene siguiente/anterior o porque esta ocupada) no consolida
+
 	bool _es_la_anterior(t_particion* particion){
-		return particion->base + particion->tamanio == particion_liberada->base;
+		return particion->base + particion->tamanio == particion_liberada->base && !particion->ocupado;
 	}
 
 	bool _es_la_siguiente(t_particion* particion){
-		return particion_liberada->base + particion_liberada->tamanio == particion->base;
+		return particion_liberada->base + particion_liberada->tamanio == particion->base && !particion->ocupado;
 	}
 
 	bool _es_la_particion(t_particion* particion){
-		return particion_liberada == particion;
+		return particion_liberada->base == particion->base;
 	}
 
-	t_particion* p_antes = list_find(particiones_libres,(void*) _es_la_anterior); //para no confundir izq y derecha
-	t_particion* p_despues = list_find(particiones_libres,(void*) _es_la_siguiente);
+	pthread_mutex_lock(&lista_particiones_mtx);
+
+	t_particion* p_anterior = list_find(particiones,(void*) _es_la_anterior);
+	t_particion* p_siguiente = list_find(particiones,(void*) _es_la_siguiente);
 
 
 	if(particion_liberada != NULL){
-		if(p_antes != NULL && p_despues != NULL){ //si alguna es null es porque no existe una particion libre que sea anterior/posterior a la que libere
-			p_antes->tamanio += particion_liberada->tamanio + p_despues->tamanio; //directamente hago la anterior mas grande (?
-			list_remove_by_condition(particiones_libres, (void*) _es_la_siguiente);
-			list_remove_by_condition(particiones_libres, (void*) _es_la_particion);
+		if(p_anterior != NULL && p_siguiente != NULL){ //si encuentra particiones libres por los dos lados consolida las 3
+			p_anterior->tamanio += particion_liberada->tamanio + p_siguiente->tamanio; //directamente hago la anterior mas grande (?
+			list_remove_by_condition(particiones, (void*) _es_la_siguiente);
+			list_remove_by_condition(particiones, (void*) _es_la_particion);
+		}else if(p_anterior != NULL && p_siguiente == NULL){ //solo encontro de un lado una particion vacia, consolida solo 2
+			p_anterior->tamanio += particion_liberada->tamanio;
+			list_remove_by_condition(particiones, (void*) _es_la_particion);
+		}else if(p_anterior == NULL && p_siguiente != NULL){
+			particion_liberada->tamanio += p_siguiente->tamanio;
+			list_remove_by_condition(particiones, (void*) _es_la_siguiente);
 		}
 	}
+	pthread_mutex_unlock(&lista_particiones_mtx); // re largo el mutex, preguntar que onda aca (?
+
 }
 
 t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold creo

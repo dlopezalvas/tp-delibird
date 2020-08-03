@@ -100,6 +100,8 @@ void* memoria_cache;
 t_list* particiones_libres;
 t_list* particiones_ocupadas;
 
+t_list* particiones;
+
 t_config_cache* configuracion_cache;
 
 //Inicializo las colas como listas para tener mas flexibilidad a la hora de manejarlas
@@ -141,7 +143,8 @@ multhilos_mutex,
 logger_mutex,
 unique_id_mutex,
 memoria_buddy_mutex,
-buddy_id_mutex;
+buddy_id_mutex,
+lista_particiones_mtx;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
