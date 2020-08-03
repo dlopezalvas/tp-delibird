@@ -154,6 +154,7 @@ void terminarTeam(int conexion)//revisar memoria y probar si funciona
 	}
 	log_info(logger, "Cantidad total de ciclos %d, Cantidad de cambios de contexto %d%s", ciclosCPUGlobal, cambiosDeContexto, ciclosPorEntrenador); //agregar variables
 	pthread_mutex_unlock(&log_mutex);
+	free(ciclosPorEntrenador);
 	void _entrenadorDestroy(void* entrenador){
 			return entrenadorDestroy( entrenador);
 		}
@@ -163,11 +164,42 @@ void terminarTeam(int conexion)//revisar memoria y probar si funciona
 	pthread_mutex_destroy(&requeridos);
 	pthread_mutex_destroy(&objetivo);
 	pthread_mutex_destroy(&mutex_ready);
-//	pthread_mutex_destroy(&mutex_ejecutar);
+	pthread_mutex_destroy(&mutex_ejecutar);
+	pthread_mutex_destroy(&mutex_cola_appeared_pokemon);
+	pthread_mutex_destroy(&mutex_cola_caught_pokemon);
+	pthread_mutex_destroy(&mutex_cola_localized_pokemon);
+	pthread_mutex_destroy(&log_mutex);
+	pthread_mutex_destroy(&mutex_lista_entrenadores);
+	pthread_mutex_destroy(&mutex_deadlock);
+	pthread_mutex_destroy(&repuesto);
+
+	sem_destroy(&conexiones);
+	sem_destroy(&sem_deteccionDeadlock);
+	sem_destroy(&sem_ejecutar);
+	sem_destroy(&semAppeared);
+	sem_destroy(&semCaught);
+	sem_destroy(&semLocalized);
+	sem_destroy(&entrenadoresPlanificados);
+	sem_destroy(&sem_ready);
+
+	void _destruirPokemon(t_pokemon* pokemon){
+			free(pokemon->especie);
+			free(pokemon);
+		}
 
 	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
 	list_destroy(objetivoGlobal);
 	list_destroy(ready);
+	list_destroy_and_destroy_elements(pokemonsRequeridos,(void*)_destruirPokemon );
+	list_destroy_and_destroy_elements(pokemonsDeRepuesto, (void*)_destruirPokemon);
+	list_destroy(IDs_get_pokemon);
+	list_destroy(especiesNecesarias);
+
+	queue_destroy(colaAppearedPokemon);
+	queue_destroy(colaLocalizedPokemon);
+	queue_destroy(colaCaughtPokemon);
+
+
 	config_destroy(config);
 	//liberar_conexion(conexion);
 	pthread_mutex_lock(&log_mutex);
@@ -177,9 +209,16 @@ void terminarTeam(int conexion)//revisar memoria y probar si funciona
 }
 
 void entrenadorDestroy(t_entrenador * entrenador) { //probar con valgrind
+
+//	void destruirElemento(char* elemento){
+//		free(elemento);
+//	}
+//	list_destroy_and_destroy_elements(entrenador->objetivos, (void*) destruirElemento);
 	list_destroy(entrenador->objetivos);
-    list_destroy(entrenador->pokemons);
-    list_destroy(entrenador->pokemonsNoNecesarios);
+//	list_destroy_and_destroy_elements(entrenador->pokemons, (void*) destruirElemento);
+	list_destroy(entrenador->pokemons);
+//	list_destroy_and_destroy_elements(entrenador->pokemonsNoNecesarios, (void*) destruirElemento); se rompe si lo uso
+	list_destroy(entrenador->pokemonsNoNecesarios);
     free(entrenador);
 }
 
@@ -191,7 +230,9 @@ void configurarEntrenadores(){ //funciona
 	bool hayMasPokemons = true;
 	for(int i=0; posiciones[i];i++){
 		t_entrenador* entrenador;
-		if(pokemonEntrenadores[i] == NULL) hayMasPokemons =false;
+		if(pokemonEntrenadores[i] == NULL) {
+			hayMasPokemons =false;
+		}
 		if(hayMasPokemons){
 		entrenador = crearEntrenador(posiciones[i], pokemonEntrenadores[i], objetivos[i], i);
 		}else{
@@ -200,9 +241,9 @@ void configurarEntrenadores(){ //funciona
 		list_add(entrenadores, entrenador);
 	}
 
-//	liberar_vector(posiciones);
-//	liberar_vector(pokemonEntrenadores);
-//	liberar_vector(objetivos);
+	liberar_vector(posiciones);
+	liberar_vector(pokemonEntrenadores);
+	liberar_vector(objetivos);
 
 	return ;
 }
@@ -239,11 +280,8 @@ t_entrenador* crearEntrenador(char* posicion, char* pokemonsEntrenador, char* ob
 	pthread_mutex_init(&(entrenador->mutex), NULL);
 	pthread_mutex_lock(&(entrenador->mutex));
 
+	liberar_vector(coordenadas);
 
-
-	//	liberar_vector(objetivosEntrenador);
-	//	liberar_vector(coordenadas);
-	//	liberar_vector(pokemons);
 
 	return entrenador;
 }
@@ -261,9 +299,9 @@ t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
 	for(int i=0; pokemons[i];i++){
 		if(pokemons[i]!= NULL){
 		list_add(listaPokemons, (pokemons[i]));
-
 		}
 	}
+	free(pokemons);
 	return listaPokemons;
 }
 
@@ -826,6 +864,8 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			queue_push(colaAppearedPokemon,appeared);
 			pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
 			sem_post(&semAppeared);
+		}else{
+			free(appeared);
 		}
 		break;
 
@@ -841,6 +881,8 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			queue_push(colaCaughtPokemon,caught);
 			pthread_mutex_unlock(&mutex_cola_caught_pokemon);
 			sem_post(&semCaught);
+		}else{
+			free(caught);
 		}
 
 		break;
@@ -870,6 +912,9 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 			sem_post(&semLocalized);
 		}
+		else{
+			free(localized);
+			}
 		puts(localized->nombre.nombre);
 		puts("deserializo");
 
@@ -879,6 +924,7 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 	case -1:
 		pthread_exit(NULL);
 	}
+	free(buffer);
 
 }
 
@@ -926,7 +972,7 @@ void deteccionDeadlock(){ //funciona
 	bool _puedeEstarEnDeadlock(void* entrenador){
 		return puedeEstarEnDeadlock(entrenador);
 	}
-	t_list* entrenadoresDeadlock = list_create();
+	t_list* entrenadoresDeadlock; // = list_create();
 //	pthread_mutex_lock(&mutex_lista_entrenadores);
 	entrenadoresDeadlock = list_filter(entrenadores, _puedeEstarEnDeadlock);
 //	pthread_mutex_unlock(&mutex_lista_entrenadores);
@@ -990,12 +1036,16 @@ void deteccionDeadlock(){ //funciona
 			else{
 				cambiarEstado(&entrenador, BLOCK, "termino de intercambiar pokemon");
 			}
+			free(intercambio);
+			free(entrenador->intercambio);
+
 		}
 	}
 	puts("termina deteccion de deadlock");
 	pthread_mutex_lock(&log_mutex);
 	log_info(logger, "Cantidad de deadlocks Detectados: %d Cantidad de deadlocks Resueltos: %d", cantDeadlocks, cantDeadlocks);
 	pthread_mutex_unlock(&log_mutex);
+	list_destroy(entrenadoresDeadlock);
 }
 
 bool tienePokemonNoNecesario(t_entrenador* entrenador, char* pokemon){ //funciona
@@ -1015,15 +1065,18 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 
 void connect_appeared(){
 	op_code codigo_operacion = SUSCRIPCION;
+
+
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
 	char* linea_split[1] = {"APPEARED_POKEMON"};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
-
+	liberar_vector(mensaje->parametros);
+	free(mensaje);
 	puts("envia mensaje");
 
 	int size = 0;
@@ -1071,9 +1124,6 @@ void connect_appeared(){
 	}
 
 	liberar_conexion(socket_broker); //hacer en finalizar team?
-
-//	free(mensaje -> parametros);
-//	free(mensaje);
 }
 void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 	int _recv;
@@ -1100,15 +1150,20 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 void connect_localized_pokemon(){
 
 	op_code codigo_operacion = SUSCRIPCION;
+
+
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
 	char* linea_split[1] = {"LOCALIZED_POKEMON"};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
-
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
+//	liberar_vector(linea_split);
+	liberar_vector(mensaje -> parametros);
+	free(mensaje);
 
 
 	void _get_pokemon(void* especie){
@@ -1176,20 +1231,21 @@ void connect_localized_pokemon(){
 	}
 
 	liberar_conexion(socket_broker); //hacer en finalizar team?
-
-	//	free(mensaje -> parametros);
-	//	free(mensaje);
 }
 
 void connect_caught_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
+
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 	char* linea_split[1] = {"CAUGHT_POKEMON"};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
 	enviar_mensaje(mensaje, socket_broker);
+	liberar_vector(mensaje -> parametros);
+	free(mensaje);
 	puts("envia mensaje");
 
 	int size = 0;
@@ -1275,7 +1331,7 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = string_split(linea_split,",");;
-
+	free(linea_split);
 	direccion_servidor.sin_family = AF_INET;
 	direccion_servidor.sin_addr.s_addr = inet_addr(ip);
 	direccion_servidor.sin_port = htons(atoi(puerto));
@@ -1306,6 +1362,8 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 //		capturoPokemon(entrenador);
 		liberar_conexion(socket_broker);
 		(*entrenador)->respuesta_catch = true;
+		liberar_vector(mensaje->parametros);
+		free(mensaje);
 		pthread_mutex_unlock(&((*entrenador)->mutex));
 		return;
 	}else{
@@ -1317,17 +1375,22 @@ void catch_pokemon(char* ip, char* puerto, t_entrenador** entrenador){ //probar
 			pthread_mutex_unlock(&log_mutex);
 			liberar_conexion(socket_broker);
 			(*entrenador)->respuesta_catch = true;
+			liberar_vector(mensaje->parametros);
+			free(mensaje);
 //			capturoPokemon(entrenador);
 			pthread_mutex_unlock(&((*entrenador)->mutex));
 			return;
 		}
 		if(_recv == 1){
 			puts("error agregar lo que tenga que hacer aca");
+			liberar_vector(mensaje->parametros);
+			free(mensaje);
 			return;
 		}
 		(*entrenador)->catch_id = ID;
 		liberar_conexion(socket_broker);
 	}
+	liberar_vector(mensaje->parametros);
 	free(mensaje);
 //	pthread_mutex_lock(&(*entrenador)->mutex);
 }
@@ -1384,6 +1447,8 @@ void appeared_pokemon(){
 	//	pokemonNuevo->especie = malloc(appeared->nombre.largo_nombre);
 		pokemonNuevo->especie =	appeared->nombre.nombre;
 		pokemonNuevo->planificado = false;
+
+		free(appeared);
 		bool _mismaEspecie(char* especie){
 					return mismaEspecie(especie, pokemonNuevo->especie);
 							}
@@ -1433,8 +1498,9 @@ void localized_pokemon(){
 		localized = queue_pop(colaLocalizedPokemon);
 		pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 		list_iterate(localized->listaCoordenadas, (void*)_llenarAppearedPokemon);
-
+		free(localized);
 	}
+
 }
 void llenarAppearedPokemon(coordenadas_pokemon* coord ,t_localized_pokemon* localized, t_position_and_name* appeared){
 	appeared = malloc(sizeof(t_position_and_name));
@@ -1474,6 +1540,7 @@ void caught_pokemon(){
 		}
 //		printf("pokemons requeridos: %d",pokemonsRequeridos->elements_count);
 		pthread_mutex_unlock(&(entrenador->mutex));
+		free(caught);
 	}
 }
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
@@ -1500,7 +1567,12 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 	bool _mismoPokemon(t_pokemon* pokemon ){
 				return mismoPokemon(pokemon,(*entrenador)->pokemonACapturar);
 				}
+//	void destruirPokemon(t_pokemon* pokemonADestruir){
+//		free(pokemonADestruir->especie);
+//	}
+
 	pthread_mutex_lock(&requeridos);
+//	list_remove_and_destroy_by_condition(pokemonsRequeridos, (void*)_mismoPokemon ,(void*) destruirPokemon);
 	list_remove_by_condition(pokemonsRequeridos, (void*)_mismoPokemon);
 	pthread_mutex_unlock(&requeridos);
 	free((*entrenador)->pokemonACapturar);
