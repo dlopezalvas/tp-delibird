@@ -179,48 +179,48 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	printf("id: %d cid: %d\n", bloque_broker->id, bloque_broker->correlation_id);
 
-//	switch (cod_op) {
-//	case NEW_POKEMON:
-//		pthread_mutex_lock(&new_pokemon_mutex);
-//		queue_push(NEW_POKEMON_COLA,bloque_broker);
-//		pthread_mutex_unlock(&new_pokemon_mutex);
-//		sem_post(&new_pokemon_sem);
-//		break;
-//	case APPEARED_POKEMON:
-//		pthread_mutex_lock(&appeared_pokemon_mutex);
-//		queue_push(APPEARED_POKEMON_COLA,bloque_broker);
-//		pthread_mutex_unlock(&appeared_pokemon_mutex);
-//		sem_post(&appeared_pokemon_sem);
-//		break;
-//	case CATCH_POKEMON:
-//		pthread_mutex_lock(&catch_pokemon_mutex);
-//		queue_push(CATCH_POKEMON_COLA,bloque_broker);
-//		pthread_mutex_unlock(&catch_pokemon_mutex);
-//		sem_post(&catch_pokemon_sem);
-//		break;
-//	case CAUGHT_POKEMON:
-//		pthread_mutex_lock(&caught_pokemon_mutex);
-//		queue_push(CAUGHT_POKEMON_COLA,bloque_broker);
-//		pthread_mutex_unlock(&caught_pokemon_mutex);
-//		sem_post(&caught_pokemon_sem);
-//		break;
-//	case GET_POKEMON:
-//		pthread_mutex_lock(&get_pokemon_mutex);
-//		queue_push(GET_POKEMON_COLA,bloque_broker);
-//		pthread_mutex_unlock(&get_pokemon_mutex);
-//		sem_post(&get_pokemon_sem);
-//		break;
-//	case LOCALIZED_POKEMON:
-//		pthread_mutex_lock(&localized_pokemon_mutex);
-//		queue_push(LOCALIZED_POKEMON_COLA,bloque_broker);
-//		pthread_mutex_unlock(&localized_pokemon_mutex);
-//		sem_post(&localized_pokemon_sem);
-//		break;
-//	case 0:
-//		pthread_exit(NULL);
-//	case -1:
-//		pthread_exit(NULL);
-//	}
+	switch (cod_op) {
+	case NEW_POKEMON:
+		pthread_mutex_lock(&new_pokemon_mutex);
+		queue_push(NEW_POKEMON_COLA,bloque_broker);
+		pthread_mutex_unlock(&new_pokemon_mutex);
+		sem_post(&new_pokemon_sem);
+		break;
+	case APPEARED_POKEMON:
+		pthread_mutex_lock(&appeared_pokemon_mutex);
+		queue_push(APPEARED_POKEMON_COLA,bloque_broker);
+		pthread_mutex_unlock(&appeared_pokemon_mutex);
+		sem_post(&appeared_pokemon_sem);
+		break;
+	case CATCH_POKEMON:
+		pthread_mutex_lock(&catch_pokemon_mutex);
+		queue_push(CATCH_POKEMON_COLA,bloque_broker);
+		pthread_mutex_unlock(&catch_pokemon_mutex);
+		sem_post(&catch_pokemon_sem);
+		break;
+	case CAUGHT_POKEMON:
+		pthread_mutex_lock(&caught_pokemon_mutex);
+		queue_push(CAUGHT_POKEMON_COLA,bloque_broker);
+		pthread_mutex_unlock(&caught_pokemon_mutex);
+		sem_post(&caught_pokemon_sem);
+		break;
+	case GET_POKEMON:
+		pthread_mutex_lock(&get_pokemon_mutex);
+		queue_push(GET_POKEMON_COLA,bloque_broker);
+		pthread_mutex_unlock(&get_pokemon_mutex);
+		sem_post(&get_pokemon_sem);
+		break;
+	case LOCALIZED_POKEMON:
+		pthread_mutex_lock(&localized_pokemon_mutex);
+		queue_push(LOCALIZED_POKEMON_COLA,bloque_broker);
+		pthread_mutex_unlock(&localized_pokemon_mutex);
+		sem_post(&localized_pokemon_sem);
+		break;
+	case 0:
+		pthread_exit(NULL);
+	case -1:
+		pthread_exit(NULL);
+	}
 
 	return bloque_broker->id;
 }
@@ -525,10 +525,10 @@ void ejecutar_catch_pokemon_suscripcion(int suscriptor){
 
 void ejecutar_caught_pokemon_suscripcion(int suscriptor){
 	pthread_mutex_lock(&suscripcion_caught_queue_mutex);
-	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+	list_add(CAUGHT_POKEMON_QUEUE_SUSCRIPT,suscriptor);
 	pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
 	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
+	log_info(logger,"Se suscribio el proceso, %d ,a la cola CAUGHT_POKEMON",suscriptor);
 	pthread_mutex_unlock(&logger_mutex);
 }
 
@@ -908,7 +908,7 @@ t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size){
 	memcpy(stream, buffer + offset, tamanio_mensaje);
 
 	buffer_broker->id = id;
-	buffer_broker->id = cid;
+	buffer_broker->correlation_id = cid;
 	buffer_broker->buffer = stream;
 
 	return buffer_broker;
