@@ -605,6 +605,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 		if(cantidad_bloques_actuales != 0){
 		escribir_bloque(&offset, datos, bloques[k], &tamanio_nuevo);
 		string_append_with_format(&bloques_guardar, "%s", bloques[k]);
+		k++;
 		}
 		while(bloques_a_borrar!=0){
 			pthread_mutex_lock(&bitarray_mtx);
