@@ -823,31 +823,13 @@ t_particion* elegir_victima_particiones_LRU(){
 
 }
 
-//void eliminar_particion(t_particion* particion_a_liberar){
-//
-//	t_particion* particion_nueva_libre = malloc(sizeof(t_particion));
-//
-//	particion_nueva_libre->base = particion_a_liberar->base;
-//	particion_nueva_libre->tamanio = particion_a_liberar->tamanio;
-//
-//	list_add(particiones_libres, particion_nueva_libre);
-//
-//	bool _es_la_particion(t_particion* particion){
-//		return particion->base == particion_a_liberar->base;
-//	}
-//
-//	list_remove_by_condition(particiones_ocupadas, (void*)_es_la_particion);
-//
-//}
-
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
 
-	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
 
-	bool _es_la_particion(t_particion* particion){
-		return particion == particion_libre;
-	}
-	list_remove_by_condition(particiones_libres, (void*) _es_la_particion); //esto funca?? saco de la lista la particion (no se si anda haciendo == particion_libre)
+	pthread_mutex_lock(&memoria_cache_mtx);
+	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
+	pthread_mutex_unlock(&memoria_cache_mtx);
+
 
 	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
 		t_particion* particion_nueva = malloc(sizeof(t_particion));
@@ -855,15 +837,17 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
 		particion_nueva->id_mensaje = 0;
 		particion_nueva->ultimo_acceso = time(NULL);
+		particion_nueva->ocupado = false;
 		particion_libre->tamanio = tamanio;
 
-		list_add(particiones_libres, particion_nueva);
+		pthread_mutex_lock(&lista_particiones_mtx);
+		list_add(particiones, particion_nueva);
+		pthread_mutex_unlock(&lista_particiones_mtx);
 	}
 
 	particion_libre->ultimo_acceso = time(NULL);
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
-	list_add(particiones_ocupadas, particion_libre); //la particion ahora ya no está libre
 
 }
 
