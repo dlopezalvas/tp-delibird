@@ -80,6 +80,7 @@ typedef struct t_entrenador
 	bool respuesta_catch;
 	int quantum_usado;
 	float estimacion;
+	float restoEstimacion;
 	int rafagaReal;
 } t_entrenador;
 

@@ -9,7 +9,6 @@
 typedef struct{
   op_code tipo_mensaje;
   char **parametros; //ejemplo: ["PARAM1","PARAM2","PARAM3"]
-  char *queue;
 }t_mensaje;
 
 
