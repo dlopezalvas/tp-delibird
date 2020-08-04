@@ -682,7 +682,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 	pthread_mutex_lock(&lista_particiones_mtx);
 	ordenar_particiones();
 
-	particion_libre =  list_find(particiones_libres, (void*) _puede_almacenar_y_esta_libre); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
+	particion_libre =  list_find(particiones, (void*) _puede_almacenar_y_esta_libre); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
 
 	if(particion_libre != NULL){
 		particion_libre->ocupado = true; //si devuelve algo ya lo pongo como ocupado asi ningun otro hilo puede agarrar la misma particion
@@ -775,34 +775,23 @@ void consolidar(t_particion* particion_liberada){
 
 t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold creo
 
-	int best_fit = -1;
+	t_particion* best;
 
-	int cantidad_libres = list_size(particiones_libres) - 1; //para que comience por 0
-
-	t_particion* aux = malloc(sizeof(t_particion));
-	t_particion* mayor = malloc(sizeof(t_particion));
-
-	for(int i = 0; i < cantidad_libres; i++){
-		aux = list_get(particiones_libres, i);
-		if(aux->tamanio >= tamanio_a_almacenar){
-			if(best_fit == -1){
-				best_fit = i;
-				mayor = list_get(particiones_libres, i);
-			}else if(mayor->tamanio > aux->tamanio){
-				best_fit = i;
-			}
-		}
+	bool _ordenar_por_tamanio(t_particion* particion_menor, t_particion* particion_mayor){
+		return particion_menor->tamanio < particion_mayor->tamanio;
 	}
 
-	free(aux);
-	free(mayor);
-	t_particion* best = malloc(sizeof(t_particion));
+	bool _la_mejor(t_particion* particion){
+		return particion->tamanio >= tamanio_a_almacenar && !particion->ocupado; //commo esta ordenada de menor a mayor, la primera que encuentre que tenga tamanio
+	}																			 //mayor o igual (y este vacia) será la mejor
 
-	if(best_fit == -1){
-		best = NULL;
-	}else{
-		best = list_get(particiones_libres, best_fit);
-	}
+	pthread_mutex_lock(&lista_particiones_mtx);
+
+	list_sort(particiones, (void*)_ordenar_por_tamanio); //ordeno de menor a mayor
+
+	best = list_find(particiones, (void*)_la_mejor);
+
+	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	return best;
 
