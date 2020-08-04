@@ -210,7 +210,7 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar);
 void consolidar(t_particion* particion_liberada);
 void compactar();
 
-void elegir_victima_particiones_FIFO();
+t_particion* elegir_victima_particiones_FIFO();
 
 t_particion* elegir_victima_particiones();
 t_particion* elegir_victima_particiones_LRU();

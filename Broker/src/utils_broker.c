@@ -561,21 +561,20 @@ void iniciar_memoria(t_config* config){
 
 	memoria_cache = malloc(configuracion_cache->tamanio_memoria);
 
-	particiones_libres = list_create();
+	id_fifo = 0;
+
+	particiones = list_create();
 	t_particion* aux = malloc(sizeof(t_particion));
 
 	aux->base = (int)memoria_cache;
 	aux->tamanio = configuracion_cache->tamanio_memoria;
 	aux->id_mensaje = 0;
 	aux->ultimo_acceso = time(NULL);
+	aux->id = id_fifo;
 
-	list_add(particiones_libres, aux);
-
-	particiones_ocupadas = list_create();
-
-	t_particion* particion_libre = list_get(particiones_libres, 0);
-
-	id_fifo = 0;
+	pthread_mutex_lock(&lista_particiones_mtx);
+	list_add(particiones, aux);
+	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	t_particion* bloque_buddy = malloc(sizeof(t_particion));
 
@@ -700,7 +699,10 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	if(particion_libre != NULL){
 		particion_libre->ocupado = true; //si devuelve algo ya lo pongo como ocupado asi ningun otro hilo puede agarrar la misma particion
-
+		pthread_mutex_lock(&id_fifo_mutex);
+		id_fifo++;
+		pthread_mutex_unlock(&id_fifo_mutex);
+		particion_libre->id = id_fifo;
 	}
 
 	pthread_mutex_unlock(&lista_particiones_mtx);
@@ -806,8 +808,15 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 
 	best = list_find(particiones, (void*)_la_mejor);
 
-	pthread_mutex_unlock(&lista_particiones_mtx);
+	if(best != NULL){
+		best->ocupado = true; //si devuelve algo ya lo pongo como ocupado asi ningun otro hilo puede agarrar la misma particion
+		pthread_mutex_lock(&id_fifo_mutex);
+		id_fifo++;
+		pthread_mutex_unlock(&id_fifo_mutex);
+		best->id = id_fifo;
+	}
 
+	pthread_mutex_unlock(&lista_particiones_mtx);
 	return best;
 
 }
@@ -816,7 +825,6 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 	switch(configuracion_cache->algoritmo_reemplazo){
 	case LRU:
 		return elegir_victima_particiones_LRU();
-
 	case FIFO:
 		return elegir_victima_particiones_FIFO();
 	}
@@ -830,7 +838,7 @@ t_particion* elegir_victima_particiones_FIFO(){
 	t_particion* particion;
 
 	bool _orden(t_particion* particion1, t_particion* particion2){
-		return particion1->id > particion2->id;
+		return particion1->id < particion2->id;
 	}
 
 	pthread_mutex_lock(&lista_particiones_mtx);
