@@ -636,9 +636,9 @@ void compactar(){
 	int offset = 0;
 	t_particion* aux;
 
-	bool _es_la_particion(t_particion* particion){
-		return particion->base == aux->base;
-	}
+//	bool _es_la_particion(t_particion* particion){
+//		return particion->base == aux->base;
+//	}
 	pthread_mutex_lock(&lista_particiones_mtx);
 
 	ordenar_particiones(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
@@ -861,7 +861,7 @@ t_particion* elegir_victima_particiones_LRU(){
 	t_particion* particion;
 
 	bool _orden(t_particion* particion1, t_particion* particion2){
-		return particion1->ultimo_acceso > particion2->ultimo_acceso;
+		return particion1->ultimo_acceso < particion2->ultimo_acceso;
 	}
 
 	pthread_mutex_lock(&lista_particiones_mtx);
