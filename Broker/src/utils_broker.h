@@ -97,8 +97,8 @@ typedef struct{
 
 void* memoria_cache;
 
-t_list* particiones_libres;
-t_list* particiones_ocupadas;
+//t_list* particiones_libres;
+//t_list* particiones_ocupadas;
 
 t_list* particiones;
 

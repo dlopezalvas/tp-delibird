@@ -622,28 +622,52 @@ void ordenar_particiones(){ //no se si anda esto
 
 void compactar(){
 	int offset = 0;
+	t_particion* aux;
+
+	bool _esta_libre(t_particion* particion){
+		return !esta_ocupada(particion);
+	}
+
+	bool _es_la_particion(t_particion* particion){
+		return particion->base == aux->base;
+	}
+	pthread_mutex_lock(&lista_particiones_mtx);
 
 	ordenar_particiones(); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
 
-	int cantidad_particiones = list_size(particiones_ocupadas);
+	t_list* particiones_ocupadas = list_filter(particiones, (void*)esta_ocupada);
 
-	t_particion* aux;
+	int cantidad_p_ocupadas = list_size(particiones_ocupadas);
 
-	for(int i = 0; i < cantidad_particiones; i++){
+	pthread_mutex_lock(&memoria_cache_mtx);
+	for(int i = 0; i < cantidad_p_ocupadas; i++){
 		aux = list_get(particiones_ocupadas, i);
 		memcpy(memoria_cache + offset, (void*)aux->base, aux->tamanio);
 		aux->base = (int)memoria_cache + offset;
 		offset+= aux->tamanio;
 	}
+	pthread_mutex_unlock(&memoria_cache_mtx);
 
-	list_clean(particiones_libres);
+	t_list* particiones_libres = list_filter(particiones, (void*)_esta_libre);
+
+	int cantidad_p_libres = list_size(particiones_libres);
+
+	for(int j = 0; j < cantidad_p_libres; j++){ //TODO esto esta horrible, conviene asi o tener particiones_ocupadas como lista global?
+		aux = list_get(particiones_libres, j);
+		list_remove_by_condition(particiones, (void*)_es_la_particion); //ESTO FUNCA?????? ESPERO QUE SI D:
+	}
 
 	t_particion* particion_unica = malloc(sizeof(t_particion));
 	particion_unica->base = (int) memoria_cache + offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 	particion_unica->id_mensaje = 0;
 	particion_unica->ultimo_acceso = time(NULL);
-	list_add(particiones_libres, particion_unica);
+	particion_unica->ocupado = false;
+	list_add(particiones, particion_unica);
+	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
+
+	list_destroy(particiones_libres);
+	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
 
 }
 
@@ -794,6 +818,10 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 	}
 }
 
+bool esta_ocupada(t_particion* particion){
+	return particion->ocupado;
+}
+
 t_particion* elegir_victima_particiones_LRU(){
 
 	t_particion* particion;
@@ -802,15 +830,11 @@ t_particion* elegir_victima_particiones_LRU(){
 		return particion1->ultimo_acceso > particion2->ultimo_acceso;
 	}
 
-	bool _esta_ocupada(t_particion* particion){
-		return particion->ocupado;
-	}
-
 
 	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
 
-	particion = list_find(particiones, (void*)_esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
+	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
 
 	particion->ocupado = false;
 	particion->cola = 0;
@@ -845,7 +869,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		pthread_mutex_unlock(&lista_particiones_mtx);
 	}
 
-	particion_libre->ultimo_acceso = time(NULL);
+	particion_libre->ultimo_acceso = time(NULL); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
 
