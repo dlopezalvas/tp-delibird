@@ -143,7 +143,7 @@ multhilos_mutex,
 logger_mutex,
 unique_id_mutex,
 memoria_buddy_mutex,
-buddy_id_mutex,
+id_fifo_mutex,
 lista_particiones_mtx,
 memoria_cache_mtx;
 
@@ -210,6 +210,8 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar);
 void consolidar(t_particion* particion_liberada);
 void compactar();
 
+void elegir_victima_particiones_FIFO();
+
 t_particion* elegir_victima_particiones();
 t_particion* elegir_victima_particiones_LRU();
 void eliminar_particion(t_particion* particion_a_liberar);
@@ -221,7 +223,7 @@ t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size);
 
 t_list* memoria_buddy;
 
-uint32_t buddy_id;
+uint32_t id_fifo;
 
 t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
 void eleccion_victima_fifo_buddy(int tamanio);
@@ -243,6 +245,8 @@ bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio);
 bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2);
 
 //
+
+bool esta_ocupada();
 
 
 #endif /* UTILS_BROKER_H_ */

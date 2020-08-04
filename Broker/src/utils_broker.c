@@ -61,7 +61,7 @@ void crear_queues(void){
 	pthread_mutex_init(&multhilos_mutex,NULL);
 	pthread_mutex_init(&logger_mutex,NULL);
 	pthread_mutex_init(&memoria_buddy_mutex,NULL);
-	pthread_mutex_init(&buddy_id_mutex,NULL);
+	pthread_mutex_init(&id_fifo_mutex,NULL);
 	pthread_mutex_init(&ack_queue_mutex,NULL);
 }
 
@@ -303,7 +303,10 @@ void ejecutar_new_pokemon(){
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
+
+		pthread_mutex_lock(&suscripcion_new_queue_mutex);
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		pthread_mutex_unlock(&suscripcion_new_queue_mutex);
 
 	}
 }
@@ -328,7 +331,9 @@ void ejecutar_appeared_pokemon(){
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
+		pthread_mutex_lock(&suscripcion_appeared_queue_mutex);
 		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
 		puts("envio appeared_pokemon");
 	}
 }
@@ -353,7 +358,9 @@ void ejecutar_catch_pokemon(){
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
+		pthread_mutex_lock(&suscripcion_catch_queue_mutex);
 		list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
 	}
 }
 
@@ -377,7 +384,9 @@ void ejecutar_caught_pokemon(){
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
+		pthread_mutex_lock(&suscripcion_caught_queue_mutex);
 		list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
 
 	}
 }
@@ -401,7 +410,9 @@ void ejecutar_get_pokemon(){
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
+		pthread_mutex_lock(&suscripcion_get_queue_mutex);
 		list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		pthread_mutex_unlock(&suscripcion_get_queue_mutex);
 
 	}
 }
@@ -425,7 +436,9 @@ void ejecutar_localized_pokemon(){
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
 		}
+		pthread_mutex_lock(&suscripcion_localized_queue_mutex);
 		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
+		pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
 
 	}
 }
@@ -562,14 +575,14 @@ void iniciar_memoria(t_config* config){
 
 	t_particion* particion_libre = list_get(particiones_libres, 0);
 
-	buddy_id = 0;
+	id_fifo = 0;
 
 	t_particion* bloque_buddy = malloc(sizeof(t_particion));
 
 	bloque_buddy->base = (int) memoria_cache;
 	bloque_buddy->ocupado = false;
 	bloque_buddy->tamanio = configuracion_cache->tamanio_memoria;
-	bloque_buddy->id = buddy_id;
+	bloque_buddy->id = id_fifo;
 	bloque_buddy->id_mensaje = 0;
 	bloque_buddy->ultimo_acceso = time(NULL);
 
@@ -624,10 +637,6 @@ void compactar(){
 	int offset = 0;
 	t_particion* aux;
 
-	bool _esta_libre(t_particion* particion){
-		return !esta_ocupada(particion);
-	}
-
 	bool _es_la_particion(t_particion* particion){
 		return particion->base == aux->base;
 	}
@@ -648,14 +657,19 @@ void compactar(){
 	}
 	pthread_mutex_unlock(&memoria_cache_mtx);
 
-	t_list* particiones_libres = list_filter(particiones, (void*)_esta_libre);
+	t_list* particiones_aux = list_filter(particiones, (void*)esta_ocupada);
 
-	int cantidad_p_libres = list_size(particiones_libres);
+	list_destroy(particiones);
 
-	for(int j = 0; j < cantidad_p_libres; j++){ //TODO esto esta horrible, conviene asi o tener particiones_ocupadas como lista global?
-		aux = list_get(particiones_libres, j);
-		list_remove_by_condition(particiones, (void*)_es_la_particion); //ESTO FUNCA?????? ESPERO QUE SI D:
-	}
+	particiones = particiones_aux;
+
+
+//	int cantidad_p_libres = list_size(particiones_libres);
+//
+//	for(int j = 0; j < cantidad_p_libres; j++){ //TODO esto esta horrible, conviene asi o tener particiones_ocupadas como lista global?
+//		aux = list_get(particiones_libres, j);
+//		list_remove_by_condition(particiones, (void*)_es_la_particion); //ESTO FUNCA?????? ESPERO QUE SI D:
+//	}
 
 	t_particion* particion_unica = malloc(sizeof(t_particion));
 	particion_unica->base = (int) memoria_cache + offset;
@@ -666,7 +680,7 @@ void compactar(){
 	list_add(particiones, particion_unica);
 	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
-	list_destroy(particiones_libres);
+//	list_destroy(particiones_libres);
 	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
 
 }
@@ -686,6 +700,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 
 	if(particion_libre != NULL){
 		particion_libre->ocupado = true; //si devuelve algo ya lo pongo como ocupado asi ningun otro hilo puede agarrar la misma particion
+
 	}
 
 	pthread_mutex_unlock(&lista_particiones_mtx);
@@ -803,12 +818,34 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 		return elegir_victima_particiones_LRU();
 
 	case FIFO:
-		return;
+		return elegir_victima_particiones_FIFO();
 	}
 }
 
 bool esta_ocupada(t_particion* particion){
 	return particion->ocupado;
+}
+
+t_particion* elegir_victima_particiones_FIFO(){
+	t_particion* particion;
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+		return particion1->id > particion2->id;
+	}
+
+	pthread_mutex_lock(&lista_particiones_mtx);
+	list_sort(particiones, (void*)_orden);
+
+	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
+
+	particion->ocupado = false;
+	particion->cola = 0;
+	particion->id_mensaje = 0;
+	particion->ultimo_acceso = time(NULL); //importa esto aca??
+
+	pthread_mutex_unlock(&lista_particiones_mtx);
+
+	return particion;
 }
 
 t_particion* elegir_victima_particiones_LRU(){
@@ -818,7 +855,6 @@ t_particion* elegir_victima_particiones_LRU(){
 	bool _orden(t_particion* particion1, t_particion* particion2){
 		return particion1->ultimo_acceso > particion2->ultimo_acceso;
 	}
-
 
 	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
@@ -837,7 +873,6 @@ t_particion* elegir_victima_particiones_LRU(){
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
-
 
 	pthread_mutex_lock(&memoria_cache_mtx);
 	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
@@ -891,7 +926,6 @@ t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size){ //eso hay
 
 t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size){
 
-
 	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 
 	uint32_t tamanio_mensaje = size - sizeof(uint32_t)*2;
@@ -937,18 +971,11 @@ t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint3
 			eleccion_victima_lru_buddy(tamanio);
 			break;
 		}
-		puts("--------------lo que quieras---------------");
 
 		bloque_buddy_particion = eleccion_particion_asignada_buddy(datos,tamanio);
-		puts("despues de la eleccion");
 
-		if(bloque_buddy_particion != NULL){
-			puts("la base es:");
-			puts(string_itoa(bloque_buddy_particion->base));
-		}
 	}
 
-	puts("--------------afuera del while---------------");
 	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio,cod_op,id_mensaje);
 
 	return bloque_buddy_particion;
@@ -970,10 +997,10 @@ void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, i
 	t_particion* particion_buddy = list_find(memoria_buddy,_mismo_id_buddy);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 	particion_buddy->ocupado = true;
-	pthread_mutex_lock(&buddy_id_mutex);
-	buddy_id++;
-	pthread_mutex_unlock(&buddy_id_mutex);
-	particion_buddy->id = buddy_id;
+	pthread_mutex_lock(&id_fifo_mutex);
+	id_fifo++;
+	pthread_mutex_unlock(&id_fifo_mutex);
+	particion_buddy->id = id_fifo;
 	particion_buddy->id_mensaje = id_mensaje;
 	particion_buddy->cola = cod_op;
 	particion_buddy->ultimo_acceso = time(NULL);
@@ -1055,7 +1082,6 @@ bool validar_condicion_buddy(t_particion* bloque_buddy,int tamanio){
 t_particion* generar_particion_buddy(t_particion* bloque_buddy){
 	uint32_t id_viejo = bloque_buddy->id;
 	uint32_t base_vieja = bloque_buddy->base;
-//	puts(string_itoa(base_vieja));
 
 	bool _mismo_id_buddy(t_particion* bloque_buddy){
 		return mismo_id_buddy(bloque_buddy,id_viejo);
@@ -1073,14 +1099,14 @@ t_particion* generar_particion_buddy(t_particion* bloque_buddy){
 	bloque_buddy->ocupado = false;
 	bloque_buddy->base = base_vieja;
 	bloque_buddy2->ocupado = false;
-	pthread_mutex_lock(&buddy_id_mutex);
-	buddy_id++;
-	pthread_mutex_unlock(&buddy_id_mutex);
-	bloque_buddy2->id = buddy_id;
-	pthread_mutex_lock(&buddy_id_mutex);
-	buddy_id++;
-	pthread_mutex_unlock(&buddy_id_mutex);
-	bloque_buddy->id = buddy_id;
+	pthread_mutex_lock(&id_fifo_mutex);
+	id_fifo++;
+	pthread_mutex_unlock(&id_fifo_mutex);
+	bloque_buddy2->id = id_fifo;
+	pthread_mutex_lock(&id_fifo_mutex);
+	id_fifo++;
+	pthread_mutex_unlock(&id_fifo_mutex);
+	bloque_buddy->id = id_fifo;
 	bloque_buddy->id_mensaje = 0;
 	bloque_buddy->ultimo_acceso = time(NULL);
 	bloque_buddy2->id_mensaje = 0;
@@ -1114,18 +1140,10 @@ void eleccion_victima_fifo_buddy(int tamanio){
 	list_sort(memoria_buddy,(void*)_sort_byId_memoria_buddy);
 	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
-//	bool _eleccion_victima_fifo_a_eliminar(void* bloque_buddy){
-//		return eleccion_victima_fifo_a_eliminar(bloque_buddy,tamanio);
-//	}
-	//Busco la victima y "elimino"
-//	pthread_mutex_lock(&memoria_buddy_mutex);
-//	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_eleccion_victima_fifo_a_eliminar);
-//	pthread_mutex_unlock(&memoria_buddy_mutex);
 
 	victima_elegida->ocupado = false;
 	victima_elegida->id_mensaje = 0;
 	victima_elegida->cola = 0;
-
 
 	//consolidar
 	consolidar_buddy(victima_elegida,memoria_buddy);
@@ -1136,10 +1154,6 @@ bool remove_by_id(t_particion* bloque_buddy,uint32_t id_remover){
 }
 
 void consolidar_buddy(t_particion* bloque_buddy_old,t_list* lista_fifo_buddy){
-
-//	void _encontrar_y_consolidar_buddy(t_particion* bloque_buddy){
-//		return encontrar_y_consolidar_buddy(bloque_buddy,bloque_buddy_old);
-//	}
 
 	bool _validar_condicion_fifo_buddy(t_particion* bloque_buddy){
 
@@ -1157,7 +1171,6 @@ void consolidar_buddy(t_particion* bloque_buddy_old,t_list* lista_fifo_buddy){
 	}
 }
 
-//TODO: Reveer esto Lucas
 bool validar_condicion_fifo_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old){
 	return (bloque_buddy->tamanio == bloque_buddy_old->tamanio)
 			&& ((bloque_buddy->base - (int)memoria_cache) == ((bloque_buddy_old->base -(int)memoria_cache) ^ bloque_buddy->tamanio)) &&
@@ -1165,8 +1178,6 @@ bool validar_condicion_fifo_buddy(t_particion* bloque_buddy,t_particion* bloque_
 }
 
 t_particion*  encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old){
-
-	//bool condition_for_buddy = validar_condicion_fifo_buddy(bloque_buddy,bloque_buddy_old);
 
 	if(!bloque_buddy->ocupado){
 
@@ -1181,10 +1192,10 @@ t_particion*  encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion
 
 		puts("armo nuevo buddy");
 
-//		pthread_mutex_lock(&buddy_id_mutex);
-//		buddy_id++;
-//		pthread_mutex_unlock(&buddy_id_mutex);
-//		bloque_buddy_new->id = buddy_id;
+//		pthread_mutex_lock(&id_fifo_mutex);
+//		id_fifo++;
+//		pthread_mutex_unlock(&id_fifo_mutex);
+//		bloque_buddy_new->id = id_fifo;
 
 		if(bloque_buddy_old->base < bloque_buddy->base){
 
@@ -1259,7 +1270,6 @@ void eleccion_victima_lru_buddy(int tamanio){
 	victima_elegida->ocupado = false;
 	victima_elegida->id_mensaje = 0;
 	victima_elegida->cola = 0;
-
 
 	//consolidar
 	consolidar_buddy(victima_elegida,memoria_buddy);
