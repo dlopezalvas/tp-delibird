@@ -173,6 +173,8 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 
+	pthread_mutex_init(&(bloque_broker->mtx), NULL);
+
 	pthread_mutex_lock(&ids_recibidos_mtx);
 	list_add(IDS_RECIBIDOS, bloque_broker);
 	pthread_mutex_unlock(&ids_recibidos_mtx);
