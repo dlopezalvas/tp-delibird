@@ -21,6 +21,7 @@ t_list* multihilos;
 int main() {
 	signal(SIGUSR1, dump_cache);
 
+
 	iniciar_broker();
 //	recibir_mensaje_broker(config);
 //	terminar_broker(logger,config);

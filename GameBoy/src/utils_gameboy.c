@@ -215,8 +215,10 @@ void ejecutar_modo_suscriptor(char** linea_split, t_config* config){
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
 	mensaje->tipo_mensaje = SUSCRIPCION;
-	char* cola[1] = {linea_split[1]};
-	mensaje -> parametros = cola;
+
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+	char* parametros[2] = {linea_split[1], string_itoa(id_proceso)};
+	mensaje -> parametros = parametros;
 
 	int socket_broker = iniciar_cliente(ip, puerto);
 

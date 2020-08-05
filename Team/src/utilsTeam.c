@@ -1066,15 +1066,13 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 void connect_appeared(){
 	op_code codigo_operacion = SUSCRIPCION;
 
-
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {"APPEARED_POKEMON"};
+	char* linea_split[2] = {"APPEARED_POKEMON", string_itoa(id_proceso)};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
-
-	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
@@ -1125,7 +1123,7 @@ void connect_appeared(){
 				pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
 				sem_post(&semAppeared);
 			}
-			puts(appeared->nombre.nombre);
+//			puts(appeared->nombre.nombre);
 			puts("deserializo");
 		}
 	}
@@ -1158,15 +1156,13 @@ void connect_localized_pokemon(){
 
 	op_code codigo_operacion = SUSCRIPCION;
 
-
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {"LOCALIZED_POKEMON"};
+	char* linea_split[2] = {"LOCALIZED_POKEMON", string_itoa(id_proceso)};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
-
-	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
@@ -1240,7 +1236,7 @@ void connect_localized_pokemon(){
 				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 				sem_post(&semLocalized);
 			}
-			puts(localized->nombre.nombre);
+//			puts(localized->nombre.nombre);
 			puts("deserializo");
 		}
 	}
@@ -1251,14 +1247,12 @@ void connect_localized_pokemon(){
 void connect_caught_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
 
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
-	char* linea_split[1] = {"CAUGHT_POKEMON"};
+	char* linea_split[2] = {"CAUGHT_POKEMON", string_itoa(id_proceso)};
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
-
-
-	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 

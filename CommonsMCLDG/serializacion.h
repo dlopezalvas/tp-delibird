@@ -67,6 +67,7 @@ typedef struct{
 
 typedef struct{
 	op_code cola;
+	int id_proceso;
 }t_suscripcion;
 
 typedef struct{

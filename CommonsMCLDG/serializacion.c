@@ -270,12 +270,17 @@ t_buffer* buffer_suscripcion(char** parametros){
 
 	t_suscripcion suscripcion;
 	suscripcion.cola = cola;
+	suscripcion.id_proceso = parametros[1];
 
-	buffer -> size = sizeof(op_code);
+	buffer -> size = sizeof(op_code) + sizeof(int);
+
+	int offset = 0;
 
 	void* stream = malloc(buffer -> size);
 
-	memcpy(stream, &suscripcion.cola, sizeof(op_code));
+	memcpy(stream + offset, &suscripcion.cola, sizeof(op_code));
+	offset += sizeof(op_code);
+	memcpy(stream + offset, &suscripcion.id_proceso, sizeof(int));
 
 	buffer -> stream = stream;
 
@@ -423,9 +428,17 @@ t_caught_pokemon* deserializar_caught_pokemon(void* buffer){
 
 t_suscripcion* deserializar_suscripcion(void* buffer){
 
+	op_code cola;
+	int id_proceso;
+
+	memcpy(&cola, buffer, sizeof(op_code));
+	buffer+=sizeof(op_code);
+	memcpy(&id_proceso, buffer, sizeof(int));
+
 	t_suscripcion* suscripcion = malloc(sizeof(t_suscripcion));
 
-	memcpy(&suscripcion->cola, buffer, sizeof(op_code));
+	suscripcion->cola = cola;
+	suscripcion->id_proceso = id_proceso;
 
 	return suscripcion;
 }

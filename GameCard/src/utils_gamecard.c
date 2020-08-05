@@ -869,9 +869,11 @@ void connect_new_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {"NEW_POKEMON"};
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+	char* parametros[2] = {"NEW_POKEMON", string_itoa(id_proceso)};
 	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = linea_split;
+	mensaje -> parametros = parametros;
 
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
@@ -903,8 +905,6 @@ void connect_new_pokemon(){
 
 			_new_pokemon = deserializar_new_pokemon(buffer);
 
-			int id_proceso = config_get_int_value(config, "ID_PROCESO");
-
 			uint32_t id_ack = _new_pokemon->id;
 
 			enviar_ack(socket_broker, id_ack, id_proceso);
@@ -927,9 +927,11 @@ void connect_catch_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {"CATCH_POKEMON"};
-	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = linea_split;
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+	char* parametros[2] = {"CATCH_POKEMON", string_itoa(id_proceso)};
+		mensaje -> tipo_mensaje = codigo_operacion;
+		mensaje -> parametros = parametros;
 
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
@@ -956,15 +958,11 @@ void connect_catch_pokemon(){
 		pthread_t solicitud_mensaje;
 		puts("recibi mensaje");
 		if(cod_op == CATCH_POKEMON){
-			puts("catch pokemon");
 			_catch_pokemon = deserializar_position_and_name(buffer);
-			printf("catch pokemon %s", _catch_pokemon->nombre.nombre);
-			int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 			uint32_t id_ack = _catch_pokemon->id;
 
 			enviar_ack(socket_broker, id_ack, id_proceso);
-			puts("MANDA ACK");
 
 			pthread_mutex_lock(&solicitudes_mtx);
 			list_add(mensajes, &solicitud_mensaje);
@@ -984,9 +982,11 @@ void connect_get_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
 
-	char* linea_split[1] = {"GET_POKEMON"};
+	int id_proceso = config_get_int_value(config, "ID_PROCESO");
+
+	char* parametros[2] = {"GET_POKEMON", string_itoa(id_proceso)};
 	mensaje -> tipo_mensaje = codigo_operacion;
-	mensaje -> parametros = linea_split;
+	mensaje -> parametros = parametros;
 
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
