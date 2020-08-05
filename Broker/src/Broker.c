@@ -30,8 +30,6 @@ int main() {
 void iniciar_broker(){
 	config = leer_config(PATH);
 	logger = iniciar_logger(config);
-	char* ip = config_get_string_value(config,IP_BROKER);
-	char* puerto = config_get_string_value(config,PUERTO_BROKER);
 
 	sem_init(&new_pokemon_sem,0,0);
 	sem_init(&appeared_pokemon_sem,0,0);
@@ -41,6 +39,12 @@ void iniciar_broker(){
 	sem_init(&get_pokemon_sem,0,0);
 	sem_init(&suscripcion_sem,0,0);
 	sem_init(&ack_sem,0,0);
+
+	crear_queues();
+
+	multihilos = list_create();
+
+	iniciar_memoria();
 
 	pthread_t new_pokemon_thread;
 	pthread_create(&new_pokemon_thread, NULL, (void*)ejecutar_new_pokemon, NULL);
@@ -74,13 +78,23 @@ void iniciar_broker(){
 	pthread_create(&ack_thread, NULL, (void*)ejecutar_ACK, NULL);
 	pthread_detach(ack_thread);
 
-	crear_queues();
+	pthread_t llegada_mensajes;
+	pthread_create(&llegada_mensajes, NULL, (void*)socket_mensajes, NULL);
+	pthread_join(llegada_mensajes, NULL);
 
-	multihilos = list_create();
 
-	iniciar_memoria(config);
+}
 
-	socketEscucha(ip,puerto);
+void socket_mensajes(){
+	char* ip = config_get_string_value(config,IP_BROKER);
+	char* puerto = config_get_string_value(config,PUERTO_BROKER);
+
+	int servidor = iniciar_servidor(ip,puerto);
+
+	printf("Se creo el socket servidor en el puerto ( %s )", puerto);
+	while(1){
+		esperar_cliente(servidor);
+	}
 }
 
 

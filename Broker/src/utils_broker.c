@@ -221,14 +221,6 @@ bool es_mensaje_respuesta(op_code cod_op){
 	return cod_op == APPEARED_POKEMON || cod_op == LOCALIZED_POKEMON || cod_op == CAUGHT_POKEMON;
 }
 
-void socketEscucha(char*ip, char* puerto){
-	int servidor = iniciar_servidor(ip,puerto);
-	printf("Se creo el socket servidor en el puerto ( %s )", puerto);
-	while(1){
-		esperar_cliente(servidor);
-	}
-}
-
 void ejecutar_ACK(){
 	while(1){
 		sem_wait(&ack_sem);
@@ -541,7 +533,7 @@ void ejecutar_localized_pokemon_suscripcion(int suscriptor){
 }
 
 //------------MEMORIA------------//
-void iniciar_memoria(t_config* config){
+void iniciar_memoria(){
 
 	configuracion_cache = malloc(sizeof(t_config_cache));
 

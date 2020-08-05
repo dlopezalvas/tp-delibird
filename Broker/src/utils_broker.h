@@ -173,7 +173,6 @@ void log_suscribir_mensaje_queue(char*,char*);
 
 void esperar_cliente(int servidor);
 void serve_client(int socket);
-void socketEscucha(char*IP, char* Puerto);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
 void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes);
@@ -198,7 +197,7 @@ t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size);
 t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion);
 
 void ordenar_particiones_libres();
-void iniciar_memoria(t_config* config);
+void iniciar_memoria();
 void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id);
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id);
 t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo_op, uint32_t id);
