@@ -154,7 +154,11 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	uint32_t mensaje_id = unique_message_id;
 
-	send(cliente_fd,&mensaje_id,sizeof(uint32_t),0); //envio ack
+	if(cod_op != GET_POKEMON){
+		send(cliente_fd,&mensaje_id,sizeof(uint32_t),0); //envio ack
+	}else{
+		enviar_ack(cliente_fd, mensaje_id, 0);
+	}
 
 	if(es_mensaje_respuesta(cod_op)){
 		buffer_broker = deserializar_broker_vuelta(buffer,size);
@@ -449,7 +453,7 @@ void ejecutar_suscripcion(){
 		t_suscripcion* mensaje_suscripcion = deserializar_suscripcion(buffer);
 
 		int suscriptor = mensaje->suscriptor;
-		puts(string_itoa(mensaje->suscriptor));
+		puts(string_itoa(suscriptor));
 		char* log_debug_suscripcion = string_new();
 		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
 		pthread_mutex_lock(&logger_mutex);

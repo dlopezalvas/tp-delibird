@@ -89,9 +89,16 @@ void* recibir_mensaje(int socket_cliente, int* size)
 {
 	void * buffer;
 
-	recv(socket_cliente, size, sizeof(int), 0);
-	buffer = malloc(*size);
-	recv(socket_cliente, buffer, *size, 0);
+	int aux_size = 0;
+
+	recv(socket_cliente, &aux_size, sizeof(int), 0);
+	buffer = malloc(aux_size);
+	printf("el size del paquete recibido es: %d", aux_size);
+	puts("");
+	recv(socket_cliente, buffer, aux_size, 0);
+
+	*size = aux_size;
+
 	return buffer;
 }
 

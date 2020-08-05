@@ -17,9 +17,6 @@ void enviar_mensaje(t_mensaje* mensaje, int socket){
 	send(socket,a_enviar,bytes,0);
 
 	free(a_enviar);
-//	free(buffer_cargado->stream);
-//	free(buffer_cargado);
-//	free(paquete -> buffer -> stream);
 	free(paquete -> buffer);
 	free(paquete);
 
@@ -27,7 +24,7 @@ void enviar_mensaje(t_mensaje* mensaje, int socket){
 
 void* serializar_paquete(t_paquete* paquete, int *bytes){
 
-	int size = sizeof(uint32_t) + paquete->buffer->size + sizeof(paquete->codigo_operacion);
+	int size = sizeof(uint32_t) + paquete->buffer->size + sizeof(op_code);
 
 	void* a_enviar = malloc (size);
 
@@ -67,7 +64,7 @@ t_buffer* buffer_localized_pokemon(char** parametros){
 	uint32_t cantidad = atoi(parametros[1]);
 	uint32_t cantidadParametros = cantidad*2;
 	t_localized_pokemon localized_pokemon;
-	coordenadas_pokemon coord;
+//	coordenadas_pokemon coord;
 
 	localized_pokemon.nombre.largo_nombre = strlen(nombre) + 1;
 
@@ -88,14 +85,17 @@ t_buffer* buffer_localized_pokemon(char** parametros){
 	memcpy(stream + offset, &localized_pokemon.cantidad, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	for(int i = 2; cantidadParametros+2>i ; i++){
-		coord.pos_x = atoi(parametros[i]);
-		i++;
-		coord.pos_y = atoi(parametros[i]);
+	int pos_x;
+	int pos_y;
 
-		memcpy(stream + offset, &coord.pos_x, sizeof(uint32_t));
+	for(int i = 2; cantidadParametros+2>i ; i++){
+		pos_x= atoi(parametros[i]);
+		i++;
+		pos_y = atoi(parametros[i]);
+
+		memcpy(stream + offset, &pos_x, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &coord.pos_y, sizeof(uint32_t));
+		memcpy(stream + offset, &pos_y, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 	}
 
@@ -332,8 +332,8 @@ t_get_pokemon* deserializar_get_pokemon(void* buffer){
 	buffer += sizeof(uint32_t);
 	memcpy(&get_pokemon->nombre.largo_nombre, buffer, sizeof(uint32_t));
 	buffer += sizeof(uint32_t);
-	get_pokemon->nombre.nombre = malloc(get_pokemon->nombre.largo_nombre + 1);
-	memcpy(get_pokemon->nombre.nombre, buffer, get_pokemon->nombre.largo_nombre + 1);
+	get_pokemon->nombre.nombre = malloc(get_pokemon->nombre.largo_nombre);
+	memcpy(get_pokemon->nombre.nombre, buffer, get_pokemon->nombre.largo_nombre);
 
 	return get_pokemon;
 }
@@ -354,22 +354,26 @@ t_localized_pokemon* deserializar_localized_pokemon(void*buffer){
 	int cantidadParametros = localized_pokemon->cantidad * 2;
 	coordenadas_pokemon coord;
 	coordenadas_pokemon* coordenadas;
+
+	int pos_x;
+	int pos_y;
+
 	for(int i = 0; cantidadParametros>i ; i+=2){
-		coordenadas = malloc(sizeof(coordenadas_pokemon*));
-		memcpy(&coord.pos_x,buffer, sizeof(uint32_t));
+		coordenadas = malloc(sizeof(coordenadas_pokemon));
+		memcpy(&pos_x,buffer, sizeof(uint32_t));
 		buffer += sizeof(uint32_t);
-		memcpy(&coord.pos_y,buffer, sizeof(uint32_t));
+		memcpy(&pos_y,buffer, sizeof(uint32_t));
 		buffer += sizeof(uint32_t);
-		coordenadas->pos_x = coord.pos_x;
-		coordenadas->pos_y = coord.pos_y;
+		coordenadas->pos_x = pos_x;
+		coordenadas->pos_y = pos_y;
 		list_add(localized_pokemon->listaCoordenadas, coordenadas);
 	}
 
 	memcpy(&localized_pokemon->nombre.largo_nombre, buffer, sizeof(uint32_t));
 	buffer += sizeof(uint32_t);
-	localized_pokemon->nombre.nombre = malloc(localized_pokemon->nombre.largo_nombre + 1);
-	memcpy(localized_pokemon->nombre.nombre,buffer, localized_pokemon->nombre.largo_nombre + 1);
-	buffer += localized_pokemon->nombre.largo_nombre + 1;
+	localized_pokemon->nombre.nombre = malloc(localized_pokemon->nombre.largo_nombre);
+	memcpy(localized_pokemon->nombre.nombre,buffer, localized_pokemon->nombre.largo_nombre);
+	buffer += localized_pokemon->nombre.largo_nombre;
 
 	return localized_pokemon;
 
@@ -408,8 +412,8 @@ t_position_and_name* deserializar_position_and_name(void* buffer){
 	buffer += sizeof(uint32_t);
 	memcpy(&position_and_name->nombre.largo_nombre, buffer, sizeof(uint32_t));
 	buffer += sizeof(uint32_t);
-	position_and_name->nombre.nombre = malloc(position_and_name->nombre.largo_nombre + 1);
-	memcpy(position_and_name->nombre.nombre, buffer, position_and_name->nombre.largo_nombre + 1);
+	position_and_name->nombre.nombre = malloc(position_and_name->nombre.largo_nombre);
+	memcpy(position_and_name->nombre.nombre, buffer, position_and_name->nombre.largo_nombre);
 
 	return position_and_name;
 }
