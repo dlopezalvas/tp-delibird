@@ -68,6 +68,8 @@ typedef struct{
 	uint32_t id;
 	uint32_t correlation_id;
 	t_particion* particion;
+	t_list* procesos_recibidos;
+	pthread_mutex_t mtx;
 }t_bloque_broker;
 
 
@@ -97,9 +99,6 @@ typedef struct{
 
 void* memoria_cache;
 
-//t_list* particiones_libres;
-//t_list* particiones_ocupadas;
-
 t_list* particiones;
 
 t_config_cache* configuracion_cache;
@@ -117,6 +116,7 @@ t_list* CATCH_POKEMON_QUEUE_SUSCRIPT;
 t_list* CAUGHT_POKEMON_QUEUE_SUSCRIPT;
 t_list* GET_POKEMON_QUEUE_SUSCRIPT;
 t_list* LOCALIZED_POKEMON_QUEUE_SUSCRIPT;
+t_list* IDS_RECIBIDOS;
 uint32_t unique_message_id;
 
 t_queue* NEW_POKEMON_COLA;
@@ -145,7 +145,8 @@ unique_id_mutex,
 memoria_buddy_mutex,
 id_fifo_mutex,
 lista_particiones_mtx,
-memoria_cache_mtx;
+memoria_cache_mtx,
+ids_recibidos_mtx;
 
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
@@ -184,13 +185,7 @@ void ejecutar_get_pokemon();
 void ejecutar_localized_pokemon();
 void ejecutar_suscripcion();
 void ejecutar_ACK();
-void ejecutar_new_pokemon_suscripcion(int suscriptor);
-void ejecutar_appeared_pokemon_suscripcion(int suscriptor);
-void ejecutar_catch_pokemon_suscripcion(int suscriptor);
-void ejecutar_caught_pokemon_suscripcion(int suscriptor);
-void ejecutar_get_pokemon_suscripcion(int suscriptor);
-void ejecutar_localized_pokemon_suscripcion(int suscriptor);
-
+void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion);
 
 bool es_mensaje_respuesta(op_code cod_op);
 t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size);

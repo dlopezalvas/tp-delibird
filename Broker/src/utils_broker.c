@@ -39,6 +39,8 @@ void crear_queues(void){
 	LOCALIZED_POKEMON_COLA = queue_create();
 	SUSCRIPCION_COLA = queue_create();
 	ACK_COLA = queue_create();
+	IDS_RECIBIDOS = list_create();
+
 	pthread_mutex_init(&new_pokemon_mutex,NULL);
 	pthread_mutex_init(&appeared_pokemon_mutex,NULL);
 	pthread_mutex_init(&catch_pokemon_mutex,NULL);
@@ -63,6 +65,7 @@ void crear_queues(void){
 	pthread_mutex_init(&memoria_buddy_mutex,NULL);
 	pthread_mutex_init(&id_fifo_mutex,NULL);
 	pthread_mutex_init(&ack_queue_mutex,NULL);
+	pthread_mutex_init(&ids_recibidos_mtx,NULL);
 }
 
 void terminar_queues(void){
@@ -91,8 +94,6 @@ void esperar_cliente(int servidor){
 	list_add(multihilos, &hilo);
 	pthread_mutex_unlock(&multhilos_mutex);
 
-	//	puts(string_itoa(multihilos->elements_count));
-
 	pthread_create(&hilo,NULL,(void*)serve_client,cliente);
 	pthread_detach(hilo);
 
@@ -112,7 +113,6 @@ void serve_client(int socket){
 		}
 		puts("recibi un mensaje");
 		printf("codigo: %d\n", cod_op);
-		//	puts(string_itoa(cod_op));
 		process_request(cod_op, socket);
 	}
 }
@@ -169,7 +169,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
 
 	bloque_broker->particion = almacenar_dato(buffer_broker->buffer,buffer_broker->tamanio,cod_op, mensaje_id);
-
+	bloque_broker->procesos_recibidos = list_create();
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 
@@ -232,7 +232,26 @@ void ejecutar_ACK(){
 		t_ack* ack = queue_pop(ACK_COLA);
 		pthread_mutex_unlock(&ack_queue_mutex);
 		printf("el id que llego %d", ack->id_mensaje);
+
+		bool _buscar_por_id(t_bloque_broker* bloque){
+			return bloque->id == ack->id_mensaje;
+		}
+
+		pthread_mutex_lock(&ids_recibidos_mtx);
+		t_bloque_broker* bloque_broker = list_find(IDS_RECIBIDOS, (void*)_buscar_por_id);
+
+		pthread_mutex_lock(&(bloque_broker->mtx));
+		list_add(bloque_broker->procesos_recibidos, ack->id_proceso);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
+
+		pthread_mutex_unlock(&ids_recibidos_mtx);
+		//TODO ver si es necesario ignorar mensajes
 	}
+}
+
+bool buscar_por_id(t_bloque_broker* bloque, int id_mensaje){
+	return bloque->id == id_mensaje;
+
 }
 
 void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
@@ -287,13 +306,14 @@ void ejecutar_new_pokemon(){
 		t_bloque_broker* bloque_broker = queue_pop(NEW_POKEMON_COLA);
 		pthread_mutex_unlock(&new_pokemon_mutex);
 
-		//TODO verificar (con identificadores de los procesos) si se mando el mensaje a ese proceso especifico (esperar mail ayudante)
 		op_code codigo_operacion = NEW_POKEMON;
 
 		int bytes = 0;
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
+
+		int id_mensaje = bloque_broker->id;
 
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
@@ -316,7 +336,6 @@ void ejecutar_appeared_pokemon(){
 		t_bloque_broker* bloque_broker = queue_pop(APPEARED_POKEMON_COLA);
 		pthread_mutex_unlock(&appeared_pokemon_mutex);
 
-		//TODO verificar (con identificadores de los procesos) si se mando el mensaje a ese proceso especifico (esperar mail ayudante)
 		op_code codigo_operacion = APPEARED_POKEMON;
 
 		int bytes = 0;
@@ -343,7 +362,6 @@ void ejecutar_catch_pokemon(){
 		t_bloque_broker* bloque_broker = queue_pop(CATCH_POKEMON_COLA);
 		pthread_mutex_unlock(&catch_pokemon_mutex);
 
-		//TODO verificar (con identificadores de los procesos) si se mando el mensaje a ese proceso especifico (esperar mail ayudante)
 		op_code codigo_operacion = CATCH_POKEMON;
 
 		int bytes = 0;
@@ -461,79 +479,89 @@ void ejecutar_suscripcion(){
 		pthread_mutex_unlock(&logger_mutex);
 		switch (mensaje_suscripcion->cola) {
 		case NEW_POKEMON:
-			ejecutar_new_pokemon_suscripcion(suscriptor);
+			pthread_mutex_lock(&suscripcion_new_queue_mutex);
+			list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+			pthread_mutex_unlock(&suscripcion_new_queue_mutex);
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se suscribio el proceso, %d ,a la cola NEW_POKEMON",suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			break;
 		case APPEARED_POKEMON:
-			ejecutar_appeared_pokemon_suscripcion(suscriptor);
+			pthread_mutex_lock(&suscripcion_appeared_queue_mutex);
+			list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+			pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se suscribio el proceso, %d ,a la cola APPEAREAD_POKEMON",suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			break;
 		case CATCH_POKEMON:
-			ejecutar_catch_pokemon_suscripcion(suscriptor);
+			pthread_mutex_lock(&suscripcion_catch_queue_mutex);
+			list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+			pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			break;
 		case CAUGHT_POKEMON:
-			ejecutar_caught_pokemon_suscripcion(suscriptor);
+			pthread_mutex_lock(&suscripcion_caught_queue_mutex);
+			list_add(CAUGHT_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+			pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se suscribio el proceso, %d ,a la cola CAUGHT_POKEMON",suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			break;
 		case GET_POKEMON:
-			ejecutar_get_pokemon_suscripcion(suscriptor);
+			pthread_mutex_lock(&suscripcion_get_queue_mutex);
+			list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
+			pthread_mutex_unlock(&suscripcion_get_queue_mutex);
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se suscribio el proceso, %d ,a la cola GET_POKEMON",suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			break;
 		case LOCALIZED_POKEMON:
-			ejecutar_localized_pokemon_suscripcion(suscriptor);
+			pthread_mutex_lock(&suscripcion_localized_queue_mutex);
+			list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);//Ver si va el & o no
+			pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
+			pthread_mutex_lock(&logger_mutex);
+			log_info(logger,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			break;
 		}
+		enviar_faltantes(suscriptor, mensaje_suscripcion);
 	}
 }
 
-void ejecutar_new_pokemon_suscripcion(int suscriptor){
-	pthread_mutex_lock(&suscripcion_new_queue_mutex);
-	list_add(NEW_POKEMON_QUEUE_SUSCRIPT,suscriptor);
-	pthread_mutex_unlock(&suscripcion_new_queue_mutex);
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola NEW_POKEMON",suscriptor);
-	pthread_mutex_unlock(&logger_mutex);
-}
+void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 
-void ejecutar_appeared_pokemon_suscripcion(int suscriptor){
-	pthread_mutex_lock(&suscripcion_appeared_queue_mutex);
-	list_add(APPEARED_POKEMON_QUEUE_SUSCRIPT,suscriptor);
-	pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola APPEAREAD_POKEMON",suscriptor);
-	pthread_mutex_unlock(&logger_mutex);
-}
+	bool _buscar_por_proceso(int proceso){
+		return proceso == mensaje_suscripcion->id_proceso;
+	}
 
-void ejecutar_catch_pokemon_suscripcion(int suscriptor){
-	pthread_mutex_lock(&suscripcion_catch_queue_mutex);
-	list_add(CATCH_POKEMON_QUEUE_SUSCRIPT,suscriptor);
-	pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola CATCH_POKEMON",suscriptor);
-	pthread_mutex_unlock(&logger_mutex);
-}
+	bool _falta_enviar(t_bloque_broker* bloque){
+		pthread_mutex_lock(&(bloque->mtx));
+		bool entregado = list_any_satisfy(bloque->procesos_recibidos, (void*) _buscar_por_proceso); //esto da true si el mensaje ya fue enviado al proceso
+		bool es_de_cola = bloque->particion->cola == mensaje_suscripcion->cola;
+		pthread_mutex_lock(&(bloque->mtx));
+		return !entregado && es_de_cola;
+	}
 
-void ejecutar_caught_pokemon_suscripcion(int suscriptor){
-	pthread_mutex_lock(&suscripcion_caught_queue_mutex);
-	list_add(CAUGHT_POKEMON_QUEUE_SUSCRIPT,suscriptor);
-	pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola CAUGHT_POKEMON",suscriptor);
-	pthread_mutex_unlock(&logger_mutex);
-}
+	pthread_mutex_lock(&ids_recibidos_mtx);
 
-void ejecutar_get_pokemon_suscripcion(int suscriptor){
-	pthread_mutex_lock(&suscripcion_get_queue_mutex);
-	list_add(GET_POKEMON_QUEUE_SUSCRIPT,suscriptor);
-	pthread_mutex_unlock(&suscripcion_get_queue_mutex);
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola GET_POKEMON",suscriptor);
-	pthread_mutex_unlock(&logger_mutex);
-}
+	t_list* mensajes_de_cola = list_filter(IDS_RECIBIDOS, (void*)_falta_enviar); //tengo los mensajes que no le mande a ese proceso
 
-void ejecutar_localized_pokemon_suscripcion(int suscriptor){
-	pthread_mutex_lock(&suscripcion_localized_queue_mutex);
-	list_add(LOCALIZED_POKEMON_QUEUE_SUSCRIPT,suscriptor);//Ver si va el & o no
-	pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Se suscribio el proceso, %d ,a la cola LOCALIZED_POKEMON",suscriptor);
-	pthread_mutex_unlock(&logger_mutex);
+	if(!list_is_empty(mensajes_de_cola)){
+
+		void _enviar_mensaje_faltante(t_bloque_broker* bloque){
+			t_paquete* paquete = preparar_mensaje_a_enviar(bloque, mensaje_suscripcion->cola);
+			int bytes = 0;
+			void* a_enviar = serializar_paquete(paquete, &bytes);
+			return enviar_mensaje_broker(suscriptor, a_enviar, bytes);
+		}
+
+		list_iterate(mensajes_de_cola, (void*)_enviar_mensaje_faltante); //TODO esto se me hace re falopa, hay que ver que este bien
+	}
+
+	pthread_mutex_unlock(&ids_recibidos_mtx);
 }
 
 //------------MEMORIA------------//
@@ -658,14 +686,6 @@ void compactar(){
 
 	particiones = particiones_aux;
 
-
-//	int cantidad_p_libres = list_size(particiones_libres);
-//
-//	for(int j = 0; j < cantidad_p_libres; j++){ //TODO esto esta horrible, conviene asi o tener particiones_ocupadas como lista global?
-//		aux = list_get(particiones_libres, j);
-//		list_remove_by_condition(particiones, (void*)_es_la_particion); //ESTO FUNCA?????? ESPERO QUE SI D:
-//	}
-
 	t_particion* particion_unica = malloc(sizeof(t_particion));
 	particion_unica->base = (int) memoria_cache + offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
@@ -675,7 +695,6 @@ void compactar(){
 	list_add(particiones, particion_unica);
 	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
-//	list_destroy(particiones_libres);
 	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
 
 }
@@ -1058,11 +1077,8 @@ t_particion* eleccion_particion_asignada_buddy(void* datos,int tamanio){
 		}
 	}
 	else{
-		puts("entra al elseeee");
 		bloque_elegido = NULL;
 	}
-
-	//TODO: Verificar que devuelva null
 	return bloque_elegido;
 }
 
