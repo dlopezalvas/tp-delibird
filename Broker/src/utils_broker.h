@@ -219,6 +219,8 @@ t_list* memoria_buddy;
 
 uint32_t id_fifo;
 
+void eleccion_victima_buddy(int tamanio);
+
 t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje);
 void eleccion_victima_fifo_buddy(int tamanio);
 bool validar_condicion_fifo_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old);
