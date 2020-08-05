@@ -190,8 +190,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion);
 bool es_mensaje_respuesta(op_code cod_op);
 t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size);
 t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion);
-
-void ordenar_particiones_libres();
+t_particion* eleccion_particion_asignada_buddy(void* datos, int tamanio);
 void iniciar_memoria();
 void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id);
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id);
@@ -200,6 +199,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar);
 t_particion* buscar_particion_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_bf(int tamanio_a_almacenar);
 t_particion* particion_libre_ff(int tamanio_a_almacenar);
+void ordenar_particiones(t_list* lista);
 
 void consolidar(t_particion* particion_liberada);
 void compactar();
@@ -228,13 +228,14 @@ void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, i
 bool sort_byId_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2);
 bool mismo_id_buddy(t_particion* bloque_buddy,uint32_t id_viejo);
 t_particion* generar_particion_buddy(t_particion* bloque_buddy);
-bool validar_condicion_buddy(t_particion* bloque_buddy,int tamanio);
+bool puede_partirse(t_particion* bloque_buddy,int tamanio);
 bool eleccion_victima_fifo_a_eliminar(t_particion* bloque_buddy, int tamanio);
 void consolidar_buddy(t_particion* bloque_buddy_old,t_list* lista_fifo_buddy);
 bool remove_by_id(t_particion* bloque_buddy,uint32_t id_remover);
 t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old);
 bool sort_by_acceso_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2);
-t_particion* eleccion_particion_asignada_buddy(void* datos,int tamanio);
+t_particion* eleccion_particion_asignada_buddy_BF(int tamanio);
+t_particion* eleccion_particion_asignada_buddy_FF(int tamanio);
 bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio);
 bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2);
 
