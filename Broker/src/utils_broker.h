@@ -176,7 +176,7 @@ void esperar_cliente(int servidor);
 void serve_client(int socket);
 void process_request(int cod_op, int cliente_fd);
 //t_config* leer_config(char* proceso);
-void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes);
+int enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes);
 void ejecutar_new_pokemon();
 void ejecutar_appeared_pokemon();
 void ejecutar_catch_pokemon();

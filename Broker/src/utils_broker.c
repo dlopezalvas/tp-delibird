@@ -19,6 +19,7 @@ void log_suscribir_mensaje_queue(char* proceso,char* queue){
 
 void crear_queues(void){
 	unique_message_id = 0;
+
 	NEW_POKEMON_QUEUE = list_create();
 	APPEARED_POKEMON_QUEUE = list_create();
 	CATCH_POKEMON_QUEUE = list_create();
@@ -260,16 +261,12 @@ bool buscar_por_id(t_bloque_broker* bloque, int id_mensaje){
 
 }
 
-void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
+int enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
 	printf("cliente al que se le envia es %d", cliente_a_enviar);
-	if(send(cliente_a_enviar,a_enviar,bytes,0) == -1){
-//		desuscribir_cliente(cliente_a_enviar);
-	}
-}
+	int se_envio =  send(cliente_a_enviar,a_enviar,bytes,0);
 
-//void desuscribir_cliente(int cliente_a_enviar){
-//
-//}
+	return se_envio;
+}
 
 
 t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion){
@@ -326,11 +323,14 @@ void ejecutar_new_pokemon(){
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
-		int id_mensaje = bloque_broker->id;
+		int index = 0;
 
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
+			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
+				list_remove(NEW_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
+			}
+			index++;
 		}
 
 		pthread_mutex_lock(&suscripcion_new_queue_mutex);
@@ -356,9 +356,16 @@ void ejecutar_appeared_pokemon(){
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
+		int index = 0;
+
+		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
+			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
+				list_remove(APPEARED_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
+			}
+			index++;
 		}
+
 		pthread_mutex_lock(&suscripcion_appeared_queue_mutex);
 		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
@@ -382,9 +389,16 @@ void ejecutar_catch_pokemon(){
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
+		int index = 0;
+
+		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
+			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
+				list_remove(CATCH_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
+			}
+			index++;
 		}
+
 		pthread_mutex_lock(&suscripcion_catch_queue_mutex);
 		list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
@@ -406,11 +420,18 @@ void ejecutar_caught_pokemon(){
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
-		puts("aca envio un caught");
 
+		int index = 0;
+
+		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
+			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
+				list_remove(CAUGHT_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
+			}
+			index++;
 		}
+
+
 		pthread_mutex_lock(&suscripcion_caught_queue_mutex);
 		list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
@@ -434,9 +455,16 @@ void ejecutar_get_pokemon(){
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
+		int index = 0;
+
+		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
+			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
+				list_remove(GET_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
+			}
+			index++;
 		}
+
 		pthread_mutex_lock(&suscripcion_get_queue_mutex);
 		list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_get_queue_mutex);
@@ -460,9 +488,16 @@ void ejecutar_localized_pokemon(){
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
+		int index = 0;
+
+		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
-			return enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes);
+			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
+				list_remove(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
+			}
+			index++;
 		}
+
 		pthread_mutex_lock(&suscripcion_localized_queue_mutex);
 		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
@@ -568,7 +603,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 			t_paquete* paquete = preparar_mensaje_a_enviar(bloque, mensaje_suscripcion->cola);
 			int bytes = 0;
 			void* a_enviar = serializar_paquete(paquete, &bytes);
-			return enviar_mensaje_broker(suscriptor, a_enviar, bytes);
+			int se_envio = enviar_mensaje_broker(suscriptor, a_enviar, bytes);
 		}
 
 		list_iterate(mensajes_de_cola, (void*)_enviar_mensaje_faltante); //TODO esto se me hace re falopa, hay que ver que este bien
