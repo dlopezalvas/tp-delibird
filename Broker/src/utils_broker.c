@@ -911,8 +911,8 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 	pthread_mutex_unlock(&memoria_cache_mtx);
 
 
-	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
-		t_particion* particion_nueva = malloc(sizeof(t_particion));
+	if(particion_libre->tamanio != tamanio && particion_libre->tamanio - tamanio >= configuracion_cache->tamanio_minimo_p){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
+		t_particion* particion_nueva = malloc(sizeof(t_particion));														//pero si el sobrante es menor a la cantidad minima no se creara una particion nueva
 		particion_nueva->base = particion_libre->base + tamanio;
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
 		particion_nueva->id_mensaje = 0;
