@@ -239,6 +239,8 @@ t_buffer* buffer_new_pokemon(char** parametros){
 	//free(nombre);
 
 	buffer -> size = sizeof(uint32_t)*5 + new_pokemon.nombre.largo_nombre;
+	printf("size del mensaje : %d", buffer->size);
+	puts("");
 
 	void* stream = malloc(buffer -> size);
 	int offset = 0;
@@ -270,7 +272,7 @@ t_buffer* buffer_suscripcion(char** parametros){
 
 	t_suscripcion suscripcion;
 	suscripcion.cola = cola;
-	suscripcion.id_proceso = parametros[1];
+	suscripcion.id_proceso = atoi(parametros[1]);
 
 	buffer -> size = sizeof(op_code) + sizeof(int);
 

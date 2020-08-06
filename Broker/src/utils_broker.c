@@ -166,6 +166,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	}else{
 		buffer_broker = deserializar_broker_ida(buffer,size); //si no es de respuesta no tiene correlation id
 	}
+	puts("antes de almacenar dato");
 
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
 
@@ -444,6 +445,7 @@ void ejecutar_get_pokemon(){
 	while(1){
 
 		sem_wait(&get_pokemon_sem);
+		puts("entra a get pokemon");
 		pthread_mutex_lock(&get_pokemon_mutex);
 		t_bloque_broker* bloque_broker = queue_pop(GET_POKEMON_COLA);
 		pthread_mutex_unlock(&get_pokemon_mutex);
@@ -457,12 +459,14 @@ void ejecutar_get_pokemon(){
 
 		int index = 0;
 
+
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			if(enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes) == -1){ //si no puedo enviarlo es porque se desconecto y lo desuscribo
 				list_remove(GET_POKEMON_QUEUE_SUSCRIPT, index); //IS THIS ALLOWED???????
 			}
 			index++;
+			
 		}
 
 		pthread_mutex_lock(&suscripcion_get_queue_mutex);
@@ -589,7 +593,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 		pthread_mutex_lock(&(bloque->mtx));
 		bool entregado = list_any_satisfy(bloque->procesos_recibidos, (void*) _buscar_por_proceso); //esto da true si el mensaje ya fue enviado al proceso
 		bool es_de_cola = bloque->particion->cola == mensaje_suscripcion->cola;
-		pthread_mutex_lock(&(bloque->mtx));
+		pthread_mutex_unlock(&(bloque->mtx));
 		return !entregado && es_de_cola;
 	}
 
@@ -946,7 +950,7 @@ void eliminar_mensaje(t_particion* particion){
 
 	pthread_mutex_lock(&ids_recibidos_mtx);
 	list_remove_by_condition(IDS_RECIBIDOS, (void*)_buscar_id);
-	pthread_mutex_lock(&ids_recibidos_mtx);
+	pthread_mutex_unlock(&ids_recibidos_mtx);
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
