@@ -1016,13 +1016,11 @@ void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, i
 
 	pthread_mutex_lock(&memoria_cache_mtx);
 	memcpy((void*)bloque_buddy_particion->base, datos, tamanio); //copio a la memoria
-	pthread_mutex_lock(&memoria_cache_mtx);
+	pthread_mutex_unlock(&memoria_cache_mtx);
 
 	bloque_buddy_particion->id_mensaje = id_mensaje;
 	bloque_buddy_particion->cola = cod_op;
 	bloque_buddy_particion->ultimo_acceso = time(NULL);
-
-	puts(string_itoa(bloque_buddy_particion->id_mensaje));
 }
 
 t_particion* eleccion_particion_asignada_buddy(int tamanio){
