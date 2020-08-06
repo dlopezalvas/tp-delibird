@@ -334,7 +334,7 @@ t_get_pokemon* deserializar_get_pokemon(void* buffer){
 	buffer += sizeof(uint32_t);
 	get_pokemon->nombre.nombre = malloc(get_pokemon->nombre.largo_nombre + 1);
 	memcpy(get_pokemon->nombre.nombre, buffer, get_pokemon->nombre.largo_nombre);
-	string_append(&get_pokemon->nombre.nombre, '\0');
+	get_pokemon->nombre.nombre[get_pokemon->nombre.largo_nombre] = '\0';
 
 	return get_pokemon;
 }
