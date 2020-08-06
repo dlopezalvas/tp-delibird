@@ -254,7 +254,6 @@ void ejecutar_ACK(){
 		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		pthread_mutex_unlock(&ids_recibidos_mtx);
-		//TODO ver si es necesario ignorar mensajes
 	}
 }
 
@@ -297,7 +296,6 @@ void desuscribir_cliente(int cliente, op_code cola, int index){
 	case CATCH_POKEMON:
 		list_remove(CATCH_POKEMON_QUEUE_SUSCRIPT, index);
 		break;
-
 	}
 }
 
@@ -617,7 +615,11 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 			t_paquete* paquete = preparar_mensaje_a_enviar(bloque, mensaje_suscripcion->cola);
 			int bytes = 0;
 			void* a_enviar = serializar_paquete(paquete, &bytes);
+
+			pthread_mutex_t* cola_mtx = semaforo_de_cola(mensaje_suscripcion->cola);
+			pthread_mutex_lock(cola_mtx);
 			enviar_mensaje_broker(suscriptor, a_enviar, bytes, bloque->particion->cola, index);
+			pthread_mutex_unlock(cola_mtx);
 			index++;
 		}
 
@@ -625,6 +627,24 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 	}
 
 	pthread_mutex_unlock(&ids_recibidos_mtx);
+}
+
+pthread_mutex_t* semaforo_de_cola(op_code cola){
+	switch(cola){
+	case NEW_POKEMON:
+		return &suscripcion_new_queue_mutex;
+	case GET_POKEMON:
+		return &suscripcion_get_queue_mutex;
+	case CAUGHT_POKEMON:
+		return &suscripcion_caught_queue_mutex;
+	case LOCALIZED_POKEMON:
+		return &suscripcion_localized_queue_mutex;
+	case APPEARED_POKEMON:
+		return &suscripcion_appeared_queue_mutex;
+	case CATCH_POKEMON:
+		return &suscripcion_catch_queue_mutex;
+	}
+	return NULL;
 }
 
 //------------MEMORIA------------//

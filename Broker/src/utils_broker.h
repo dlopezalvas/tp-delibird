@@ -149,6 +149,8 @@ lista_particiones_mtx,
 memoria_cache_mtx,
 ids_recibidos_mtx;
 
+pthread_mutex_t* semaforo_de_cola(op_code cola);
+
 //Recibe un mensaje desde un suscriptor y lo deserializa transofrmando a un t_mensaje
 void recibir_mensaje_broker(t_config*);
 
