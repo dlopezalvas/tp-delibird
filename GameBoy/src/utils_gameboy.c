@@ -243,13 +243,13 @@ void ejecutar_modo_suscriptor(char** linea_split, t_config* config){
 	liberar_conexion(socket_broker);
 }
 
-void recibir_mensajes_de_cola(int socket){
+void recibir_mensajes_de_cola(int* socket){
 
 	while(1){
 		int cod_op;
-		if(recv(socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
+		if(recv(*socket, &cod_op, sizeof(int), MSG_WAITALL) == -1)
 			cod_op = -1;
-		process_request(cod_op, socket);
+		process_request(cod_op, *socket);
 	}
 }
 

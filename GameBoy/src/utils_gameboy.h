@@ -75,12 +75,11 @@ bool validar_argumentos(char* tipo_mensaje, char** linea_split, char* proceso, t
 bool verificar_mensaje(char** linea_split, t_config* config, tipo_id* flag_id );
 
 
-
 int cantidad_argumentos (char** linea_split);
 char** argumentos(char** linea_split, tipo_id flag_id);
 char* calcular_id(tipo_id flag_id, char** linea_split);
 char* calcular_correlation_id(tipo_id flag_id, char** linea_split);
-void recibir_mensajes_de_cola(int socket);
+void recibir_mensajes_de_cola(int* socket);
 void process_request(int cod_op, int cliente_fd);
 
 
