@@ -464,9 +464,3 @@ void enviar_ack(int socket, uint32_t id, int id_proceso){
 
 	enviar_mensaje(ack, socket);
 }
-
-
-
-
-
-

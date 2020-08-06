@@ -591,33 +591,27 @@ void iniciar_memoria(){
 
 	memoria_cache = malloc(configuracion_cache->tamanio_memoria);
 
+	t_particion* particion_inicial = malloc(sizeof(t_particion));
+
+	particion_inicial->base = (int)memoria_cache;
+	particion_inicial->tamanio = configuracion_cache->tamanio_memoria;
+	particion_inicial->id_mensaje = 0;
+	particion_inicial->ultimo_acceso = time(NULL);
+
+	pthread_mutex_lock(&id_fifo_mutex);
 	id_fifo = 0;
-
-	particiones = list_create();
-	t_particion* aux = malloc(sizeof(t_particion));
-
-	aux->base = (int)memoria_cache;
-	aux->tamanio = configuracion_cache->tamanio_memoria;
-	aux->id_mensaje = 0;
-	aux->ultimo_acceso = time(NULL);
-	aux->id = id_fifo;
+	particion_inicial->id = id_fifo;
+	pthread_mutex_unlock(&id_fifo_mutex);
 
 	pthread_mutex_lock(&lista_particiones_mtx);
-	list_add(particiones, aux);
+	particiones = list_create();
+	list_add(particiones, particion_inicial);
 	pthread_mutex_unlock(&lista_particiones_mtx);
 
-	t_particion* bloque_buddy = malloc(sizeof(t_particion));
-
-	bloque_buddy->base = (int) memoria_cache;
-	bloque_buddy->ocupado = false;
-	bloque_buddy->tamanio = configuracion_cache->tamanio_memoria;
-	bloque_buddy->id = id_fifo;
-	bloque_buddy->id_mensaje = 0;
-	bloque_buddy->ultimo_acceso = time(NULL);
-
+	pthread_mutex_lock(&memoria_buddy_mutex);
 	memoria_buddy = list_create();
-	list_add(memoria_buddy,bloque_buddy);
-	//claramente faltan semaforos
+	list_add(memoria_buddy,particion_inicial);
+	pthread_mutex_unlock(&memoria_buddy_mutex);
 }
 
 void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id){
