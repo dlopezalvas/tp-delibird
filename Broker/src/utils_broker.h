@@ -190,7 +190,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion);
 bool es_mensaje_respuesta(op_code cod_op);
 t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size);
 t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion);
-t_particion* eleccion_particion_asignada_buddy(void* datos, int tamanio);
+t_particion* eleccion_particion_asignada_buddy(int tamanio);
 void iniciar_memoria();
 void* almacenar_dato(void* datos, int tamanio, op_code codigo_op, uint32_t id);
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id);
