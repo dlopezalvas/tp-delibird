@@ -262,8 +262,15 @@ bool buscar_por_id(t_bloque_broker* bloque, int id_mensaje){
 
 void enviar_mensaje_broker(int cliente_a_enviar,void* a_enviar,int bytes){
 	printf("cliente al que se le envia es %d", cliente_a_enviar);
-	send(cliente_a_enviar,a_enviar,bytes,0);
+	if(send(cliente_a_enviar,a_enviar,bytes,0) == -1){
+//		desuscribir_cliente(cliente_a_enviar);
+	}
 }
+
+//void desuscribir_cliente(int cliente_a_enviar){
+//
+//}
+
 
 t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code codigo_operacion){
 
@@ -864,10 +871,7 @@ t_particion* elegir_victima_particiones_FIFO(){
 
 	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
 
-	particion->ocupado = false;
-	particion->cola = 0;
-	particion->id_mensaje = 0;
-	particion->ultimo_acceso = time(NULL); //importa esto aca??
+	eliminar_mensaje(particion);
 
 	pthread_mutex_unlock(&lista_particiones_mtx);
 
@@ -887,15 +891,27 @@ t_particion* elegir_victima_particiones_LRU(){
 
 	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
 
-	particion->ocupado = false;
-	particion->cola = 0;
-	particion->id_mensaje = 0;
-	particion->ultimo_acceso = time(NULL); //importa esto aca??
+	eliminar_mensaje(particion);
 
 	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	return particion;
 
+}
+
+void eliminar_mensaje(t_particion* particion){
+
+	bool _buscar_id(t_bloque_broker* bloque){
+		return bloque->id == particion->id_mensaje;
+	}
+	particion->ocupado = false;
+	particion->cola = 0;
+	particion->id_mensaje = 0;
+	particion->ultimo_acceso = time(NULL); //importa esto aca??
+
+	pthread_mutex_lock(&ids_recibidos_mtx);
+	list_remove_by_condition(IDS_RECIBIDOS, (void*)_buscar_id);
+	pthread_mutex_lock(&ids_recibidos_mtx);
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
@@ -1146,9 +1162,7 @@ void eleccion_victima_fifo_buddy(int tamanio){
 	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 
-	victima_elegida->ocupado = false;
-	victima_elegida->id_mensaje = 0;
-	victima_elegida->cola = 0;
+	eliminar_mensaje(victima_elegida);
 
 	//consolidar
 	consolidar_buddy(victima_elegida,memoria_buddy);
@@ -1263,9 +1277,7 @@ void eleccion_victima_lru_buddy(int tamanio){
 	t_particion* victima_elegida = list_find(memoria_buddy, (void*)_esta_ocupada);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 
-	victima_elegida->ocupado = false;
-	victima_elegida->id_mensaje = 0;
-	victima_elegida->cola = 0;
+	eliminar_mensaje(victima_elegida);
 
 	//consolidar
 	consolidar_buddy(victima_elegida,memoria_buddy);

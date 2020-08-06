@@ -241,7 +241,7 @@ t_particion* eleccion_particion_asignada_buddy_FF(int tamanio);
 bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio);
 bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2);
 
-//
+void eliminar_mensaje(t_particion* particion);
 
 bool esta_ocupada();
 
