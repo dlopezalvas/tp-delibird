@@ -174,6 +174,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	bloque_broker->procesos_recibidos = list_create();
 	bloque_broker->id = mensaje_id;
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
+	bloque_broker->tamanio_real = buffer_broker->tamanio; //tamaño del mensaje (incluido correlation id y/o id) por si el mensaje se guarda en una particion mas grande que el (frag interna)
 
 	pthread_mutex_init(&(bloque_broker->mtx), NULL);
 
@@ -278,9 +279,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 
 	t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
 
-	int size = 0;
-
-	size = bloque_broker->particion->tamanio + sizeof(uint32_t);
+	int size = bloque_broker->tamanio_real + sizeof(uint32_t);
 	bloque_broker->particion->ultimo_acceso = time(NULL);
 
 	if(es_mensaje_respuesta(codigo_operacion)){
@@ -297,9 +296,8 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 		memcpy(stream + offset, &bloque_broker->correlation_id, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 	}
-	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->particion->tamanio);
+	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->tamanio_real);
 	bloque_broker->particion->ultimo_acceso = time(NULL);
-
 
 	buffer_cargado->stream = stream;
 

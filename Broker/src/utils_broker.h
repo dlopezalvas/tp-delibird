@@ -69,6 +69,7 @@ typedef struct{
 	uint32_t correlation_id;
 	t_particion* particion;
 	t_list* procesos_recibidos;
+	uint32_t tamanio_real;
 	pthread_mutex_t mtx;
 }t_bloque_broker;
 
