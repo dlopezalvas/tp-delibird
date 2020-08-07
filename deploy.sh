@@ -1,5 +1,7 @@
 echo "Deploy TP"
-cd so-commons-library
+cd ~
+
+cd workspace/so-commons-library
 sudo make install
 cd ~
 cd workspace/tp-2020-1c-MCLDG/CommonsMCLDG/Debug
