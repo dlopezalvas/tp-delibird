@@ -214,6 +214,8 @@ t_particion* elegir_victima_particiones();
 t_particion* elegir_victima_particiones_LRU();
 void eliminar_particion(t_particion* particion_a_liberar);
 
+bool esta_ocupada(t_particion* particion);
+
 
 t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size);
 

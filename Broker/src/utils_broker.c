@@ -756,7 +756,11 @@ void compactar(){
 
 	ordenar_particiones(particiones); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
 
-	t_list* particiones_ocupadas = list_filter(particiones, (void*)esta_ocupada);
+	bool _esta_ocupada(t_particion* part){
+		return part->ocupado;
+	}
+
+	t_list* particiones_ocupadas = list_filter(particiones, (void*)_esta_ocupada);
 
 	int cantidad_p_ocupadas = list_size(particiones_ocupadas);
 
@@ -771,10 +775,11 @@ void compactar(){
 
 	t_list* particiones_aux = list_filter(particiones, (void*)esta_ocupada);
 
-	list_destroy(particiones);
+	list_clean(particiones);
 
 	particiones = particiones_aux;
 
+	if(configuracion_cache->tamanio_memoria - offset != 0){
 	t_particion* particion_unica = malloc(sizeof(t_particion));
 	particion_unica->base = (int) memoria_cache + offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
@@ -782,6 +787,7 @@ void compactar(){
 	particion_unica->ultimo_acceso = time(NULL);
 	particion_unica->ocupado = false;
 	list_add(particiones, particion_unica);
+	}
 	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
 	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
@@ -795,7 +801,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 	t_particion* particion_libre;
 
 	bool _puede_almacenar_y_esta_libre(t_particion* particion){
-		return particion->tamanio>= tamanio_a_almacenar && !particion->ocupado;
+		return particion->tamanio>= tamanio_a_almacenar && !particion->ocupado && particion->tamanio >= configuracion_cache->tamanio_minimo_p;
 	}
 
 	pthread_mutex_lock(&lista_particiones_mtx);
@@ -818,7 +824,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 t_particion* particion_libre_ff(int tamanio_a_almacenar){
 	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
 
-	int contador = 1;
+	int contador = configuracion_cache->frecuencia_compact;
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
@@ -839,7 +845,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 	t_particion* particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 
-	int contador = 1;
+	int contador = configuracion_cache->frecuencia_compact;
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
@@ -941,7 +947,7 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 }
 
 bool esta_ocupada(t_particion* particion){
-	return particion->ocupado;
+	return particion->id_mensaje != 0;
 }
 
 t_particion* elegir_victima_particiones_FIFO(){
@@ -954,7 +960,11 @@ t_particion* elegir_victima_particiones_FIFO(){
 	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
 
-	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por posicion y agarro la primera en la lista que este ocupada
+	bool _esta_ocupada(t_particion* part){
+		return part->ocupado;
+	}
+
+	particion = list_find(particiones, (void*)_esta_ocupada); //las ordeno por posicion y agarro la primera en la lista que este ocupada
 
 	eliminar_mensaje(particion);
 
@@ -989,8 +999,9 @@ void eliminar_mensaje(t_particion* particion){
 	bool _buscar_id(t_bloque_broker* bloque){
 		return bloque->id == particion->id_mensaje;
 	}
-	particion->ocupado = false;
+
 	particion->cola = 0;
+	particion->ocupado = false;
 	particion->id_mensaje = 0;
 	particion->ultimo_acceso = time(NULL); //importa esto aca??
 
@@ -1006,7 +1017,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 	pthread_mutex_unlock(&memoria_cache_mtx);
 
 
-	if(particion_libre->tamanio != tamanio && particion_libre->tamanio - tamanio >= configuracion_cache->tamanio_minimo_p){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
+	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
 		t_particion* particion_nueva = malloc(sizeof(t_particion));														//pero si el sobrante es menor a la cantidad minima no se creara una particion nueva
 		particion_nueva->base = particion_libre->base + tamanio;
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
