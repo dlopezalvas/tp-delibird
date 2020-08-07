@@ -26,7 +26,7 @@ endif
 all: GameCard
 
 dependents:
-	-cd /home/utnso/workspace/tp-2020-1c-MCLDG/CommonsMCLDG/Debug && $(MAKE) clean all
+	-cd /home/utnso/workspace/tp-2020-1c-MCLDG/CommonsMCLDG/Debug && $(MAKE) all
 
 # Tool invocations
 GameCard: $(OBJS) $(USER_OBJS) /home/utnso/workspace/tp-2020-1c-MCLDG/CommonsMCLDG/Debug/libCommonsMCLDG.so
