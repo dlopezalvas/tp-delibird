@@ -182,22 +182,22 @@ void terminarTeam(int conexion)//revisar memoria y probar si funciona
 	sem_destroy(&entrenadoresPlanificados);
 	sem_destroy(&sem_ready);
 
-	void _destruirPokemon(t_pokemon* pokemon){
-		free(pokemon->especie);
-		free(pokemon);
-	}
+//	void _destruirPokemon(t_pokemon* pokemon){
+////		free(pokemon->especie);
+//		free(pokemon);
+//	}
 
-	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
-	list_destroy(objetivoGlobal);
-	list_destroy(ready);
-	list_destroy_and_destroy_elements(pokemonsRequeridos,(void*)_destruirPokemon );
-	list_destroy_and_destroy_elements(pokemonsDeRepuesto, (void*)_destruirPokemon);
-	list_destroy(IDs_get_pokemon);
-	list_destroy(especiesNecesarias);
-
-	queue_destroy(colaAppearedPokemon);
-	queue_destroy(colaLocalizedPokemon);
-	queue_destroy(colaCaughtPokemon);
+//	list_destroy_and_destroy_elements(entrenadores, _entrenadorDestroy);
+//	list_destroy(objetivoGlobal);
+//	list_destroy(ready);
+//	list_destroy(pokemonsRequeridos);
+//	list_destroy(pokemonsDeRepuesto);
+//	list_destroy(IDs_get_pokemon);
+//	list_destroy(especiesNecesarias);
+//
+//	queue_destroy(colaAppearedPokemon);
+//	queue_destroy(colaLocalizedPokemon);
+//	queue_destroy(colaCaughtPokemon);
 
 
 	config_destroy(config);
@@ -1130,6 +1130,7 @@ void connect_appeared(){
 			//			puts(appeared->nombre.nombre);
 			puts("deserializo");
 		}
+		free(buffer);
 	}
 
 	liberar_conexion(socket_broker); //hacer en finalizar team?
@@ -1146,6 +1147,9 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 	mensaje -> parametros = string_split(linea_split, ",");
 	puts("antes enviar");
 	enviar_mensaje(mensaje, (socket_broker));
+	liberar_vector(mensaje->parametros);
+	free(linea_split);
+	free(mensaje);
 //	uint32_t id;
 	puts("manda get pokemon");
 //	_recv = recv(socket_broker, &id, sizeof(uint32_t), MSG_WAITALL);
@@ -1214,9 +1218,10 @@ void connect_localized_pokemon(){
 		if(cod_op == ACK){
 			puts("recibe ack");
 			ack = deserializar_ack(buffer);
-
 			list_add(IDs_get_pokemon, ack->id_mensaje);
-			puts(string_itoa(ack->id_mensaje));
+
+//			puts(string_itoa(ack->id_mensaje));
+			free(ack);
 
 		}else if(cod_op == LOCALIZED_POKEMON){
 
@@ -1248,10 +1253,12 @@ void connect_localized_pokemon(){
 				queue_push(colaLocalizedPokemon,localized);
 				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 				sem_post(&semLocalized);
+				free(mensaje);
 			}
 			//			puts(localized->nombre.nombre);
 			puts("deserializo");
 		}
+		free(buffer);
 	}
 
 	liberar_conexion(socket_broker); //hacer en finalizar team?
@@ -1295,9 +1302,12 @@ void connect_caught_pokemon(){
 			sem_post(&conexiones);
 			pthread_exit(NULL);
 		}if(_recv == -1){
-			puts("error");
+			pthread_mutex_lock(&log_mutex);
+			log_info(logger,"Se ha perdido la conexion con el proceso Broker");
+			pthread_mutex_unlock(&log_mutex);
+			liberar_conexion(socket_broker);
+			sem_post(&conexiones);
 			pthread_exit(NULL);
-
 		}
 		printf("codigo de operacion: %d", cod_op);
 		puts("recibe un mensaje adentro de caught pokemon");
@@ -1306,7 +1316,6 @@ void connect_caught_pokemon(){
 		if(cod_op == CAUGHT_POKEMON){
 			puts("recibe mensaje");
 			caught = deserializar_caught_pokemon(buffer);
-
 			uint32_t id_ack = caught->id;
 
 			enviar_ack(socket_broker, id_ack, id_proceso);
@@ -1321,6 +1330,7 @@ void connect_caught_pokemon(){
 				sem_post(&semCaught);
 			}
 		}
+		free(buffer);
 	}
 }
 
@@ -1482,10 +1492,10 @@ void appeared_pokemon(){
 		t_pokemon* pokemonNuevo = malloc(sizeof(t_pokemon));
 		pokemonNuevo->coordx = appeared->coordenadas.pos_x;
 		pokemonNuevo->coordy = appeared->coordenadas.pos_y;
-		//	pokemonNuevo->especie = malloc(appeared->nombre.largo_nombre);
-		pokemonNuevo->especie =	appeared->nombre.nombre;
+		pokemonNuevo->especie = malloc(appeared->nombre.largo_nombre+1);
+		strcpy(pokemonNuevo->especie, appeared->nombre.nombre);
 		pokemonNuevo->planificado = false;
-
+		free(appeared->nombre.nombre);
 		free(appeared);
 		bool _mismaEspecie(char* especie){
 			return mismaEspecie(especie, pokemonNuevo->especie);
@@ -1536,20 +1546,25 @@ void localized_pokemon(){
 		localized = queue_pop(colaLocalizedPokemon);
 		pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 		list_iterate(localized->listaCoordenadas, (void*)_llenarAppearedPokemon);
+		list_destroy(localized->listaCoordenadas);
+		free(localized->nombre.nombre);
 		free(localized);
 	}
 
 }
 void llenarAppearedPokemon(coordenadas_pokemon* coord ,t_localized_pokemon* localized, t_position_and_name* appeared){
+	if(localized->cantidad>0){
 	appeared = malloc(sizeof(t_position_and_name));
 	appeared->coordenadas.pos_x = coord->pos_x;
 	appeared->coordenadas.pos_y = coord->pos_y;
-	appeared->nombre.nombre = localized->nombre.nombre;
+	appeared->nombre.nombre = malloc(localized->nombre.largo_nombre +1);
+	strcpy(appeared->nombre.nombre, localized->nombre.nombre);
 	appeared->nombre.largo_nombre = localized->nombre.largo_nombre;
 	pthread_mutex_lock(&mutex_cola_appeared_pokemon);
 	queue_push(colaAppearedPokemon,appeared);
 	pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
 	sem_post(&semAppeared);
+	}
 }
 
 void caught_pokemon(){
@@ -1566,7 +1581,7 @@ void caught_pokemon(){
 		//		pthread_mutex_lock(&mutex_lista_entrenadores);
 		entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
 		//		pthread_mutex_unlock(&mutex_lista_entrenadores);
-		entrenador->ID = 0;
+		entrenador->catch_id = 0;
 		if(caught->caught == 1){
 			//			entrenador = list_find(entrenadores, (void*)_tieneMismoIDCatch);
 			//			capturoPokemon(&entrenador);
@@ -1584,10 +1599,12 @@ void caught_pokemon(){
 void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo un pokemon
 	//	float aux;
 	puts("capturo pokemon");
-	if(!necesitaPokemon(*(entrenador), (*entrenador)->pokemonACapturar->especie))
-		list_add((*entrenador)->pokemonsNoNecesarios, (*entrenador)->pokemonACapturar->especie);
+	char* especiePokemon = malloc(strlen((*entrenador)->pokemonACapturar->especie)+1);
+	strcpy(especiePokemon,(*entrenador)->pokemonACapturar->especie );
+	if(!necesitaPokemon(*(entrenador), especiePokemon))
+		list_add((*entrenador)->pokemonsNoNecesarios, especiePokemon);
 
-	list_add((*entrenador)->pokemons, (*entrenador)->pokemonACapturar->especie);
+	list_add((*entrenador)->pokemons, especiePokemon);
 	printf("Se agrego al pokemon %s a la lista", (*entrenador)->pokemonACapturar->especie);
 
 	pthread_mutex_lock(&objetivo);
@@ -1606,14 +1623,16 @@ void capturoPokemon(t_entrenador** entrenador){ // ejecuta luego de que capturo 
 	bool _mismoPokemon(t_pokemon* pokemon ){
 		return mismoPokemon(pokemon,(*entrenador)->pokemonACapturar);
 	}
-	//	void destruirPokemon(t_pokemon* pokemonADestruir){
-	//		free(pokemonADestruir->especie);
-	//	}
+//		void destruirPokemon(t_pokemon* pokemonADestruir){
+//			free(pokemonADestruir->especie);
+////			free(pokemonADestruir);
+//		}
 
 	pthread_mutex_lock(&requeridos);
-	//	list_remove_and_destroy_by_condition(pokemonsRequeridos, (void*)_mismoPokemon ,(void*) destruirPokemon);
+//	list_remove_and_destroy_by_condition(pokemonsRequeridos, (void*)_mismoPokemon ,(void*) destruirPokemon);
 	list_remove_by_condition(pokemonsRequeridos, (void*)_mismoPokemon);
 	pthread_mutex_unlock(&requeridos);
+	free((*entrenador)->pokemonACapturar->especie);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
 
@@ -1654,6 +1673,7 @@ void noCapturoPokemon(t_entrenador** entrenador){//Probar
 		list_add(pokemonsRequeridos, pokemonNuevo);
 		pthread_mutex_unlock(&requeridos);
 	}
+	free((*entrenador)->pokemonACapturar->especie);
 	free((*entrenador)->pokemonACapturar);
 	(*entrenador)->pokemonACapturar = NULL;
 

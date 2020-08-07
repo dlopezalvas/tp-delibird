@@ -17,7 +17,8 @@ void enviar_mensaje(t_mensaje* mensaje, int socket){
 	send(socket,a_enviar,bytes,0);
 
 	free(a_enviar);
-	free(paquete -> buffer);
+	free(paquete -> buffer->stream);
+	free(paquete->buffer);
 	free(paquete);
 
 }
@@ -450,6 +451,8 @@ void enviar_ack(int socket, uint32_t id, int id_proceso){
 
 	ack -> tipo_mensaje = codigo_ack;
 	ack -> parametros = string_split(parametros_ack, ",");
-
+	free(parametros_ack);
 	enviar_mensaje(ack, socket);
+	liberar_vector(ack->parametros);
+	free(ack);
 }
