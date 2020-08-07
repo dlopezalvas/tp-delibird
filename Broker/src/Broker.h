@@ -18,7 +18,7 @@ void dump_cache (int n);
 void ver_estado_cache_particiones();
 void ver_estado_cache_buddy();
 char* cola_segun_cod(op_code cod_op);
-char* transformar_a_fecha(uint32_t nro_fecha);
+char* transformar_a_fecha(struct timeval tv);
 void socket_mensajes();
 
 #endif /* BROKER_H_ */

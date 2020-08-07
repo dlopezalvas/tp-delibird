@@ -309,7 +309,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 	t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
 
 	int size = bloque_broker->tamanio_real + sizeof(uint32_t);
-	bloque_broker->particion->ultimo_acceso = time(NULL);
+	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 
 	if(es_mensaje_respuesta(codigo_operacion)){
 		size+= sizeof(uint32_t);
@@ -326,7 +326,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 		offset += sizeof(uint32_t);
 	}
 	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->tamanio_real);
-	bloque_broker->particion->ultimo_acceso = time(NULL);
+	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 
 	buffer_cargado->stream = stream;
 
@@ -688,7 +688,7 @@ void iniciar_memoria(){
 	particion_inicial->base = (int)memoria_cache;
 	particion_inicial->tamanio = configuracion_cache->tamanio_memoria;
 	particion_inicial->id_mensaje = 0;
-	particion_inicial->ultimo_acceso = time(NULL);
+	particion_inicial->ultimo_acceso = timestamp(&(particion_inicial->fecha));
 
 	pthread_mutex_lock(&id_fifo_mutex);
 	id_fifo = 0;
@@ -756,7 +756,11 @@ void compactar(){
 
 	ordenar_particiones(particiones); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
 
-	t_list* particiones_ocupadas = list_filter(particiones, (void*)esta_ocupada);
+	bool _esta_ocupada(t_particion* part){
+		return part->ocupado;
+	}
+
+	t_list* particiones_ocupadas = list_filter(particiones, (void*)_esta_ocupada);
 
 	int cantidad_p_ocupadas = list_size(particiones_ocupadas);
 
@@ -771,17 +775,19 @@ void compactar(){
 
 	t_list* particiones_aux = list_filter(particiones, (void*)esta_ocupada);
 
-	list_destroy(particiones);
+	list_clean(particiones);
 
 	particiones = particiones_aux;
 
+	if(configuracion_cache->tamanio_memoria - offset != 0){
 	t_particion* particion_unica = malloc(sizeof(t_particion));
 	particion_unica->base = (int) memoria_cache + offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 	particion_unica->id_mensaje = 0;
-	particion_unica->ultimo_acceso = time(NULL);
+	particion_unica->ultimo_acceso = timestamp(&(particion_unica->fecha));
 	particion_unica->ocupado = false;
 	list_add(particiones, particion_unica);
+	}
 	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
 	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
@@ -795,7 +801,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 	t_particion* particion_libre;
 
 	bool _puede_almacenar_y_esta_libre(t_particion* particion){
-		return particion->tamanio>= tamanio_a_almacenar && !particion->ocupado;
+		return particion->tamanio>= tamanio_a_almacenar && !particion->ocupado && particion->tamanio >= configuracion_cache->tamanio_minimo_p;
 	}
 
 	pthread_mutex_lock(&lista_particiones_mtx);
@@ -818,7 +824,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 t_particion* particion_libre_ff(int tamanio_a_almacenar){
 	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
 
-	int contador = 1;
+	int contador = configuracion_cache->frecuencia_compact;
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
@@ -839,7 +845,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
 	t_particion* particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 
-	int contador = 1;
+	int contador = configuracion_cache->frecuencia_compact;
 
 	while(particion_libre == NULL){
 		if(contador < configuracion_cache->frecuencia_compact || configuracion_cache->frecuencia_compact == -1){
@@ -941,7 +947,7 @@ t_particion* elegir_victima_particiones(int tamanio_a_almacenar){
 }
 
 bool esta_ocupada(t_particion* particion){
-	return particion->ocupado;
+	return particion->id_mensaje != 0;
 }
 
 t_particion* elegir_victima_particiones_FIFO(){
@@ -954,7 +960,11 @@ t_particion* elegir_victima_particiones_FIFO(){
 	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
 
-	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por posicion y agarro la primera en la lista que este ocupada
+	bool _esta_ocupada(t_particion* part){
+		return part->ocupado;
+	}
+
+	particion = list_find(particiones, (void*)_esta_ocupada); //las ordeno por posicion y agarro la primera en la lista que este ocupada
 
 	eliminar_mensaje(particion);
 
@@ -989,10 +999,11 @@ void eliminar_mensaje(t_particion* particion){
 	bool _buscar_id(t_bloque_broker* bloque){
 		return bloque->id == particion->id_mensaje;
 	}
-	particion->ocupado = false;
+
 	particion->cola = 0;
+	particion->ocupado = false;
 	particion->id_mensaje = 0;
-	particion->ultimo_acceso = time(NULL); //importa esto aca??
+	particion->ultimo_acceso = timestamp(&(particion->fecha)); //importa esto aca??
 
 	pthread_mutex_lock(&ids_recibidos_mtx);
 	list_remove_by_condition(IDS_RECIBIDOS, (void*)_buscar_id);
@@ -1006,12 +1017,12 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 	pthread_mutex_unlock(&memoria_cache_mtx);
 
 
-	if(particion_libre->tamanio != tamanio && particion_libre->tamanio - tamanio >= configuracion_cache->tamanio_minimo_p){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
+	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
 		t_particion* particion_nueva = malloc(sizeof(t_particion));														//pero si el sobrante es menor a la cantidad minima no se creara una particion nueva
 		particion_nueva->base = particion_libre->base + tamanio;
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
 		particion_nueva->id_mensaje = 0;
-		particion_nueva->ultimo_acceso = time(NULL);
+		particion_nueva->ultimo_acceso = timestamp(&(particion_nueva->fecha));
 		particion_nueva->ocupado = false;
 		particion_libre->tamanio = tamanio;
 
@@ -1020,7 +1031,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		pthread_mutex_unlock(&lista_particiones_mtx);
 	}
 
-	particion_libre->ultimo_acceso = time(NULL); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
+	particion_libre->ultimo_acceso = timestamp(&(particion_libre->fecha)); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
 
@@ -1080,10 +1091,7 @@ t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size){
 
 t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
 
-	t_particion* bloque_buddy_particion = malloc(sizeof(t_particion));
-
-
-	bloque_buddy_particion = eleccion_particion_asignada_buddy(tamanio);
+	t_particion* bloque_buddy_particion = eleccion_particion_asignada_buddy(tamanio);
 
 	while(bloque_buddy_particion == NULL){
 
@@ -1115,20 +1123,11 @@ void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, i
 
 	bloque_buddy_particion->id_mensaje = id_mensaje;
 	bloque_buddy_particion->cola = cod_op;
-	bloque_buddy_particion->ultimo_acceso = time(NULL);
+	bloque_buddy_particion->ultimo_acceso = timestamp(&(bloque_buddy_particion->fecha));
 }
+
 
 t_particion* eleccion_particion_asignada_buddy(int tamanio){
-	switch(configuracion_cache->algoritmo_part_libre){
-	case FIRST_FIT:
-		return eleccion_particion_asignada_buddy_FF(tamanio);
-	case BEST_FIT:
-		return eleccion_particion_asignada_buddy_BF(tamanio);
-	}
-	return NULL;
-}
-
-t_particion* eleccion_particion_asignada_buddy_BF(int tamanio){
 
 	t_particion* bloque_elegido;
 	bool _encontrar_bloque_valido_buddy(void* bloque_buddy){
@@ -1167,30 +1166,6 @@ t_particion* eleccion_particion_asignada_buddy_BF(int tamanio){
 	return bloque_elegido;
 }
 
-t_particion* eleccion_particion_asignada_buddy_FF(int tamanio){
-
-	bool _encontrar_bloque_valido_buddy(void* bloque_buddy){
-		return encontrar_bloque_valido_buddy(bloque_buddy,tamanio);
-	}
-
-	ordenar_particiones(memoria_buddy);
-
-	t_particion* bloque_elegido = list_find(memoria_buddy, (void*)_encontrar_bloque_valido_buddy); //agarra el primero que cumpla segun el orden de las bases
-
-	if(bloque_elegido != NULL){
-		while(puede_partirse(bloque_elegido, tamanio)){
-			bloque_elegido = generar_particion_buddy(bloque_elegido);
-		}
-		bloque_elegido->ocupado = true;
-		pthread_mutex_lock(&id_fifo_mutex);
-		id_fifo++;
-		bloque_elegido->id = id_fifo;
-		pthread_mutex_unlock(&id_fifo_mutex);
-	}
-
-	return bloque_elegido;
-}
-
 bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio){
 	return (!(bloque_buddy->ocupado) &&	(bloque_buddy->tamanio) >= tamanio);
 }
@@ -1218,9 +1193,9 @@ t_particion* generar_particion_buddy(t_particion* bloque_buddy){
 	bloque_buddy->base = base_vieja;
 	bloque_buddy2->ocupado = false;
 	bloque_buddy->id_mensaje = 0;
-	bloque_buddy->ultimo_acceso = time(NULL);
+	bloque_buddy->ultimo_acceso = timestamp(&(bloque_buddy->fecha));
 	bloque_buddy2->id_mensaje = 0;
-	bloque_buddy2->ultimo_acceso = time(NULL);
+	bloque_buddy2->ultimo_acceso = timestamp(&(bloque_buddy2->fecha));
 
 	list_add(memoria_buddy,bloque_buddy2);
 
@@ -1291,7 +1266,7 @@ t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion*
 		bloque_buddy_new->ocupado = false;
 		bloque_buddy_new->id_mensaje = 0;
 		bloque_buddy_new->cola = 0;
-		bloque_buddy_new->ultimo_acceso = time(NULL);
+		bloque_buddy_new->ultimo_acceso = timestamp(&(bloque_buddy_new->fecha));
 
 		puts("armo nuevo buddy");
 
@@ -1369,5 +1344,9 @@ void eleccion_victima_lru_buddy(int tamanio){
 
 }
 
-
-
+uint64_t timestamp(struct timeval* valor) {
+	gettimeofday(valor, NULL);
+	unsigned long long result = (((unsigned long long )(*valor).tv_sec) * 1000 + ((unsigned long) (*valor).tv_usec));
+	uint64_t tiempo = result;
+	return tiempo;
+}

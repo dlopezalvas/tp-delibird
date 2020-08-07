@@ -18,8 +18,10 @@
 #include<../CommonsMCLDG/socket.h>
 #include<semaphore.h>
 #include<pthread.h>
-#include <commons/collections/queue.h>
-#include <time.h>
+#include<commons/collections/queue.h>
+#include<time.h>
+#include<sys/time.h>
+#include<math.h>
 
 
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
@@ -59,9 +61,10 @@ typedef struct{
 	uint32_t base;
 	uint32_t tamanio;
 	uint32_t id_mensaje;
-	uint32_t ultimo_acceso;
+	uint64_t ultimo_acceso;
 	uint32_t id;
 	bool ocupado;
+	struct timeval fecha;
 }t_particion;
 
 typedef struct{
@@ -214,6 +217,8 @@ t_particion* elegir_victima_particiones();
 t_particion* elegir_victima_particiones_LRU();
 void eliminar_particion(t_particion* particion_a_liberar);
 
+bool esta_ocupada(t_particion* particion);
+
 
 t_buffer_broker* deserializar_broker_ida(void* buffer, uint32_t size);
 
@@ -240,14 +245,14 @@ void consolidar_buddy(t_particion* bloque_buddy_old,t_list* lista_fifo_buddy);
 bool remove_by_id(t_particion* bloque_buddy,uint32_t id_remover);
 t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy_old);
 bool sort_by_acceso_memoria_buddy(t_particion* bloque_buddy,t_particion* bloque_buddy2);
-t_particion* eleccion_particion_asignada_buddy_BF(int tamanio);
-t_particion* eleccion_particion_asignada_buddy_FF(int tamanio);
 bool encontrar_bloque_valido_buddy(t_particion* bloque_buddy,int tamanio);
 bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2);
 
 void eliminar_mensaje(t_particion* particion);
 
 bool esta_ocupada();
+
+uint64_t timestamp();
 
 
 #endif /* UTILS_BROKER_H_ */
