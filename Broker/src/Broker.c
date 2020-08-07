@@ -21,7 +21,6 @@ t_list* multihilos;
 int main() {
 	signal(SIGUSR1, dump_cache);
 
-
 	iniciar_broker();
 //	recibir_mensaje_broker(config);
 //	terminar_broker(logger,config);
@@ -82,7 +81,6 @@ void iniciar_broker(){
 	pthread_t llegada_mensajes;
 	pthread_create(&llegada_mensajes, NULL, (void*)socket_mensajes, NULL);
 	pthread_join(llegada_mensajes, NULL);
-
 
 }
 
@@ -148,7 +146,7 @@ void ver_estado_cache_buddy(){
 		char* cola = cola_segun_cod(particion->cola);
 		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
 				i, (void*)particion->base, (void*)(particion->base + particion->tamanio - 1), particion->ocupado, particion->tamanio,
-				transformar_a_fecha(particion->ultimo_acceso), cola, particion->id_mensaje);
+				transformar_a_fecha(particion->fecha), cola, particion->id_mensaje);
 		i++;
 	}
 
@@ -190,7 +188,7 @@ void ver_estado_cache_particiones(){
 		char* cola = cola_segun_cod(particion->cola);
 		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
 				i, (void*)particion->base, (void*)(particion->base + particion->tamanio - 1), particion->ocupado, particion->tamanio,
-				transformar_a_fecha(particion->ultimo_acceso), cola, particion->id_mensaje);
+				transformar_a_fecha(particion->fecha), cola, particion->id_mensaje);
 		i++;
 	}
 
@@ -203,16 +201,25 @@ void ver_estado_cache_particiones(){
 	list_destroy(dump_particiones);
 }
 
-char* transformar_a_fecha(uint32_t nro_fecha){
+char* transformar_a_fecha(struct timeval tv){
+
+	char buffer[26];
+	int millisec;
+	struct tm* tm_info;
+
+	millisec = lrint(tv.tv_usec/1000.0); // Round to nearest millisec
+	if (millisec>=1000) { // Allow for rounding up to nearest second
+		millisec -=1000;
+		tv.tv_sec++;
+	}
+
+	tm_info = localtime(&tv.tv_sec);
+
+	strftime(buffer, 26, "%d/%m/%Y %H:%M:%S", tm_info);
+
 	char* fecha = string_new();
 
-	time_t aux = (time_t) nro_fecha;
-	struct tm *tlocal = localtime(&aux);
-	char output[128];
-
-	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
-
-	string_append(&fecha, output);
+	string_append_with_format(&fecha,"%s.%03d", buffer, millisec);
 
 	return fecha;
 }

@@ -309,7 +309,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 	t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
 
 	int size = bloque_broker->tamanio_real + sizeof(uint32_t);
-	bloque_broker->particion->ultimo_acceso = time(NULL);
+	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 
 	if(es_mensaje_respuesta(codigo_operacion)){
 		size+= sizeof(uint32_t);
@@ -326,7 +326,7 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 		offset += sizeof(uint32_t);
 	}
 	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->tamanio_real);
-	bloque_broker->particion->ultimo_acceso = time(NULL);
+	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 
 	buffer_cargado->stream = stream;
 
@@ -688,7 +688,7 @@ void iniciar_memoria(){
 	particion_inicial->base = (int)memoria_cache;
 	particion_inicial->tamanio = configuracion_cache->tamanio_memoria;
 	particion_inicial->id_mensaje = 0;
-	particion_inicial->ultimo_acceso = time(NULL);
+	particion_inicial->ultimo_acceso = timestamp(&(particion_inicial->fecha));
 
 	pthread_mutex_lock(&id_fifo_mutex);
 	id_fifo = 0;
@@ -784,7 +784,7 @@ void compactar(){
 	particion_unica->base = (int) memoria_cache + offset;
 	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 	particion_unica->id_mensaje = 0;
-	particion_unica->ultimo_acceso = time(NULL);
+	particion_unica->ultimo_acceso = timestamp(&(particion_unica->fecha));
 	particion_unica->ocupado = false;
 	list_add(particiones, particion_unica);
 	}
@@ -1003,7 +1003,7 @@ void eliminar_mensaje(t_particion* particion){
 	particion->cola = 0;
 	particion->ocupado = false;
 	particion->id_mensaje = 0;
-	particion->ultimo_acceso = time(NULL); //importa esto aca??
+	particion->ultimo_acceso = timestamp(&(particion->fecha)); //importa esto aca??
 
 	pthread_mutex_lock(&ids_recibidos_mtx);
 	list_remove_by_condition(IDS_RECIBIDOS, (void*)_buscar_id);
@@ -1022,7 +1022,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		particion_nueva->base = particion_libre->base + tamanio;
 		particion_nueva->tamanio = particion_libre->tamanio - tamanio;
 		particion_nueva->id_mensaje = 0;
-		particion_nueva->ultimo_acceso = time(NULL);
+		particion_nueva->ultimo_acceso = timestamp(&(particion_nueva->fecha));
 		particion_nueva->ocupado = false;
 		particion_libre->tamanio = tamanio;
 
@@ -1031,7 +1031,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		pthread_mutex_unlock(&lista_particiones_mtx);
 	}
 
-	particion_libre->ultimo_acceso = time(NULL); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
+	particion_libre->ultimo_acceso = timestamp(&(particion_libre->fecha)); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
 
@@ -1123,7 +1123,7 @@ void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, i
 
 	bloque_buddy_particion->id_mensaje = id_mensaje;
 	bloque_buddy_particion->cola = cod_op;
-	bloque_buddy_particion->ultimo_acceso = time(NULL);
+	bloque_buddy_particion->ultimo_acceso = timestamp(&(bloque_buddy_particion->fecha));
 }
 
 
@@ -1193,9 +1193,9 @@ t_particion* generar_particion_buddy(t_particion* bloque_buddy){
 	bloque_buddy->base = base_vieja;
 	bloque_buddy2->ocupado = false;
 	bloque_buddy->id_mensaje = 0;
-	bloque_buddy->ultimo_acceso = time(NULL);
+	bloque_buddy->ultimo_acceso = timestamp(&(bloque_buddy->fecha));
 	bloque_buddy2->id_mensaje = 0;
-	bloque_buddy2->ultimo_acceso = time(NULL);
+	bloque_buddy2->ultimo_acceso = timestamp(&(bloque_buddy2->fecha));
 
 	list_add(memoria_buddy,bloque_buddy2);
 
@@ -1266,7 +1266,7 @@ t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion*
 		bloque_buddy_new->ocupado = false;
 		bloque_buddy_new->id_mensaje = 0;
 		bloque_buddy_new->cola = 0;
-		bloque_buddy_new->ultimo_acceso = time(NULL);
+		bloque_buddy_new->ultimo_acceso = timestamp(&(bloque_buddy_new->fecha));
 
 		puts("armo nuevo buddy");
 
@@ -1344,5 +1344,9 @@ void eleccion_victima_lru_buddy(int tamanio){
 
 }
 
-
-
+uint64_t timestamp(struct timeval* valor) {
+	gettimeofday(valor, NULL);
+	unsigned long long result = (((unsigned long long )(*valor).tv_sec) * 1000 + ((unsigned long) (*valor).tv_usec));
+	uint64_t tiempo = result;
+	return tiempo;
+}

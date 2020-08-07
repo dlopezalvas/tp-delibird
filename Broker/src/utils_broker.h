@@ -18,8 +18,10 @@
 #include<../CommonsMCLDG/socket.h>
 #include<semaphore.h>
 #include<pthread.h>
-#include <commons/collections/queue.h>
-#include <time.h>
+#include<commons/collections/queue.h>
+#include<time.h>
+#include<sys/time.h>
+#include<math.h>
 
 
 #define PROCESOS_VALIDOS "PROCESOS_VALIDOS"
@@ -59,9 +61,10 @@ typedef struct{
 	uint32_t base;
 	uint32_t tamanio;
 	uint32_t id_mensaje;
-	uint32_t ultimo_acceso;
+	uint64_t ultimo_acceso;
 	uint32_t id;
 	bool ocupado;
+	struct timeval fecha;
 }t_particion;
 
 typedef struct{
@@ -248,6 +251,8 @@ bool ordenar_menor_a_mayor(t_particion* bloque_buddy,t_particion* bloque_buddy2)
 void eliminar_mensaje(t_particion* particion);
 
 bool esta_ocupada();
+
+uint64_t timestamp();
 
 
 #endif /* UTILS_BROKER_H_ */
