@@ -274,7 +274,7 @@ void process_request(int cod_op, int cliente_fd){
 		new_pokemon = deserializar_new_pokemon(buffer);
 		id_ack = new_pokemon->id;
 		enviar_ack(cliente_fd, id_ack, id_proceso);
-		log_info(logger, "Llego el mensaje New_pokemon del pokemon: %s en las coordenadas: %d %d con la cantidad de: %d con ID: %d", new_pokemon->nombre, new_pokemon->coordenadas.pos_x, new_pokemon->coordenadas.pos_y, new_pokemon->cantidad, new_pokemon->id);
+		log_info(logger, "Llego el mensaje New_pokemon del pokemon: %s en las coordenadas: %d %d con la cantidad de: %d con ID: %d", new_pokemon->nombre.nombre, new_pokemon->coordenadas.pos_x, new_pokemon->coordenadas.pos_y, new_pokemon->cantidad, id_ack);
 		break;
 	case APPEARED_POKEMON:
 		appeared_pokemon = deserializar_position_and_name(buffer);

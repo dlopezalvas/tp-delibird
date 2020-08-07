@@ -1091,10 +1091,7 @@ t_buffer_broker* deserializar_broker_vuelta(void* buffer, uint32_t size){
 
 t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint32_t id_mensaje){
 
-	t_particion* bloque_buddy_particion = malloc(sizeof(t_particion));
-
-
-	bloque_buddy_particion = eleccion_particion_asignada_buddy(tamanio);
+	t_particion* bloque_buddy_particion = eleccion_particion_asignada_buddy(tamanio);
 
 	while(bloque_buddy_particion == NULL){
 
@@ -1129,17 +1126,8 @@ void asignar_particion_buddy(t_particion* bloque_buddy_particion, void* datos, i
 	bloque_buddy_particion->ultimo_acceso = time(NULL);
 }
 
-t_particion* eleccion_particion_asignada_buddy(int tamanio){
-	switch(configuracion_cache->algoritmo_part_libre){
-	case FIRST_FIT:
-		return eleccion_particion_asignada_buddy_FF(tamanio);
-	case BEST_FIT:
-		return eleccion_particion_asignada_buddy_BF(tamanio);
-	}
-	return NULL;
-}
 
-t_particion* eleccion_particion_asignada_buddy_BF(int tamanio){
+t_particion* eleccion_particion_asignada_buddy(int tamanio){
 
 	t_particion* bloque_elegido;
 	bool _encontrar_bloque_valido_buddy(void* bloque_buddy){
@@ -1175,30 +1163,6 @@ t_particion* eleccion_particion_asignada_buddy_BF(int tamanio){
 		bloque_elegido = NULL;
 	}
 	pthread_mutex_unlock(&memoria_buddy_mutex);
-	return bloque_elegido;
-}
-
-t_particion* eleccion_particion_asignada_buddy_FF(int tamanio){
-
-	bool _encontrar_bloque_valido_buddy(void* bloque_buddy){
-		return encontrar_bloque_valido_buddy(bloque_buddy,tamanio);
-	}
-
-	ordenar_particiones(memoria_buddy);
-
-	t_particion* bloque_elegido = list_find(memoria_buddy, (void*)_encontrar_bloque_valido_buddy); //agarra el primero que cumpla segun el orden de las bases
-
-	if(bloque_elegido != NULL){
-		while(puede_partirse(bloque_elegido, tamanio)){
-			bloque_elegido = generar_particion_buddy(bloque_elegido);
-		}
-		bloque_elegido->ocupado = true;
-		pthread_mutex_lock(&id_fifo_mutex);
-		id_fifo++;
-		bloque_elegido->id = id_fifo;
-		pthread_mutex_unlock(&id_fifo_mutex);
-	}
-
 	return bloque_elegido;
 }
 
