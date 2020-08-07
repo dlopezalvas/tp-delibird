@@ -231,7 +231,7 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 }
 
 bool es_mensaje_respuesta(op_code cod_op){
-	return cod_op == APPEARED_POKEMON || cod_op == LOCALIZED_POKEMON || cod_op == CAUGHT_POKEMON;
+	return cod_op == APPEARED_POKEMON || cod_op == LOCALIZED_POKEMON || cod_op == CAUGHT_POKEMON || cod_op == CATCH_POKEMON; //catch en realidad no va pero esta en position and name D:
 }
 
 void ejecutar_ACK(){
@@ -347,7 +347,9 @@ void ejecutar_new_pokemon(){
 		op_code codigo_operacion = NEW_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -377,7 +379,9 @@ void ejecutar_appeared_pokemon(){
 		op_code codigo_operacion = APPEARED_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -407,7 +411,9 @@ void ejecutar_catch_pokemon(){
 		op_code codigo_operacion = CATCH_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -436,7 +442,9 @@ void ejecutar_caught_pokemon(){
 		op_code codigo_operacion = CAUGHT_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -468,7 +476,9 @@ void ejecutar_get_pokemon(){
 		op_code codigo_operacion = GET_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -498,7 +508,9 @@ void ejecutar_localized_pokemon(){
 		op_code codigo_operacion = LOCALIZED_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
+		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -609,10 +621,13 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 	t_list* mensajes_de_cola = list_filter(IDS_RECIBIDOS, (void*)_falta_enviar); //tengo los mensajes que no le mande a ese proceso
 
 	if(!list_is_empty(mensajes_de_cola)){
-
+		puts("-----------------FALTA ENVIAR---------------");
 		int index;
 		void _enviar_mensaje_faltante(t_bloque_broker* bloque){
+
+			pthread_mutex_lock(&(bloque->mtx));
 			t_paquete* paquete = preparar_mensaje_a_enviar(bloque, mensaje_suscripcion->cola);
+			pthread_mutex_unlock(&(bloque->mtx));
 			int bytes = 0;
 			void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -939,7 +954,7 @@ t_particion* elegir_victima_particiones_FIFO(){
 	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
 
-	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
+	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por posicion y agarro la primera en la lista que este ocupada
 
 	eliminar_mensaje(particion);
 
