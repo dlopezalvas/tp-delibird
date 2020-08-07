@@ -141,6 +141,8 @@ void new_pokemon(t_new_pokemon* pokemon){
 		log_info(logger_gamecard,"El mensaje de ID: %d fue recibido por el Broker", id);
 		pthread_mutex_unlock(&log_mtx);
 	}
+	free(parametros);
+	liberar_conexion(socket_broker);
 }
 
 void catch_pokemon(t_position_and_name* pokemon){
@@ -189,6 +191,8 @@ void catch_pokemon(t_position_and_name* pokemon){
 		log_info(logger_gamecard,"El mensaje de ID: %d fue recibido por el Broker", id);
 		pthread_mutex_unlock(&log_mtx);
 	}
+	free(parametros);
+	liberar_conexion(socket_broker);
 
 }
 
@@ -203,6 +207,13 @@ void get_pokemon(t_get_pokemon* pokemon){
 
 	if(existe_pokemon(path_pokemon)){
 		parametros = obtener_posiciones(pokemon);
+		if(parametros == NULL){
+			parametros = string_new();
+			string_append_with_format(&parametros, "%s,0", pokemon->nombre.nombre);
+			pthread_mutex_lock(&log_mtx);
+			log_info(logger_gamecard,"No se pudo obtener el pokemon %s porque no existe en el mapa", pokemon->nombre.nombre);
+			pthread_mutex_unlock(&log_mtx);
+		}
 	}else{
 		string_append_with_format(&parametros, "%s,0", pokemon->nombre.nombre);
 		pthread_mutex_lock(&log_mtx);
@@ -237,6 +248,8 @@ void get_pokemon(t_get_pokemon* pokemon){
 		log_info(logger_gamecard,"El mensaje de ID: %d fue recibido por el Broker", id);
 		pthread_mutex_unlock(&log_mtx);
 	}
+	liberar_conexion(socket_broker);
+	free(parametros);
 
 }
 
@@ -259,40 +272,43 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 		config_set_value(config_pokemon, OPEN, YES);
 
 		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
-
-		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
-
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
-		char** datos = leer_archivo(blocks, tamanio_total);
+		if(tamanio_total !=0){
 
-		t_list* lista_datos = transformar_a_lista(datos);
+			char** blocks = config_get_array_value(config_pokemon, BLOCKS);
 
-		int cantidad_posiciones = list_size(lista_datos); //la cantidad de posiciones en las que hay al menos 1 pokemon
+			char** datos = leer_archivo(blocks, tamanio_total);
 
-		string_append_with_format(&parametros, "%s,%d", pokemon->nombre.nombre, cantidad_posiciones);
+			t_list* lista_datos = transformar_a_lista(datos);
 
-		char* coordenadas;
-		char** aux_coord_cantidad;
-		char** aux_coord;
+			int cantidad_posiciones = list_size(lista_datos); //la cantidad de posiciones en las que hay al menos 1 pokemon
 
-		for(int i = 0; i<cantidad_posiciones; i++){ //+1 porque cantidad cuenta desde 1
-			coordenadas = list_get(lista_datos, i);
-			aux_coord_cantidad = string_split(coordenadas, "=");
-			aux_coord = string_split(aux_coord_cantidad[0], "-");
+			string_append_with_format(&parametros, "%s,%d", pokemon->nombre.nombre, cantidad_posiciones);
 
-			string_append_with_format(&parametros, ",%s,%s", aux_coord[0], aux_coord[1]);
+			char* coordenadas;
+			char** aux_coord_cantidad;
+			char** aux_coord;
 
+			for(int i = 0; i<cantidad_posiciones; i++){ //+1 porque cantidad cuenta desde 1
+				coordenadas = list_get(lista_datos, i);
+				aux_coord_cantidad = string_split(coordenadas, "=");
+				aux_coord = string_split(aux_coord_cantidad[0], "-");
+
+				string_append_with_format(&parametros, ",%s,%s", aux_coord[0], aux_coord[1]);
+
+			}
+
+			config_set_value(config_pokemon, OPEN, NO);
+			sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
+			guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+
+			return parametros;
+
+			//destruir lista y esas cosas (?
+		}else{
+			return NULL;
 		}
-
-		config_set_value(config_pokemon, OPEN, NO);
-		sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
-		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
-
-		return parametros;
-
-		//destruir lista y esas cosas (?
-
 	}else{
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
@@ -405,39 +421,47 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
-		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
-
-		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
-
-		char** datos = leer_archivo(blocks, tamanio_total);
-
-		t_list* lista_datos = transformar_a_lista(datos);
-
-		t_config* config_datos = transformar_a_config(datos);
-
 		char* posicion = string_new();
 
 		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
 
-		if(config_has_property(config_datos, posicion)){
-			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + pokemon->cantidad); //a la cantidad que ya hay, le sumo el nuevo pokemon
+		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
-			int i = 0;
+		if(tamanio_total != 0){
 
-			while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
-				i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
+			char** blocks = config_get_array_value(config_pokemon, BLOCKS);
+
+			char** datos = leer_archivo(blocks, tamanio_total);
+
+			t_list* lista_datos = transformar_a_lista(datos);
+
+			t_config* config_datos = transformar_a_config(datos);
+
+			if(config_has_property(config_datos, posicion)){
+				char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) + pokemon->cantidad); //a la cantidad que ya hay, le sumo el nuevo pokemon
+
+				int i = 0;
+
+				while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
+					i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
+				}
+
+				string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
+
+				list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
+
+			}else{
+				string_append_with_format(&posicion, "=%d",pokemon->cantidad); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
+				list_add(lista_datos, posicion);
 			}
 
-			string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
-
-			list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
-
+			guardar_archivo(lista_datos, config_pokemon, path_pokemon, pokemon->nombre.nombre);
 		}else{
+			t_list* lista_datos = list_create();
 			string_append_with_format(&posicion, "=%d",pokemon->cantidad); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)
 			list_add(lista_datos, posicion);
+			guardar_archivo(lista_datos, config_pokemon, path_pokemon, pokemon->nombre.nombre);
 		}
-
-		guardar_archivo(lista_datos, config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"Se asignaron los bloques %s al pokemon %s con tamanio de %d", config_get_string_value(config_pokemon, BLOCKS), pokemon->nombre.nombre,config_get_int_value(config_pokemon, SIZE) );
@@ -445,10 +469,10 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 		config_destroy(config_pokemon);
 
-		liberar_vector(blocks);
-		liberar_vector(datos);
-		//list_destroy
-		config_destroy(config_datos);
+		//		liberar_vector(blocks);
+		//		liberar_vector(datos);
+		//		//list_destroy
+		//		config_destroy(config_datos);
 
 	}else{
 		pthread_mutex_lock(&log_mtx);
@@ -464,7 +488,11 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
 
+	t_pokemon* pokemon_sem = semaforo_pokemon(pokemon->nombre.nombre);
+
+	pthread_mutex_lock(&(pokemon_sem->mtx));
 	t_config* config_pokemon = config_create(path_pokemon);
+	pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 	if(!archivo_abierto(config_pokemon)){
 
@@ -472,41 +500,58 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 
 		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 
-		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
-
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
-		char** datos = leer_archivo(blocks, tamanio_total);
+		if(tamanio_total != 0){
+			char** blocks = config_get_array_value(config_pokemon, BLOCKS);
 
-		t_list* lista_datos = transformar_a_lista(datos);
+			char** datos = leer_archivo(blocks, tamanio_total);
 
-		t_config* config_datos = transformar_a_config(datos);
+			t_list* lista_datos = transformar_a_lista(datos);
 
-		char* posicion = string_new();
+			t_config* config_datos = transformar_a_config(datos);
 
-		string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
+			char* posicion = string_new();
 
-		if(config_has_property(config_datos, posicion)){
+			string_append_with_format(&posicion, "%d-%d", pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
 
-			int i = 0;
+			if(config_has_property(config_datos, posicion)){
 
-			while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
-				i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
-			}
+				int i = 0;
 
-			char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) - 1);
+				while(!(comienza_con(posicion, list_get(lista_datos, i)))) {  //Se que existe la posicion, entonces recorro hasta encontrarla
+					i++; 													 //al salir del while me queda el valor de i como la posicion de la lista que quiero cambiar
+				}
 
-			if(string_equals_ignore_case(nueva_cantidad_posicion, "0")){
-				list_remove(lista_datos, i);
+				char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) - 1);
+
+				if(string_equals_ignore_case(nueva_cantidad_posicion, "0")){
+					list_remove(lista_datos, i);
+				}else{
+					string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
+
+					char* valor_viejo = list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
+
+					free(valor_viejo);
+				}
+				free(nueva_cantidad_posicion);
+				*resultado = 1;
+				guardar_archivo(lista_datos, config_pokemon, path_pokemon, pokemon->nombre.nombre);
+
 			}else{
-				string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
+				pthread_mutex_lock(&log_mtx);
+				log_info(logger_gamecard, "No se pudo capturar el pokemon %s ya que no existe en la posicion %d - %d", pokemon->nombre.nombre, pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
+				pthread_mutex_unlock(&log_mtx);
 
-				list_replace(lista_datos, i, posicion); //posicion ahora es un string completo (posicion = cantidad)
+				config_set_value(config_pokemon, OPEN, NO);
+
+				sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
+
+				guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 			}
 
-			*resultado = 1;
-			guardar_archivo(lista_datos, config_pokemon, path_pokemon, pokemon->nombre.nombre);
-
+			list_destroy_and_destroy_elements(lista_datos, (void*)liberar_elemento);
+			config_destroy(config_datos);
 		}else{
 			pthread_mutex_lock(&log_mtx);
 			log_info(logger_gamecard, "No se pudo capturar el pokemon %s ya que no existe en la posicion %d - %d", pokemon->nombre.nombre, pokemon->coordenadas.pos_x, pokemon->coordenadas.pos_y);
@@ -519,10 +564,6 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 			guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
 		}
 
-		//		liberar_vector(blocks);
-		//		liberar_vector(datos);
-		//list_destroy
-		config_destroy(config_datos);
 
 	}else{
 		pthread_mutex_lock(&log_mtx);
@@ -531,6 +572,10 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 		sleep(config_get_int_value(config,TIEMPO_DE_REINTENTO_OPERACION));
 		actualizar_quitar_pokemon(pokemon, resultado);
 	}
+}
+
+void liberar_elemento(void* elemento){
+	free(elemento);
 }
 
 //-------------------LEER/GUARDAR ARCHIVOS------------------//
@@ -623,7 +668,11 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 
 	string_append(&bloques_guardar, "]");
 
-	config_set_value(config_pokemon, SIZE, string_itoa(offset));
+	char* aux_offset = string_itoa(offset);
+
+	config_set_value(config_pokemon, SIZE, aux_offset);
+
+	free(aux_offset);
 
 	config_set_value(config_pokemon, OPEN, NO);
 
@@ -706,13 +755,14 @@ char** leer_archivo(char** blocks, int tamanio_total){ //para leer el archivo, s
 //-------------------BLOQUES------------------//
 
 char** buscar_bloques_libres(int cantidad){
-	char** bloques = malloc(cantidad);
+	char** bloques = malloc(cantidad * sizeof(int));
 
 	for(int i = 0; i < cantidad; i++){
 		int aux = bloque_libre();
 		if(aux == -1){
 			perror("No se encontró bloque libre");
 		}else{
+			bloques[i] = malloc(sizeof(int));
 			bloques[i] = string_itoa(aux);
 		}
 	}
@@ -930,8 +980,8 @@ void connect_catch_pokemon(){
 	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	char* parametros[2] = {"CATCH_POKEMON", string_itoa(id_proceso)};
-		mensaje -> tipo_mensaje = codigo_operacion;
-		mensaje -> parametros = parametros;
+	mensaje -> tipo_mensaje = codigo_operacion;
+	mensaje -> parametros = parametros;
 
 	int socket_broker = iniciar_cliente_gamecard(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	enviar_mensaje(mensaje, socket_broker);
@@ -1180,7 +1230,7 @@ bool existe_pokemon(char* path_pokemon){
 
 	bool existe = !(verificacion == NULL); //si al abrirlo devuelve NULL, el directorio no existe
 
-
+	free(verificacion);
 	return existe;
 }
 

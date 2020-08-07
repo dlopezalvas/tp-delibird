@@ -116,4 +116,5 @@ int minimo_entre (int nro1, int nro2);
 int calcular_tamanio(int acc, char* linea);
 bool comienza_con(char* posicion, char* linea);
 bool existe_pokemon(char* path_pokemon);
+void liberar_elemento(void* elemento);
 #endif /* UTILS_H_ */
