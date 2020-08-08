@@ -107,9 +107,9 @@ void serve_client(int socket){
 		rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
 		if(rec == -1 || rec == 0 ){
 			cod_op = -1;
-//			pthread_mutex_lock(&logger_mutex);
-//			log_info(logger,"Se desconecto el proceso con id: %d",socket);
-//			pthread_mutex_unlock(&logger_mutex);
+			//			pthread_mutex_lock(&logger_mutex);
+			//			log_info(logger,"Se desconecto el proceso con id: %d",socket);
+			//			pthread_mutex_unlock(&logger_mutex);
 			pthread_exit(NULL);
 		}
 		puts("recibi un mensaje");
@@ -577,10 +577,10 @@ void ejecutar_suscripcion(){
 		int suscriptor = mensaje->suscriptor;
 		puts(string_itoa(suscriptor));
 		char* log_debug_suscripcion = string_new();
-//		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
-//		pthread_mutex_lock(&logger_mutex);
-//		log_info(logger,log_debug_suscripcion);
-//		pthread_mutex_unlock(&logger_mutex);
+		//		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
+		//		pthread_mutex_lock(&logger_mutex);
+		//		log_info(logger,log_debug_suscripcion);
+		//		pthread_mutex_unlock(&logger_mutex);
 		switch (mensaje_suscripcion->cola) {
 		case NEW_POKEMON:
 			pthread_mutex_lock(&suscripcion_new_queue_mutex);
@@ -770,6 +770,10 @@ t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo
 
 	asignar_particion(datos, particion_libre, tamanio, codigo_op, id);
 
+	pthread_mutex_lock(&logger_mutex);
+	log_info(logger,"Se ha guardado el mensaje %d en la posicion %p", id, (void*)particion_libre->base);
+	pthread_mutex_unlock(&logger_mutex);
+
 	return particion_libre;
 }
 
@@ -814,20 +818,20 @@ void compactar(){
 	particiones = particiones_aux;
 
 	if(configuracion_cache->tamanio_memoria - offset != 0){
-	t_particion* particion_unica = malloc(sizeof(t_particion));
-	particion_unica->base = (int) memoria_cache + offset;
-	particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
-	particion_unica->id_mensaje = 0;
-	particion_unica->ultimo_acceso = timestamp(&(particion_unica->fecha));
-	particion_unica->ocupado = false;
-	list_add(particiones, particion_unica);
+		t_particion* particion_unica = malloc(sizeof(t_particion));
+		particion_unica->base = (int) memoria_cache + offset;
+		particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
+		particion_unica->id_mensaje = 0;
+		particion_unica->ultimo_acceso = timestamp(&(particion_unica->fecha));
+		particion_unica->ocupado = false;
+		list_add(particiones, particion_unica);
 	}
 	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
 	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
-	puts("------------------");
-	puts("COMPACTO");
-	puts("------------------");
+	pthread_mutex_lock(&logger_mutex);
+	log_info(logger,"Se ejecuto la compactacion");
+	pthread_mutex_unlock(&logger_mutex);
 }
 
 t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
@@ -987,8 +991,8 @@ void dump_cache (int n){		//para usarla en cosola killall -s USR1 Broker
 void ver_estado_cache_buddy(){
 
 	bool _orden(t_particion* particion1, t_particion* particion2){
-			return particion1->base < particion2->base;
-		}
+		return particion1->base < particion2->base;
+	}
 	t_list* dump_buddy = list_create();
 	pthread_mutex_lock(&memoria_buddy_mutex);
 	list_add_all(dump_buddy,memoria_buddy);
@@ -1056,8 +1060,8 @@ char* cola_segun_cod(op_code cod_op){
 void ver_estado_cache_particiones(){
 
 	bool _orden(t_particion* particion1, t_particion* particion2){
-			return particion1->base < particion2->base;
-		}
+		return particion1->base < particion2->base;
+	}
 	t_list* dump_particiones = list_create();
 	pthread_mutex_lock(&lista_particiones_mtx);
 	list_add_all(dump_particiones,particiones);
@@ -1191,6 +1195,12 @@ void eliminar_mensaje(t_particion* particion){
 	pthread_mutex_lock(&ids_recibidos_mtx);
 	list_remove_by_condition(IDS_RECIBIDOS, (void*)_buscar_id);
 	pthread_mutex_unlock(&ids_recibidos_mtx);
+
+	pthread_mutex_lock(&logger_mutex);
+	log_info(logger,"Se ha eliminado el mensaje de la posicion %p", (void*)particion->base);
+	pthread_mutex_unlock(&logger_mutex);
+
+
 }
 
 void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, op_code codigo_op, uint32_t id){
@@ -1283,6 +1293,10 @@ t_particion* almacenar_datos_buddy(void* datos, int tamanio,op_code cod_op,uint3
 		bloque_buddy_particion = eleccion_particion_asignada_buddy(tamanio);
 	}
 	asignar_particion_buddy(bloque_buddy_particion,datos,tamanio,cod_op,id_mensaje);
+
+	pthread_mutex_lock(&logger_mutex);
+	log_info(logger,"Se ha guardado el mensaje %d en la posicion %p", id_mensaje, (void*)bloque_buddy_particion->base);
+	pthread_mutex_unlock(&logger_mutex);
 
 	return bloque_buddy_particion;
 }
@@ -1453,6 +1467,10 @@ t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion*
 
 		puts("armo nuevo buddy");
 
+		pthread_mutex_lock(&logger_mutex);
+		log_info(logger,"Se asociaron las siguientes particiones del buddy: %p - %p", (void*)bloque_buddy_old->base, (void*)bloque_buddy->base);
+		pthread_mutex_unlock(&logger_mutex);
+
 		if(bloque_buddy_old->base < bloque_buddy->base){
 
 			bloque_buddy_new->base = bloque_buddy_old->base;
@@ -1477,11 +1495,7 @@ t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion*
 		pthread_mutex_lock(&memoria_buddy_mutex);
 
 		t_particion* bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
-		printf("base en entero: %d, tamaño: %d, base en hhhhexa: %p \n ", (bloque_a_remover_1->base - (int)memoria_cache) , bloque_a_remover_1->tamanio, bloque_a_remover_1->base );
-		pthread_mutex_unlock(&memoria_buddy_mutex);
-		pthread_mutex_lock(&memoria_buddy_mutex);
 		bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy2);
-		printf("base en entero: %d, tamaño: %d, base en hhhhexa: %p \n ", (bloque_a_remover_1->base - (int)memoria_cache) , bloque_a_remover_1->tamanio, bloque_a_remover_1->base );
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 		//
 		pthread_mutex_lock(&memoria_buddy_mutex);
