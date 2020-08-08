@@ -176,9 +176,8 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
 	pthread_mutex_lock(&unique_id_mutex);
 	unique_message_id++;
-	pthread_mutex_unlock(&unique_id_mutex);
-
 	uint32_t mensaje_id = unique_message_id;
+	pthread_mutex_unlock(&unique_id_mutex);
 
 	if(cod_op != GET_POKEMON){
 		send(cliente_fd,&mensaje_id,sizeof(uint32_t),0); //envio ack
@@ -336,6 +335,8 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 	t_buffer* buffer_cargado = malloc(sizeof(t_buffer));
 
 	int size = bloque_broker->tamanio_real + sizeof(uint32_t);
+
+	pthread_mutex_lock(&lista_particiones_mtx);
 	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 
 	if(es_mensaje_respuesta(codigo_operacion)){
@@ -346,6 +347,8 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 	void* stream = malloc(buffer_cargado->size);
 
 	int offset = 0;
+
+	pthread_mutex_lock(&memoria_cache_mtx);
 	memcpy(stream + offset, &bloque_broker->id, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 	if(es_mensaje_respuesta(codigo_operacion)){
@@ -354,6 +357,8 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 	}
 	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->tamanio_real);
 	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
+	pthread_mutex_unlock(&memoria_cache_mtx);
+	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	buffer_cargado->stream = stream;
 
@@ -818,8 +823,11 @@ void compactar(){
 	particiones = particiones_aux;
 
 	if(configuracion_cache->tamanio_memoria - offset != 0){
+
 		t_particion* particion_unica = malloc(sizeof(t_particion));
+		pthread_mutex_lock(&memoria_cache_mtx);
 		particion_unica->base = (int) memoria_cache + offset;
+		pthread_mutex_unlock(&memoria_cache_mtx);
 		particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 		particion_unica->id_mensaje = 0;
 		particion_unica->ultimo_acceso = timestamp(&(particion_unica->fecha));
@@ -1223,10 +1231,11 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		list_add(particiones, particion_nueva);
 		pthread_mutex_unlock(&lista_particiones_mtx);
 	}
-
+	pthread_mutex_lock(&lista_particiones_mtx);
 	particion_libre->ultimo_acceso = timestamp(&(particion_libre->fecha)); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
+	pthread_mutex_unlock(&lista_particiones_mtx);
 
 }
 
