@@ -281,13 +281,14 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 
 	pthread_mutex_lock(&(pokemon_sem->mtx));
 	t_config* config_pokemon = config_create(path_pokemon);
-	pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 	if(!archivo_abierto(config_pokemon)){
 
 		config_set_value(config_pokemon, OPEN, YES);
 
-		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+		config_save_in_file(config_pokemon, path_pokemon);
+		pthread_mutex_unlock(&(pokemon_sem->mtx));
+
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
 
 		if(tamanio_total !=0){
@@ -339,6 +340,7 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 			return NULL;
 		}
 	}else{
+		pthread_mutex_unlock(&(pokemon_sem->mtx));
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
 		pthread_mutex_unlock(&log_mtx);
@@ -439,18 +441,17 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 
 	char* path_pokemon = string_new();
 	string_append_with_format(&path_pokemon, "%s/Files/%s/Metadata.bin", pto_montaje, pokemon->nombre.nombre);
-
 	t_pokemon* pokemon_sem = semaforo_pokemon(pokemon->nombre.nombre);
 
 	pthread_mutex_lock(&(pokemon_sem->mtx));
 	t_config* config_pokemon = config_create(path_pokemon);
-	pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 	if(!archivo_abierto(config_pokemon)){
 
 		config_set_value(config_pokemon, OPEN, YES);
 
-		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+		config_save_in_file(config_pokemon, path_pokemon);
+		pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 		char* posicion = string_new();
 
@@ -508,6 +509,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 		free(path_pokemon);
 
 	}else{
+		pthread_mutex_unlock(&(pokemon_sem->mtx));
 		free(path_pokemon);
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
@@ -526,18 +528,18 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 
 	pthread_mutex_lock(&(pokemon_sem->mtx));
 	t_config* config_pokemon = config_create(path_pokemon);
-	pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 	if(!archivo_abierto(config_pokemon)){
 
 		config_set_value(config_pokemon, OPEN, YES);
 
-		guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
+		config_save_in_file(config_pokemon, path_pokemon);
+		pthread_mutex_unlock(&(pokemon_sem->mtx));
 
 		int tamanio_total = config_get_int_value(config_pokemon, SIZE);
+		char** blocks = config_get_array_value(config_pokemon, BLOCKS);
 
-		if(tamanio_total != 0){
-			char** blocks = config_get_array_value(config_pokemon, BLOCKS);
+		if(tamanio_total != 0 || blocks == NULL){
 
 			char** datos = leer_archivo(blocks, tamanio_total);
 
@@ -608,6 +610,7 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 		free(path_pokemon);
 
 	}else{
+		pthread_mutex_unlock(&(pokemon_sem->mtx));
 		pthread_mutex_lock(&log_mtx);
 		log_info(logger_gamecard,"No se pudieron leer los datos de %s ya que el archivo está en uso", pokemon->nombre.nombre);
 		pthread_mutex_unlock(&log_mtx);
@@ -924,13 +927,11 @@ t_pokemon* semaforo_pokemon(char* nombre){
 	return pokemon_sem;
 }
 
-bool archivo_abierto(t_config* config_archivo){
+bool archivo_abierto(t_config* config_pokemon){
 
 
-	char* archivo_open = config_get_string_value(config_archivo, OPEN);
+	char* archivo_open = config_get_string_value(config_pokemon, OPEN);
 	bool esta_abierto = string_equals_ignore_case(YES, archivo_open);
-
-	//free(archivo_open);
 
 	return esta_abierto;
 }

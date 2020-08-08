@@ -336,7 +336,6 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 
 	int size = bloque_broker->tamanio_real + sizeof(uint32_t);
 
-	pthread_mutex_lock(&lista_particiones_mtx);
 	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 
 	if(es_mensaje_respuesta(codigo_operacion)){
@@ -358,7 +357,6 @@ t_paquete* preparar_mensaje_a_enviar(t_bloque_broker* bloque_broker, op_code cod
 	memcpy(stream + offset, (void*)bloque_broker->particion->base, bloque_broker->tamanio_real);
 	bloque_broker->particion->ultimo_acceso = timestamp(&(bloque_broker->particion->fecha));
 	pthread_mutex_unlock(&memoria_cache_mtx);
-	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	buffer_cargado->stream = stream;
 
@@ -379,9 +377,11 @@ void ejecutar_new_pokemon(){
 		op_code codigo_operacion = NEW_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&lista_particiones_mtx);
 		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 		pthread_mutex_unlock(&(bloque_broker->mtx));
+		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -412,9 +412,11 @@ void ejecutar_appeared_pokemon(){
 		op_code codigo_operacion = APPEARED_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&lista_particiones_mtx);
 		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 		pthread_mutex_unlock(&(bloque_broker->mtx));
+		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -445,9 +447,11 @@ void ejecutar_catch_pokemon(){
 		op_code codigo_operacion = CATCH_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&lista_particiones_mtx);
 		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 		pthread_mutex_unlock(&(bloque_broker->mtx));
+		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -477,9 +481,11 @@ void ejecutar_caught_pokemon(){
 		op_code codigo_operacion = CAUGHT_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&lista_particiones_mtx);
 		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 		pthread_mutex_unlock(&(bloque_broker->mtx));
+		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -512,9 +518,11 @@ void ejecutar_get_pokemon(){
 		op_code codigo_operacion = GET_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&lista_particiones_mtx);
 		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 		pthread_mutex_unlock(&(bloque_broker->mtx));
+		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -545,9 +553,11 @@ void ejecutar_localized_pokemon(){
 		op_code codigo_operacion = LOCALIZED_POKEMON;
 
 		int bytes = 0;
+		pthread_mutex_lock(&lista_particiones_mtx);
 		pthread_mutex_lock(&(bloque_broker->mtx));
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
 		pthread_mutex_unlock(&(bloque_broker->mtx));
+		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -654,6 +664,8 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 		return !entregado && es_de_cola;
 	}
 
+	pthread_mutex_lock(&lista_particiones_mtx);
+
 	pthread_mutex_lock(&ids_recibidos_mtx);
 
 	t_list* mensajes_de_cola = list_filter(IDS_RECIBIDOS, (void*)_falta_enviar); //tengo los mensajes que no le mande a ese proceso
@@ -681,6 +693,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 	}
 
 	pthread_mutex_unlock(&ids_recibidos_mtx);
+	pthread_mutex_unlock(&lista_particiones_mtx);
 }
 
 pthread_mutex_t* semaforo_de_cola(op_code cola){

@@ -98,7 +98,7 @@ t_config* transformar_a_config(char** lineas);
 
 void guardar_metadata(t_config* config_archivo, char* path_pokemon, char* nombre_pokemon);
 t_pokemon* semaforo_pokemon(char* nombre);
-bool archivo_abierto(t_config* config_archivo);
+bool archivo_abierto(t_config* config_pokemon);
 
 void crear_conexiones();
 void connect_new_pokemon();
