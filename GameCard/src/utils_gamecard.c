@@ -321,7 +321,7 @@ char* obtener_posiciones(t_get_pokemon* pokemon){
 			config_set_value(config_pokemon, OPEN, NO);
 			sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
 			guardar_metadata(config_pokemon, path_pokemon, pokemon->nombre.nombre);
-//			liberar_vector(datos);
+			free(datos);
 			liberar_vector(blocks);
 			config_destroy(config_pokemon);
 			free(path_pokemon);
@@ -425,7 +425,7 @@ void crear_pokemon(t_new_pokemon* pokemon){
 	sleep(config_get_int_value(config,TIEMPO_RETARDO_OPERACION));
 	guardar_metadata(config_aux, path_pokemon, pokemon->nombre.nombre);
 
-//	liberar_vector(bloques_a_escribir);
+	free(bloques_a_escribir);
 	config_destroy(config_aux);
 	free(path_pokemon);
 	free(datos);
@@ -560,7 +560,8 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 				char* nueva_cantidad_posicion = string_itoa(config_get_int_value(config_datos, posicion) - 1);
 
 				if(string_equals_ignore_case(nueva_cantidad_posicion, "0")){
-					list_remove(lista_datos, i);
+					char* removido = list_remove(lista_datos, i);
+					free(removido);
 				}else{
 					string_append_with_format(&posicion, "=%s", nueva_cantidad_posicion);
 
@@ -571,6 +572,7 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 				free(nueva_cantidad_posicion);
 				*resultado = 1;
 				guardar_archivo(lista_datos, config_pokemon, path_pokemon, pokemon->nombre.nombre);
+				free(posicion);
 
 			}else{
 				free(posicion);
@@ -586,8 +588,8 @@ void actualizar_quitar_pokemon(t_position_and_name* pokemon, int* resultado){
 			}
 
 			list_destroy_and_destroy_elements(lista_datos, (void*)liberar_elemento);
-//			liberar_vector(datos);
-			liberar_vector(blocks);
+			free(datos);
+			free(blocks);
 			config_destroy(config_datos);
 			config_destroy(config_pokemon);
 		}else{
@@ -673,7 +675,7 @@ void guardar_archivo(t_list* lista_datos, t_config* config_pokemon, char* path_p
 			escribir_bloque(&offset, datos, bloques_nuevos[j], &tamanio_nuevo);
 			string_append_with_format(&bloques_guardar, "%s", bloques_nuevos[j]);
 
-			liberar_vector(bloques_nuevos);
+			free(bloques_nuevos);
 		}
 
 	}else{ //tengo que borrar bloques
