@@ -60,6 +60,9 @@ void iniciar_consola(t_config* config, char** argv, int argc){
 //		liberar_vector(linea_split);
 	//	iniciar_consola(config);
 	}
+	if(linea_split!= NULL){
+		free(linea_split);
+	}
 
 }
 
@@ -86,7 +89,7 @@ void help(char* mensaje){
 void liberar_consola(char* proceso, char* mensaje, char** linea_split){
 	free(proceso);
 	free(mensaje);
-	liberar_vector(linea_split);
+//	liberar_vector(linea_split);
 }
 
 //////////////VERIFICACION DEL MENSAJE////////////////////////
@@ -217,7 +220,8 @@ void ejecutar_modo_suscriptor(char** linea_split, t_config* config){
 	mensaje->tipo_mensaje = SUSCRIPCION;
 
 	int id_proceso = config_get_int_value(config, "ID_PROCESO");
-	char* parametros[2] = {linea_split[1], string_itoa(id_proceso)};
+	char* aux = string_itoa(id_proceso);
+	char* parametros[2] = {linea_split[1], aux};
 	mensaje -> parametros = parametros;
 
 	int socket_broker = iniciar_cliente(ip, puerto);
@@ -226,7 +230,9 @@ void ejecutar_modo_suscriptor(char** linea_split, t_config* config){
 
 	enviar_mensaje(mensaje, socket_broker);
 
+	free(mensaje);
 	puts("enviar mensaje");
+	free(aux);
 
 	int tiempo_de_espera = atoi(linea_split[2]);
 
@@ -275,30 +281,44 @@ void process_request(int cod_op, int cliente_fd){
 		id_ack = new_pokemon->id;
 		enviar_ack(cliente_fd, id_ack, id_proceso);
 		log_info(logger, "Llego el mensaje New_pokemon del pokemon: %s en las coordenadas: %d %d con la cantidad de: %d con ID: %d", new_pokemon->nombre.nombre, new_pokemon->coordenadas.pos_x, new_pokemon->coordenadas.pos_y, new_pokemon->cantidad, id_ack);
+		free(buffer);
+		free(new_pokemon->nombre.nombre);
+		free(new_pokemon);
 		break;
 	case APPEARED_POKEMON:
 		appeared_pokemon = deserializar_position_and_name(buffer);
 		id_ack = appeared_pokemon->id;
 		enviar_ack(cliente_fd, id_ack, id_proceso);
 		log_info(logger, "Llego el mensaje Appeared_pokemon del pokemon: %s en las coordenadas: %d %d con ID: %d", appeared_pokemon->nombre.nombre, appeared_pokemon->coordenadas.pos_x, appeared_pokemon->coordenadas.pos_y, appeared_pokemon->id);
+		free(buffer);
+		free(appeared_pokemon->nombre.nombre);
+		free(appeared_pokemon);
 		break;
 	case CATCH_POKEMON:
 		catch_pokemon = deserializar_position_and_name(buffer);
 		id_ack = catch_pokemon->id;
 		enviar_ack(cliente_fd, id_ack, id_proceso);
 		log_info(logger, "Llego el mensaje Catch_pokemon del pokemon: %s en las coordenadas: %d %d con ID: %d", catch_pokemon->nombre.nombre, catch_pokemon->coordenadas.pos_x, catch_pokemon->coordenadas.pos_y, catch_pokemon->id);
+		free(buffer);
+		free(catch_pokemon->nombre.nombre);
+		free(catch_pokemon);
 		break;
 	case CAUGHT_POKEMON:
 		caught_pokemon = deserializar_caught_pokemon(buffer);
 		id_ack = caught_pokemon->id;
 		enviar_ack(cliente_fd, id_ack, id_proceso);
 		log_info(logger, "Llego el mensaje Caught_pokemon con el bit de captura en: %d con ID: %d con correlation id: %d", caught_pokemon->caught, caught_pokemon->id, caught_pokemon->correlation_id );
+		free(buffer);
+		free(caught_pokemon);
 		break;
 	case GET_POKEMON:
 		get_pokemon = deserializar_get_pokemon(buffer);
 		id_ack = get_pokemon->id;
 		enviar_ack(cliente_fd, id_ack, id_proceso);
 		log_info(logger, "Llego el mensaje Get_pokemon del pokemon: %s con ID: %d", get_pokemon->nombre.nombre , get_pokemon->id);
+		free(buffer);
+		free(get_pokemon->nombre.nombre);
+		free(get_pokemon);
 		break;
 	case LOCALIZED_POKEMON:
 		localized_pokemon = deserializar_localized_pokemon(buffer);
@@ -313,12 +333,21 @@ void process_request(int cod_op, int cliente_fd){
 		}
 		string_append_with_format(&mensaje_localized_pokemon, "con correlation id: %d", localized_pokemon->correlation_id);
 		log_info(logger, mensaje_localized_pokemon);
+		free(mensaje_localized_pokemon);
+		list_destroy_and_destroy_elements(localized_pokemon->listaCoordenadas, (void*)destruirElemento);
+		free(localized_pokemon->nombre.nombre);
+		free(localized_pokemon);
+		free(buffer);
 		break;
 	case -1:
 		pthread_exit(NULL);
 	}
 
 }
+
+void destruirElemento(void* elemento){
+		free(elemento);
+	}
 
 
 void ejecutar_broker(char** linea_split, t_config* config, tipo_id flag_id){
@@ -347,7 +376,7 @@ void ejecutar_broker(char** linea_split, t_config* config, tipo_id flag_id){
 		log_info(logger,"DEBUG: recibio el ack %d",id);
 	}
 	liberar_conexion(socket_broker);
-
+//	liberar_vector(linea_split);
 	free(mensaje -> parametros);
 	free(mensaje);
 }
@@ -383,7 +412,7 @@ void ejecutar_team(char** linea_split, t_config* config){
 	}
 
 	liberar_conexion(socket_team);
-
+//	liberar_vector(linea_split);
 	free(mensaje -> parametros);
 	free(mensaje);
 }
@@ -418,12 +447,15 @@ void ejecutar_gamecard(char** linea_split, t_config* config, tipo_id flag_id){
 		t_ack* ack = deserializar_ack(buffer);
 
 		log_info(logger,"DEBUG: recibio el ack %d",ack->id_mensaje);
+		free(ack);
+		free(buffer);
 	}
 
 
 	liberar_conexion(socket_gamecard);
-
-	free(mensaje -> parametros);
+	free(mensaje->parametros);
+//	liberar_vector(linea_split);
+//	liberar_vector(mensaje -> parametros);
 	free(mensaje);
 }
 

@@ -870,8 +870,8 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
 			sem_post(&semAppeared);
 		}else{
-//			free(appeared->nombre.nombre);
-//			free(appeared);
+			free(appeared->nombre.nombre);
+			free(appeared);
 		}
 		break;
 
@@ -923,7 +923,6 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			free(localized->nombre.nombre);
 			free(localized);
 		}
-		puts(localized->nombre.nombre);
 		puts("deserializo");
 
 		break;

@@ -81,6 +81,7 @@ char* calcular_id(tipo_id flag_id, char** linea_split);
 char* calcular_correlation_id(tipo_id flag_id, char** linea_split);
 void recibir_mensajes_de_cola(int* socket);
 void process_request(int cod_op, int cliente_fd);
+void destruirElemento(void* elemento);
 
 
 #endif /* UTILS_H_ */
