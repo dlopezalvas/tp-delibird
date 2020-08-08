@@ -11,11 +11,11 @@ int proceso_valido(char*procesos_validos,char* proceso){
 	return 0;
 }
 
-void log_suscribir_mensaje_queue(char* proceso,char* queue){
-	pthread_mutex_lock(&logger_mutex);
-	log_info(logger,"Proceso: %s se suscribio a la cola: %s", proceso, queue);
-	pthread_mutex_unlock(&logger_mutex);
-}
+//void log_suscribir_mensaje_queue(char* proceso,char* queue){
+//	pthread_mutex_lock(&logger_mutex);
+//	log_info(logger,"Proceso: %s se suscribio a la cola: %s", proceso, queue);
+//	pthread_mutex_unlock(&logger_mutex);
+//}
 
 void crear_queues(void){
 	unique_message_id = 0;
@@ -107,9 +107,9 @@ void serve_client(int socket){
 		rec = recv(socket, &cod_op, sizeof(op_code), MSG_WAITALL);
 		if(rec == -1 || rec == 0 ){
 			cod_op = -1;
-			pthread_mutex_lock(&logger_mutex);
-			log_info(logger,"Se desconecto el proceso con id: %d",socket);
-			pthread_mutex_unlock(&logger_mutex);
+//			pthread_mutex_lock(&logger_mutex);
+//			log_info(logger,"Se desconecto el proceso con id: %d",socket);
+//			pthread_mutex_unlock(&logger_mutex);
 			pthread_exit(NULL);
 		}
 		puts("recibi un mensaje");
@@ -135,6 +135,7 @@ void process_request(int cod_op, int cliente_fd) {
 	}else if(cod_op == ACK){
 		t_ack* ack = deserializar_ack(buffer);
 		printf("id %d, proceso %d\n", ack->id_mensaje, ack->id_proceso);
+		log_info(logger, "Recepcion de mensaje %d por el proceso %d ", ack->id_mensaje, cliente_fd);
 		pthread_mutex_lock(&ack_queue_mutex);
 		queue_push(ACK_COLA, ack);
 		pthread_mutex_unlock(&ack_queue_mutex);
@@ -144,6 +145,30 @@ void process_request(int cod_op, int cliente_fd) {
 	}
 
 
+}
+
+
+char* stringCola(op_code estado){
+	switch (estado){
+	case NEW_POKEMON:
+		return "NEW_POKEMON";
+		break;
+	case APPEARED_POKEMON:
+		return "APPEARED_POKEMON";
+		break;
+	case CATCH_POKEMON:
+		return "CATCH_POKEMON";
+		break;
+	case CAUGHT_POKEMON:
+		return "CAUGHT_POKEMON";
+		break;
+	case GET_POKEMON:
+		return "GET_POKEMON";
+		break;
+	case LOCALIZED_POKEMON:
+		return "LOCALIZED_POKEMON";
+		break;
+	}
 }
 
 int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
@@ -166,6 +191,8 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	}else{
 		buffer_broker = deserializar_broker_ida(buffer,size); //si no es de respuesta no tiene correlation id
 	}
+
+	log_info(logger, "LLega mensaje %s id: %d correlation id: %d", stringCola(cod_op), buffer_broker->id, buffer_broker->correlation_id);
 	puts("antes de almacenar dato");
 
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
@@ -357,6 +384,7 @@ void ejecutar_new_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, NEW_POKEMON, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
 			index++;
 		}
 
@@ -389,6 +417,7 @@ void ejecutar_appeared_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, APPEARED_POKEMON, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
 			index++;
 		}
 
@@ -421,6 +450,7 @@ void ejecutar_catch_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, CATCH_POKEMON, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
 			index++;
 		}
 
@@ -452,6 +482,7 @@ void ejecutar_caught_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, CAUGHT_POKEMON, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
 			index++;
 		}
 
@@ -486,6 +517,7 @@ void ejecutar_get_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, GET_POKEMON, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
 			index++;
 		}
 
@@ -518,6 +550,7 @@ void ejecutar_localized_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, LOCALIZED_POKEMON, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
 			index++;
 		}
 
@@ -544,10 +577,10 @@ void ejecutar_suscripcion(){
 		int suscriptor = mensaje->suscriptor;
 		puts(string_itoa(suscriptor));
 		char* log_debug_suscripcion = string_new();
-		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
-		pthread_mutex_lock(&logger_mutex);
-		log_info(logger,log_debug_suscripcion);
-		pthread_mutex_unlock(&logger_mutex);
+//		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
+//		pthread_mutex_lock(&logger_mutex);
+//		log_info(logger,log_debug_suscripcion);
+//		pthread_mutex_unlock(&logger_mutex);
 		switch (mensaje_suscripcion->cola) {
 		case NEW_POKEMON:
 			pthread_mutex_lock(&suscripcion_new_queue_mutex);
@@ -634,6 +667,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 			pthread_mutex_t* cola_mtx = semaforo_de_cola(mensaje_suscripcion->cola);
 			pthread_mutex_lock(cola_mtx);
 			enviar_mensaje_broker(suscriptor, a_enviar, bytes, bloque->particion->cola, index);
+			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(bloque->particion->cola), bloque->id, suscriptor);
 			pthread_mutex_unlock(cola_mtx);
 			index++;
 		}
@@ -934,6 +968,155 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 	pthread_mutex_unlock(&lista_particiones_mtx);
 	return best;
 
+}
+
+void dump_cache (int n){		//para usarla en cosola killall -s USR1 Broker
+	if(n == SIGUSR1){
+		log_info(logger, "Se realizara el Dump de la cache");
+		switch(configuracion_cache->algoritmo_memoria){
+		case BS:
+			ver_estado_cache_buddy();
+			break;
+		case PARTICIONES:
+			ver_estado_cache_particiones();
+			break;
+		}
+	}
+}
+
+void ver_estado_cache_buddy(){
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+			return particion1->base < particion2->base;
+		}
+	t_list* dump_buddy = list_create();
+	pthread_mutex_lock(&memoria_buddy_mutex);
+	list_add_all(dump_buddy,memoria_buddy);
+	pthread_mutex_unlock(&memoria_buddy_mutex);
+	list_sort(dump_buddy, (void*)_orden);
+
+	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
+
+	fseek(dump_cache, 0, SEEK_END); //me paro al final
+
+	time_t fecha = time(NULL);
+
+	struct tm *tlocal = localtime(&fecha);
+	char output[128];
+
+	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
+
+	fprintf(dump_cache, "Dump:%s\n\n", output);
+
+	int i = 1;
+
+	void _imprimir_datos(t_particion* particion){
+		char* cola = cola_segun_cod(particion->cola);
+		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
+				i, (void*)particion->base, (void*)(particion->base + particion->tamanio - 1), particion->ocupado, particion->tamanio,
+				transformar_a_fecha(particion->fecha), cola, particion->id_mensaje);
+		i++;
+	}
+
+	list_iterate(dump_buddy, (void*)_imprimir_datos);
+
+	fprintf(dump_cache, "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
+
+	fclose(dump_cache);
+
+}
+
+
+
+char* cola_segun_cod(op_code cod_op){
+	char* cola = string_new();
+	switch(cod_op){
+	case NEW_POKEMON:
+		string_append(&cola, "NEW_POKEMON");
+		break;
+	case GET_POKEMON:
+		string_append(&cola, "GET_POKEMON");
+		break;
+	case LOCALIZED_POKEMON:
+		string_append(&cola, "LOCALIZED_POKEMON");
+		break;
+	case CATCH_POKEMON:
+		string_append(&cola, "CATCH_POKEMON");
+		break;
+	case CAUGHT_POKEMON:
+		string_append(&cola, "CAUGHT_POKEMON");
+		break;
+	case APPEARED_POKEMON:
+		string_append(&cola, "APPEARED_POKEMON");
+		break;
+	}
+
+	return cola;
+}
+void ver_estado_cache_particiones(){
+
+	bool _orden(t_particion* particion1, t_particion* particion2){
+			return particion1->base < particion2->base;
+		}
+	t_list* dump_particiones = list_create();
+	pthread_mutex_lock(&lista_particiones_mtx);
+	list_add_all(dump_particiones,particiones);
+	pthread_mutex_unlock(&lista_particiones_mtx);
+	list_sort(dump_particiones, (void*)_orden);
+
+	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
+
+	fseek(dump_cache, 0, SEEK_END); //me paro al final
+
+	time_t fecha = time(NULL);
+
+	struct tm *tlocal = localtime(&fecha);
+	char output[128];
+
+	strftime(output, 128, "%d/%m/%Y %H:%M:%S", tlocal);
+
+	fprintf(dump_cache, "Dump:%s\n\n", output);
+
+	int i = 1;
+
+	void _imprimir_datos(t_particion* particion){
+		char* cola = cola_segun_cod(particion->cola);
+		fprintf(dump_cache, "Partición %d: %p - %p [%d]   Size: %db     LRU: %s     COLA: %s     ID: %d\n",
+				i, (void*)particion->base, (void*)(particion->base + particion->tamanio - 1), particion->ocupado, particion->tamanio,
+				transformar_a_fecha(particion->fecha), cola, particion->id_mensaje);
+		i++;
+	}
+
+	list_iterate(dump_particiones, (void*)_imprimir_datos);
+
+	fprintf(dump_cache, "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
+
+	fclose(dump_cache);
+
+	list_destroy(dump_particiones);
+}
+
+char* transformar_a_fecha(struct timeval tv){
+
+	char buffer[26];
+	int millisec;
+	struct tm* tm_info;
+
+	millisec = lrint(tv.tv_usec/1000.0); // Round to nearest millisec
+	if (millisec>=1000) { // Allow for rounding up to nearest second
+		millisec -=1000;
+		tv.tv_sec++;
+	}
+
+	tm_info = localtime(&tv.tv_sec);
+
+	strftime(buffer, 26, "%d/%m/%Y %H:%M:%S", tm_info);
+
+	char* fecha = string_new();
+
+	string_append_with_format(&fecha,"%s.%03d", buffer, millisec);
+
+	return fecha;
 }
 
 t_particion* elegir_victima_particiones(int tamanio_a_almacenar){

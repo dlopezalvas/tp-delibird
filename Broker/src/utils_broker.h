@@ -254,5 +254,13 @@ bool esta_ocupada();
 
 uint64_t timestamp();
 
+void dump_cache (int n);
+
+
+void ver_estado_cache_particiones();
+void ver_estado_cache_buddy();
+char* transformar_a_fecha(struct timeval tv);
+char* cola_segun_cod(op_code cod_op);
+
 
 #endif /* UTILS_BROKER_H_ */
