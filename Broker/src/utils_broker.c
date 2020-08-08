@@ -134,6 +134,7 @@ void process_request(int cod_op, int cliente_fd) {
 		sem_post(&suscripcion_sem);
 	}else if(cod_op == ACK){
 		t_ack* ack = deserializar_ack(buffer);
+		free(buffer);
 		printf("id %d, proceso %d\n", ack->id_mensaje, ack->id_proceso);
 		log_info(logger, "Recepcion de mensaje %d por el proceso %d ", ack->id_mensaje, cliente_fd);
 		pthread_mutex_lock(&ack_queue_mutex);
@@ -173,7 +174,7 @@ char* stringCola(op_code estado){
 
 int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
-	t_buffer_broker* buffer_broker = malloc(sizeof(t_buffer_broker));
+	t_buffer_broker* buffer_broker;
 	pthread_mutex_lock(&unique_id_mutex);
 	unique_message_id++;
 	uint32_t mensaje_id = unique_message_id;
@@ -190,6 +191,8 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	}else{
 		buffer_broker = deserializar_broker_ida(buffer,size); //si no es de respuesta no tiene correlation id
 	}
+
+	free(buffer);
 
 	log_info(logger, "LLega mensaje %s id: %d correlation id: %d", stringCola(cod_op), buffer_broker->id, buffer_broker->correlation_id);
 	puts("antes de almacenar dato");
@@ -378,9 +381,9 @@ void ejecutar_new_pokemon(){
 
 		int bytes = 0;
 		pthread_mutex_lock(&lista_particiones_mtx);
-		pthread_mutex_lock(&(bloque_broker->mtx));
+
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
-		pthread_mutex_unlock(&(bloque_broker->mtx));
+
 		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
@@ -396,6 +399,11 @@ void ejecutar_new_pokemon(){
 		pthread_mutex_lock(&suscripcion_new_queue_mutex);
 		list_iterate(NEW_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_new_queue_mutex);
+
+		free(a_enviar);
+		free(paquete -> buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 
 	}
 }
@@ -413,9 +421,9 @@ void ejecutar_appeared_pokemon(){
 
 		int bytes = 0;
 		pthread_mutex_lock(&lista_particiones_mtx);
-		pthread_mutex_lock(&(bloque_broker->mtx));
+
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
-		pthread_mutex_unlock(&(bloque_broker->mtx));
+
 		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
@@ -432,6 +440,11 @@ void ejecutar_appeared_pokemon(){
 		list_iterate(APPEARED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_appeared_queue_mutex);
 		puts("envio appeared_pokemon");
+
+		free(a_enviar);
+		free(paquete -> buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 	}
 }
 
@@ -448,9 +461,9 @@ void ejecutar_catch_pokemon(){
 
 		int bytes = 0;
 		pthread_mutex_lock(&lista_particiones_mtx);
-		pthread_mutex_lock(&(bloque_broker->mtx));
+
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
-		pthread_mutex_unlock(&(bloque_broker->mtx));
+
 		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
@@ -466,6 +479,11 @@ void ejecutar_catch_pokemon(){
 		pthread_mutex_lock(&suscripcion_catch_queue_mutex);
 		list_iterate(CATCH_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_catch_queue_mutex);
+
+		free(a_enviar);
+		free(paquete -> buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 	}
 }
 
@@ -482,9 +500,9 @@ void ejecutar_caught_pokemon(){
 
 		int bytes = 0;
 		pthread_mutex_lock(&lista_particiones_mtx);
-		pthread_mutex_lock(&(bloque_broker->mtx));
+
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
-		pthread_mutex_unlock(&(bloque_broker->mtx));
+
 		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
@@ -501,6 +519,11 @@ void ejecutar_caught_pokemon(){
 		pthread_mutex_lock(&suscripcion_caught_queue_mutex);
 		list_iterate(CAUGHT_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_caught_queue_mutex);
+
+		free(a_enviar);
+		free(paquete -> buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 
 	}
 }
@@ -519,9 +542,9 @@ void ejecutar_get_pokemon(){
 
 		int bytes = 0;
 		pthread_mutex_lock(&lista_particiones_mtx);
-		pthread_mutex_lock(&(bloque_broker->mtx));
+
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
-		pthread_mutex_unlock(&(bloque_broker->mtx));
+
 		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
@@ -537,6 +560,11 @@ void ejecutar_get_pokemon(){
 		pthread_mutex_lock(&suscripcion_get_queue_mutex);
 		list_iterate(GET_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_get_queue_mutex);
+
+		free(a_enviar);
+		free(paquete -> buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 
 	}
 }
@@ -554,9 +582,9 @@ void ejecutar_localized_pokemon(){
 
 		int bytes = 0;
 		pthread_mutex_lock(&lista_particiones_mtx);
-		pthread_mutex_lock(&(bloque_broker->mtx));
+
 		t_paquete* paquete = preparar_mensaje_a_enviar(bloque_broker, codigo_operacion);
-		pthread_mutex_unlock(&(bloque_broker->mtx));
+
 		pthread_mutex_unlock(&lista_particiones_mtx);
 
 		void* a_enviar = serializar_paquete(paquete, &bytes);
@@ -572,6 +600,11 @@ void ejecutar_localized_pokemon(){
 		pthread_mutex_lock(&suscripcion_localized_queue_mutex);
 		list_iterate(LOCALIZED_POKEMON_QUEUE_SUSCRIPT, (void*)_enviar_mensaje_broker);
 		pthread_mutex_unlock(&suscripcion_localized_queue_mutex);
+
+		free(a_enviar);
+		free(paquete -> buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 
 	}
 }
@@ -847,9 +880,9 @@ void compactar(){
 		particion_unica->ocupado = false;
 		list_add(particiones, particion_unica);
 	}
+	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
 	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
-	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,"Se ejecuto la compactacion");
 	pthread_mutex_unlock(&logger_mutex);
@@ -1230,7 +1263,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
 	pthread_mutex_unlock(&memoria_cache_mtx);
 
-
+	pthread_mutex_lock(&lista_particiones_mtx);
 	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
 		t_particion* particion_nueva = malloc(sizeof(t_particion));														//pero si el sobrante es menor a la cantidad minima no se creara una particion nueva
 		particion_nueva->base = particion_libre->base + tamanio;
@@ -1240,11 +1273,8 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 		particion_nueva->ocupado = false;
 		particion_libre->tamanio = tamanio;
 
-		pthread_mutex_lock(&lista_particiones_mtx);
 		list_add(particiones, particion_nueva);
-		pthread_mutex_unlock(&lista_particiones_mtx);
 	}
-	pthread_mutex_lock(&lista_particiones_mtx);
 	particion_libre->ultimo_acceso = timestamp(&(particion_libre->fecha)); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
