@@ -136,7 +136,9 @@ void process_request(int cod_op, int cliente_fd) {
 		t_ack* ack = deserializar_ack(buffer);
 		free(buffer);
 		printf("id %d, proceso %d\n", ack->id_mensaje, ack->id_proceso);
+		pthread_mutex_lock(&logger_mutex);
 		log_info(logger, "Recepcion de mensaje %d por el proceso %d ", ack->id_mensaje, cliente_fd);
+		pthread_mutex_unlock(&logger_mutex);
 		pthread_mutex_lock(&ack_queue_mutex);
 		queue_push(ACK_COLA, ack);
 		pthread_mutex_unlock(&ack_queue_mutex);
@@ -194,7 +196,9 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 
 	free(buffer);
 
+	pthread_mutex_lock(&logger_mutex);
 	log_info(logger, "LLega mensaje %s id: %d correlation id: %d", stringCola(cod_op), buffer_broker->id, buffer_broker->correlation_id);
+	pthread_mutex_unlock(&logger_mutex);
 	puts("antes de almacenar dato");
 
 	t_bloque_broker* bloque_broker = malloc(sizeof(t_bloque_broker));
@@ -397,7 +401,11 @@ void ejecutar_new_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, NEW_POKEMON, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
+			pthread_mutex_unlock(&logger_mutex);
+
 			index++;
 		}
 
@@ -437,7 +445,11 @@ void ejecutar_appeared_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, APPEARED_POKEMON, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
+			pthread_mutex_unlock(&logger_mutex);
+
 			index++;
 		}
 
@@ -477,7 +489,11 @@ void ejecutar_catch_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, CATCH_POKEMON, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
+			pthread_mutex_unlock(&logger_mutex);
+
 			index++;
 		}
 
@@ -516,7 +532,11 @@ void ejecutar_caught_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, CAUGHT_POKEMON, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
+			pthread_mutex_unlock(&logger_mutex);
+
 			index++;
 		}
 
@@ -558,7 +578,11 @@ void ejecutar_get_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, GET_POKEMON, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
+			pthread_mutex_unlock(&logger_mutex);
+
 			index++;
 		}
 
@@ -598,7 +622,11 @@ void ejecutar_localized_pokemon(){
 		puts("esta por enviar un mensaje");
 		void _enviar_mensaje_broker(int cliente_a_enviar){
 			enviar_mensaje_broker(cliente_a_enviar, a_enviar, bytes, LOCALIZED_POKEMON, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(codigo_operacion), bloque_broker->id, cliente_a_enviar);
+			pthread_mutex_unlock(&logger_mutex);
+
 			index++;
 		}
 
@@ -681,10 +709,11 @@ void ejecutar_suscripcion(){
 			break;
 		}
 
-		free(buffer);
+
 //		free(mensaje->buffer);
-		free(mensaje);
 		enviar_faltantes(suscriptor, mensaje_suscripcion);
+		free(buffer);
+		free(mensaje);
 		free(mensaje_suscripcion);
 	}
 }
@@ -721,7 +750,10 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 			pthread_mutex_t* cola_mtx = semaforo_de_cola(mensaje_suscripcion->cola);
 			pthread_mutex_lock(cola_mtx);
 			enviar_mensaje_broker(suscriptor, a_enviar, bytes, bloque->particion->cola, index);
+
+			pthread_mutex_lock(&logger_mutex);
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(bloque->particion->cola), bloque->id, suscriptor);
+			pthread_mutex_unlock(&logger_mutex);
 			pthread_mutex_unlock(cola_mtx);
 			index++;
 			free(a_enviar);
@@ -1049,7 +1081,9 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 
 void dump_cache (int n){		//para usarla en cosola killall -s USR1 Broker
 	if(n == SIGUSR1){
+		pthread_mutex_lock(&logger_mutex);
 		log_info(logger, "Se realizara el Dump de la cache");
+		pthread_mutex_unlock(&logger_mutex);
 		switch(configuracion_cache->algoritmo_memoria){
 		case BS:
 			ver_estado_cache_buddy();
