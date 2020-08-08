@@ -205,7 +205,6 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 	bloque_broker->tamanio_real = buffer_broker->tamanio; //tamaño del mensaje (incluido correlation id y/o id) por si el mensaje se guarda en una particion mas grande que el (frag interna)
 
-
 	free(buffer_broker->buffer);
 	free(buffer_broker);
 
@@ -784,6 +783,8 @@ void iniciar_memoria(){
 	particion_inicial->base = (int)memoria_cache;
 	particion_inicial->tamanio = configuracion_cache->tamanio_memoria;
 	particion_inicial->id_mensaje = 0;
+	particion_inicial->cola = 0;
+	particion_inicial->ocupado = false;
 	particion_inicial->ultimo_acceso = timestamp(&(particion_inicial->fecha));
 
 	pthread_mutex_lock(&id_fifo_mutex);
@@ -822,6 +823,7 @@ t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo
 
 	t_particion* particion_libre;
 
+	pthread_mutex_lock(&lista_particiones_mtx);
 	switch(configuracion_cache->algoritmo_part_libre){
 	case FIRST_FIT:
 		particion_libre = particion_libre_ff(tamanio);
@@ -831,7 +833,7 @@ t_particion* almacenar_dato_particiones(void* datos, int tamanio, op_code codigo
 	}
 
 	asignar_particion(datos, particion_libre, tamanio, codigo_op, id);
-
+	pthread_mutex_unlock(&lista_particiones_mtx);
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,"Se ha guardado el mensaje %d en la posicion %p", id, (void*)particion_libre->base);
 	pthread_mutex_unlock(&logger_mutex);
@@ -852,13 +854,15 @@ void compactar(){
 	int offset = 0;
 	t_particion* aux;
 
-	pthread_mutex_lock(&lista_particiones_mtx);
-
-	ordenar_particiones(particiones); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
-
 	bool _esta_ocupada(t_particion* part){
 		return part->ocupado;
 	}
+
+
+
+//	pthread_mutex_lock(&lista_particiones_mtx);
+
+	ordenar_particiones(particiones); //ordeno entonces puedo ir moviendo una por una al principio de la memoria
 
 	t_list* particiones_ocupadas = list_filter(particiones, (void*)_esta_ocupada);
 
@@ -871,7 +875,6 @@ void compactar(){
 		aux->base = (int)memoria_cache + offset;
 		offset+= aux->tamanio;
 	}
-	pthread_mutex_unlock(&memoria_cache_mtx);
 
 	t_list* particiones_aux = list_filter(particiones, (void*)esta_ocupada);
 
@@ -882,17 +885,16 @@ void compactar(){
 	if(configuracion_cache->tamanio_memoria - offset != 0){
 
 		t_particion* particion_unica = malloc(sizeof(t_particion));
-		pthread_mutex_lock(&memoria_cache_mtx);
 		particion_unica->base = (int) memoria_cache + offset;
-		pthread_mutex_unlock(&memoria_cache_mtx);
 		particion_unica->tamanio = configuracion_cache->tamanio_memoria - offset; //esto esta bien?
 		particion_unica->id_mensaje = 0;
 		particion_unica->ultimo_acceso = timestamp(&(particion_unica->fecha));
 		particion_unica->ocupado = false;
 		list_add(particiones, particion_unica);
 	}
+	pthread_mutex_unlock(&memoria_cache_mtx);
 	list_destroy(particiones_ocupadas); //esto no deberia borrar los elementos, si los borra entonces sacar(?
-	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
+//	pthread_mutex_unlock(&lista_particiones_mtx); //otro mutex grande :(
 
 	pthread_mutex_lock(&logger_mutex);
 	log_info(logger,"Se ejecuto la compactacion");
@@ -907,7 +909,7 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 		return particion->tamanio>= tamanio_a_almacenar && !particion->ocupado && particion->tamanio >= configuracion_cache->tamanio_minimo_p;
 	}
 
-	pthread_mutex_lock(&lista_particiones_mtx);
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	ordenar_particiones(particiones);
 
 	particion_libre =  list_find(particiones, (void*) _puede_almacenar_y_esta_libre); //list find agarra el primero que cumpla, asi que el primero que tenga tamanio mayor o igual será
@@ -918,13 +920,17 @@ t_particion* buscar_particion_ff(int tamanio_a_almacenar){ //falta ordenar lista
 		id_fifo++;
 		particion_libre->id = id_fifo;
 		pthread_mutex_unlock(&id_fifo_mutex);
+	}else{
+		puts("--------------NO ENCUENTRA");
 	}
 
-	pthread_mutex_unlock(&lista_particiones_mtx);
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 	return particion_libre;
 }
 
 t_particion* particion_libre_ff(int tamanio_a_almacenar){
+
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	t_particion* particion_libre = buscar_particion_ff(tamanio_a_almacenar);
 
 	int contador = configuracion_cache->frecuencia_compact;
@@ -940,12 +946,14 @@ t_particion* particion_libre_ff(int tamanio_a_almacenar){
 			contador = 0;
 		}
 	}
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	return particion_libre;
 }
 
 t_particion* particion_libre_bf(int tamanio_a_almacenar){
 
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	t_particion* particion_libre = buscar_particion_bf(tamanio_a_almacenar);
 
 	int contador = configuracion_cache->frecuencia_compact;
@@ -961,7 +969,7 @@ t_particion* particion_libre_bf(int tamanio_a_almacenar){
 			contador = 0;
 		}
 	}
-
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 	return particion_libre;
 }
 
@@ -981,7 +989,7 @@ void consolidar(t_particion* particion_liberada){
 		return particion_liberada->base == particion->base;
 	}
 
-	pthread_mutex_lock(&lista_particiones_mtx); //bloqueo aca porque puede pasar que otro hilo quiera ocupar una de las libres antes/mientras esta consolidando
+//	pthread_mutex_lock(&lista_particiones_mtx); //bloqueo aca porque puede pasar que otro hilo quiera ocupar una de las libres antes/mientras esta consolidando
 
 	t_particion* p_anterior = list_find(particiones,(void*) _es_la_anterior);
 	t_particion* p_siguiente = list_find(particiones,(void*) _es_la_siguiente);
@@ -1004,7 +1012,7 @@ void consolidar(t_particion* particion_liberada){
 		puts("------------------");
 	}
 
-	pthread_mutex_unlock(&lista_particiones_mtx); // re largo el mutex, preguntar que onda aca (?
+//	pthread_mutex_unlock(&lista_particiones_mtx); // re largo el mutex, preguntar que onda aca (?
 
 }
 
@@ -1020,7 +1028,7 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 		return particion->tamanio >= tamanio_a_almacenar && !particion->ocupado; //commo esta ordenada de menor a mayor, la primera que encuentre que tenga tamanio
 	}																			 //mayor o igual (y este vacia) será la mejor
 
-	pthread_mutex_lock(&lista_particiones_mtx);
+//	pthread_mutex_lock(&lista_particiones_mtx);
 
 	list_sort(particiones, (void*)_ordenar_por_tamanio); //ordeno de menor a mayor
 
@@ -1034,7 +1042,7 @@ t_particion* buscar_particion_bf(int tamanio_a_almacenar){ //se puede con fold c
 		pthread_mutex_unlock(&id_fifo_mutex);
 	}
 
-	pthread_mutex_unlock(&lista_particiones_mtx);
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 	return best;
 
 }
@@ -1095,8 +1103,6 @@ void ver_estado_cache_buddy(){
 
 }
 
-
-
 char* cola_segun_cod(op_code cod_op){
 	char* cola = string_new();
 	switch(cod_op){
@@ -1128,9 +1134,9 @@ void ver_estado_cache_particiones(){
 		return particion1->base < particion2->base;
 	}
 	t_list* dump_particiones = list_create();
-	pthread_mutex_lock(&lista_particiones_mtx);
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	list_add_all(dump_particiones,particiones);
-	pthread_mutex_unlock(&lista_particiones_mtx);
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 	list_sort(dump_particiones, (void*)_orden);
 
 	FILE* dump_cache = fopen("/home/utnso/workspace/tp-2020-1c-MCLDG/Broker/Dump_cache.txt", "a");
@@ -1209,7 +1215,7 @@ t_particion* elegir_victima_particiones_FIFO(){
 		return particion1->id < particion2->id;
 	}
 
-	pthread_mutex_lock(&lista_particiones_mtx);
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
 
 	bool _esta_ocupada(t_particion* part){
@@ -1220,7 +1226,7 @@ t_particion* elegir_victima_particiones_FIFO(){
 
 	eliminar_mensaje(particion);
 
-	pthread_mutex_unlock(&lista_particiones_mtx);
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	return particion;
 }
@@ -1233,14 +1239,14 @@ t_particion* elegir_victima_particiones_LRU(){
 		return particion1->ultimo_acceso < particion2->ultimo_acceso;
 	}
 
-	pthread_mutex_lock(&lista_particiones_mtx);
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	list_sort(particiones, (void*)_orden);
 
 	particion = list_find(particiones, (void*)esta_ocupada); //las ordeno por LRU y agarro la primera en la lista que este ocupada
 
 	eliminar_mensaje(particion);
 
-	pthread_mutex_unlock(&lista_particiones_mtx);
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 
 	return particion;
 
@@ -1274,7 +1280,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 	memcpy((void*)particion_libre->base, datos, tamanio); //copio a la memoria
 	pthread_mutex_unlock(&memoria_cache_mtx);
 
-	pthread_mutex_lock(&lista_particiones_mtx);
+//	pthread_mutex_lock(&lista_particiones_mtx);
 	if(particion_libre->tamanio != tamanio){ //si no entro justo (mismo tamanio), significa que queda una nueva particion de menor tamanio libre
 		t_particion* particion_nueva = malloc(sizeof(t_particion));														//pero si el sobrante es menor a la cantidad minima no se creara una particion nueva
 		particion_nueva->base = particion_libre->base + tamanio;
@@ -1289,7 +1295,7 @@ void asignar_particion(void* datos, t_particion* particion_libre, int tamanio, o
 	particion_libre->ultimo_acceso = timestamp(&(particion_libre->fecha)); //ya viene de antes con el bit de ocupado en true asi que nadie lo va a elegir (no hace falta semaforo)
 	particion_libre->cola = codigo_op;
 	particion_libre->id_mensaje = id;
-	pthread_mutex_unlock(&lista_particiones_mtx);
+//	pthread_mutex_unlock(&lista_particiones_mtx);
 
 }
 
