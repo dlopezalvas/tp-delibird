@@ -492,7 +492,7 @@ void actualizar_nuevo_pokemon(t_new_pokemon* pokemon){
 			config_destroy(config_datos);
 			list_destroy_and_destroy_elements(lista_datos, (void*)liberar_elemento);
 			liberar_vector(blocks);
-			liberar_vector(datos);
+			free(datos);
 		}else{
 			t_list* lista_datos = list_create();
 			string_append_with_format(&posicion, "=%d",pokemon->cantidad); //si no tiene pokemones en esa posicion, cargo solamente 1 (el pokemon nuevo)

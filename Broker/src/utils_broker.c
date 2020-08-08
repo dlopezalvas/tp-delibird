@@ -205,6 +205,10 @@ int suscribir_mensaje(int cod_op,void* buffer,int cliente_fd,uint32_t size){
 	bloque_broker->correlation_id = buffer_broker->correlation_id;
 	bloque_broker->tamanio_real = buffer_broker->tamanio; //tamaño del mensaje (incluido correlation id y/o id) por si el mensaje se guarda en una particion mas grande que el (frag interna)
 
+
+	free(buffer_broker->buffer);
+	free(buffer_broker);
+
 	pthread_mutex_init(&(bloque_broker->mtx), NULL);
 
 	pthread_mutex_lock(&ids_recibidos_mtx);
@@ -283,6 +287,8 @@ void ejecutar_ACK(){
 		pthread_mutex_unlock(&(bloque_broker->mtx));
 
 		pthread_mutex_unlock(&ids_recibidos_mtx);
+
+		free(ack);
 	}
 }
 
@@ -623,12 +629,8 @@ void ejecutar_suscripcion(){
 		t_suscripcion* mensaje_suscripcion = deserializar_suscripcion(buffer);
 
 		int suscriptor = mensaje->suscriptor;
-		puts(string_itoa(suscriptor));
-		char* log_debug_suscripcion = string_new();
-		//		string_append_with_format(&log_debug_suscripcion ,"DEBUG:El cliente %d se suscribio a la cola %d",mensaje->suscriptor, mensaje_suscripcion->cola);
-		//		pthread_mutex_lock(&logger_mutex);
-		//		log_info(logger,log_debug_suscripcion);
-		//		pthread_mutex_unlock(&logger_mutex);
+//		puts(string_itoa(suscriptor));
+
 		switch (mensaje_suscripcion->cola) {
 		case NEW_POKEMON:
 			pthread_mutex_lock(&suscripcion_new_queue_mutex);
@@ -679,7 +681,12 @@ void ejecutar_suscripcion(){
 			pthread_mutex_unlock(&logger_mutex);
 			break;
 		}
+
+		free(buffer);
+//		free(mensaje->buffer);
+		free(mensaje);
 		enviar_faltantes(suscriptor, mensaje_suscripcion);
+		free(mensaje_suscripcion);
 	}
 }
 
@@ -708,9 +715,7 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 		int index;
 		void _enviar_mensaje_faltante(t_bloque_broker* bloque){
 
-			pthread_mutex_lock(&(bloque->mtx));
 			t_paquete* paquete = preparar_mensaje_a_enviar(bloque, mensaje_suscripcion->cola);
-			pthread_mutex_unlock(&(bloque->mtx));
 			int bytes = 0;
 			void* a_enviar = serializar_paquete(paquete, &bytes);
 
@@ -720,10 +725,16 @@ void enviar_faltantes(int suscriptor, t_suscripcion* mensaje_suscripcion){
 			log_info(logger, "Se envia mensaje %s id: %d a suscriptor %d", stringCola(bloque->particion->cola), bloque->id, suscriptor);
 			pthread_mutex_unlock(cola_mtx);
 			index++;
+			free(a_enviar);
+			free(paquete -> buffer->stream);
+			free(paquete->buffer);
+			free(paquete);
 		}
 
 		list_iterate(mensajes_de_cola, (void*)_enviar_mensaje_faltante); //TODO esto se me hace re falopa, hay que ver que este bien
 	}
+
+	list_destroy(mensajes_de_cola);
 
 	pthread_mutex_unlock(&ids_recibidos_mtx);
 	pthread_mutex_unlock(&lista_particiones_mtx);
@@ -1411,6 +1422,7 @@ t_particion* eleccion_particion_asignada_buddy(int tamanio){
 	}else{
 		bloque_elegido = NULL;
 	}
+	list_destroy(lista_bloques_validos);
 	pthread_mutex_unlock(&memoria_buddy_mutex);
 	return bloque_elegido;
 }
@@ -1547,7 +1559,10 @@ t_particion* encontrar_y_consolidar_buddy(t_particion* bloque_buddy,t_particion*
 		pthread_mutex_lock(&memoria_buddy_mutex);
 
 		t_particion* bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy1);
-		bloque_a_remover_1 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy2);
+		free(bloque_a_remover_1);
+
+		t_particion* bloque_a_remover_2 = list_remove_by_condition(memoria_buddy,(void*)_mismo_id_buddy2);
+		free(bloque_a_remover_2);
 		pthread_mutex_unlock(&memoria_buddy_mutex);
 		//
 		pthread_mutex_lock(&memoria_buddy_mutex);
