@@ -291,7 +291,9 @@ void eliminarPokemonsObjetivoParticular(char* pokemon, t_list* pokemonsNoNecesar
 	bool _mismaEspecie(void* pokemonNoNecesario){
 		return mismaEspecie(pokemonNoNecesario, pokemon);
 	}
-	list_remove_by_condition(pokemonsNoNecesarios, _mismaEspecie);
+	t_pokemon* pokemonAEliminar = list_remove_by_condition(pokemonsNoNecesarios, _mismaEspecie);
+//	if(pokemonAEliminar != NULL) free(pokemonAEliminar->especie);
+//	free(pokemonAEliminar);
 }
 
 t_list* configurarPokemons(char** pokemons){ //funciona //objetivo global
@@ -471,11 +473,12 @@ void configurarObjetivoGlobal(){ //funciona
 
 }
 
-void removerPokemon(char* pokemon, t_list* lista){ //funciona
+char* removerPokemon(char* pokemon, t_list* lista){ //funciona
 	bool mismoPokemon(char* pokemon1 ){
 		return string_equals_ignore_case(pokemon, pokemon1);
 	}
-	list_remove_by_condition(lista, (void*)mismoPokemon);
+	return list_remove_by_condition(lista, (void*)mismoPokemon);
+
 }
 
 int distancia(int x1, int y1, int x2, int y2){ //funciona
@@ -519,12 +522,14 @@ void moverEntrenador(t_entrenador** entrenador, int x, int y){ //probar si funci
 void intercambiarPokemon(t_entrenador** entrenador){ // Funciona
 	t_intercambio* intercambio = (*entrenador)->intercambio;
 	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemons);
-	removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemonsNoNecesarios);
+	char* pokemon = removerPokemon(intercambio->pokemonAEntregar, (*entrenador)->pokemonsNoNecesarios);
+//	free(pokemon);
 	if(!necesitaPokemon(intercambio->entrenador, intercambio->pokemonAEntregar))
 		list_add(intercambio->entrenador->pokemonsNoNecesarios, intercambio->pokemonAEntregar);
 	list_add(intercambio->entrenador->pokemons, intercambio->pokemonAEntregar);
 	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemons);
-	removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemonsNoNecesarios);
+	pokemon = removerPokemon(intercambio->pokemonARecibir, intercambio->entrenador->pokemonsNoNecesarios);
+	free(pokemon);
 	if(!necesitaPokemon((*entrenador), intercambio->pokemonARecibir))
 		list_add((*entrenador)->pokemonsNoNecesarios, intercambio->pokemonARecibir);
 	list_add((*entrenador)->pokemons, intercambio->pokemonARecibir);
@@ -865,7 +870,8 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
 			sem_post(&semAppeared);
 		}else{
-			free(appeared);
+//			free(appeared->nombre.nombre);
+//			free(appeared);
 		}
 		break;
 
@@ -913,6 +919,8 @@ void process_request(int cod_op, int cliente_fd) { //funciona
 			sem_post(&semLocalized);
 		}
 		else{
+			list_destroy_and_destroy_elements(localized->listaCoordenadas, (void*)destruirElemento);
+			free(localized->nombre.nombre);
 			free(localized);
 		}
 		puts(localized->nombre.nombre);
@@ -1036,6 +1044,8 @@ void deteccionDeadlock(){ //funciona
 			else{
 				cambiarEstado(&entrenador, BLOCK, "termino de intercambiar pokemon");
 			}
+//			free(intercambio->pokemonAEntregar);
+//			free(intercambio->pokemonARecibir);
 			free(intercambio);
 			free(entrenador->intercambio);
 
@@ -1065,6 +1075,7 @@ bool mismoID(t_entrenador* entrenador, int ID){ //funciona
 
 void connect_appeared(){
 	op_code codigo_operacion = SUSCRIPCION;
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
@@ -1074,7 +1085,7 @@ void connect_appeared(){
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
 	enviar_mensaje(mensaje, socket_broker);
 	//	liberar_vector(mensaje->parametros);
 	free(mensaje);
@@ -1126,6 +1137,9 @@ void connect_appeared(){
 				queue_push(colaAppearedPokemon,appeared);
 				pthread_mutex_unlock(&mutex_cola_appeared_pokemon);
 				sem_post(&semAppeared);
+			}else{
+				free(appeared->nombre.nombre);
+				free(appeared);
 			}
 			//			puts(appeared->nombre.nombre);
 			puts("deserializo");
@@ -1163,7 +1177,7 @@ void get_pokemon(char*especie, int socket_broker, t_list* IDs){
 void connect_localized_pokemon(){
 
 	op_code codigo_operacion = SUSCRIPCION;
-
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
@@ -1172,7 +1186,7 @@ void connect_localized_pokemon(){
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
 
 	enviar_mensaje(mensaje, socket_broker);
 	puts("envia mensaje");
@@ -1194,6 +1208,7 @@ void connect_localized_pokemon(){
 	bool mismoIdMensaje(int ID){
 		return  (localized->correlation_id == ID);
 	}
+
 	op_code cod_op;
 	int _recv;
 	while(!(cumpleObjetivoGlobal())){
@@ -1254,6 +1269,10 @@ void connect_localized_pokemon(){
 				pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 				sem_post(&semLocalized);
 				free(mensaje);
+			}else{
+				list_destroy_and_destroy_elements(localized->listaCoordenadas, (void*)destruirElemento);
+				free(localized->nombre.nombre);
+				free(localized);
 			}
 			//			puts(localized->nombre.nombre);
 			puts("deserializo");
@@ -1264,9 +1283,13 @@ void connect_localized_pokemon(){
 	liberar_conexion(socket_broker); //hacer en finalizar team?
 }
 
+void destruirElemento(void* elemento){
+		free(elemento);
+	}
+
 void connect_caught_pokemon(){
 	op_code codigo_operacion = SUSCRIPCION;
-
+	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 	int id_proceso = config_get_int_value(config, "ID_PROCESO");
 
 	t_mensaje* mensaje = malloc(sizeof(t_mensaje));
@@ -1274,7 +1297,7 @@ void connect_caught_pokemon(){
 	mensaje -> tipo_mensaje = codigo_operacion;
 	mensaje -> parametros = linea_split;
 
-	int socket_broker = iniciar_cliente_team(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
 
 	enviar_mensaje(mensaje, socket_broker);
 	//	liberar_vector(mensaje -> parametros);
@@ -1328,6 +1351,8 @@ void connect_caught_pokemon(){
 				queue_push(colaCaughtPokemon,caught);
 				pthread_mutex_unlock(&mutex_cola_caught_pokemon);
 				sem_post(&semCaught);
+			}else{
+				free(caught);
 			}
 		}
 		free(buffer);
@@ -1546,7 +1571,7 @@ void localized_pokemon(){
 		localized = queue_pop(colaLocalizedPokemon);
 		pthread_mutex_unlock(&mutex_cola_localized_pokemon);
 		list_iterate(localized->listaCoordenadas, (void*)_llenarAppearedPokemon);
-		list_destroy(localized->listaCoordenadas);
+		list_destroy_and_destroy_elements(localized->listaCoordenadas, (void*)destruirElemento);
 		free(localized->nombre.nombre);
 		free(localized);
 	}

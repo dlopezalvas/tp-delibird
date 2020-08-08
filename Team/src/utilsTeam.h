@@ -129,7 +129,7 @@ void noCapturoPokemon(t_entrenador** entrenador);
 //Agrega los pokemon que necesita cada entrenador
 void configurarObjetivoGlobal();
 //remueve un pokemon de una lista de char* segun especie
-void removerPokemon(char* pokemon, t_list* lista);
+char* removerPokemon(char* pokemon, t_list* lista);
 //Funcion del hilo de cada entrenador (se mueve, manda catch, intercambio)
 void* entrenadorMaster(void* entrenador);
 //calcula la distancia entre dos coordenadas
@@ -217,5 +217,7 @@ bool tieneEspacioYEstaEnExec(t_entrenador* entrenador);
 bool puedeSerPlanificado(t_entrenador* entrenador);
 
 char* stringEstado(t_estado estado);
+
+void destruirElemento(void* elemento);
 
 #endif /* UTILSTEAM_H_ */
